@@ -1,0 +1,1 @@
+rootProject.name = "LangChain4j_Training_course"
