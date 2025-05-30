@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -64,14 +65,25 @@ class StructuredDataExtractionTests {
         System.out.println("Movie count: " + actorFilms.movies().size());
         actorFilms.movies().forEach(movie -> System.out.println("- " + movie));
 
-        // Verify the parsed data
-        assertNotNull(response, "Response should not be null");
-        assertTrue(response.contains("actor"), "Response should contain 'actor' field");
-        assertTrue(response.contains("movies"), "Response should contain 'movies' field");
-        assertNotNull(actorFilms, "Parsed ActorFilms should not be null");
-        assertNotNull(actorFilms.actor(), "Actor name should not be null");
-        assertNotNull(actorFilms.movies(), "Movies list should not be null");
-        assertEquals(5, actorFilms.movies().size(), "Should have exactly 5 movies");
+        // Verify the parsed data using hybrid approach
+        assertAll("JSON parsing validation",
+            () -> assertNotNull(response, "Response should not be null"),
+            () -> assertTrue(response.contains("actor"), "Response should contain 'actor' field"),
+            () -> assertTrue(response.contains("movies"), "Response should contain 'movies' field"),
+            () -> assertNotNull(actorFilms, "Parsed ActorFilms should not be null")
+        );
+        
+        // Use AssertJ for complex object validation where it excels
+        assertThat(actorFilms)
+                .as("Parsed ActorFilms structure")
+                .satisfies(af -> {
+                    assertThat(af.actor()).as("Actor name").isNotNull().isNotBlank();
+                    assertThat(af.movies()).as("Movies list").hasSize(5);
+                });
+                
+        // Verify each movie is not blank
+        actorFilms.movies().forEach(movie -> 
+            assertThat(movie).as("Individual movie").isNotBlank());
     }
 
     /**
@@ -122,18 +134,17 @@ class StructuredDataExtractionTests {
         System.out.println("Movies (" + actorFilms.movies().size() + "):");
         actorFilms.movies().forEach(movie -> System.out.println("- " + movie));
 
-        // Verify the extracted data
-        assertNotNull(actorFilms, "ActorFilms should not be null");
-        assertNotNull(actorFilms.actor(), "Actor name should not be null");
-        assertFalse(actorFilms.actor().trim().isEmpty(), "Actor name should not be empty");
-        assertNotNull(actorFilms.movies(), "Movies list should not be null");
-        assertEquals(5, actorFilms.movies().size(), "Should have exactly 5 movies");
+        // Verify the extracted data using hybrid approach
+        assertAll("AiServices extraction validation",
+            () -> assertNotNull(actorFilms, "ActorFilms should not be null"),
+            () -> assertNotNull(actorFilms.actor(), "Actor name should not be null"),
+            () -> assertFalse(actorFilms.actor().trim().isEmpty(), "Actor name should not be empty"),
+            () -> assertEquals(5, actorFilms.movies().size(), "Should have exactly 5 movies")
+        );
         
-        // Verify each movie is not empty
-        actorFilms.movies().forEach(movie -> {
-            assertNotNull(movie, "Movie should not be null");
-            assertFalse(movie.trim().isEmpty(), "Movie should not be empty");
-        });
+        // Verify each movie is not empty using AssertJ's fluent API
+        actorFilms.movies().forEach(movie -> 
+            assertThat(movie).as("Individual movie").isNotBlank());
     }
 
     /**
@@ -174,23 +185,26 @@ class StructuredDataExtractionTests {
             actorFilms.movies().forEach(movie -> System.out.println("   - " + movie));
         });
 
-        // Verify the extracted data
-        assertNotNull(result, "Result should not be null");
-        assertNotNull(filmographies, "Filmographies list should not be null");
-        assertEquals(3, filmographies.size(), "Should have exactly 3 actor filmographies");
+        // Verify the extracted data using hybrid approach
+        assertAll("Multiple filmographies validation",
+            () -> assertNotNull(result, "Result should not be null"),
+            () -> assertNotNull(filmographies, "Filmographies list should not be null"),
+            () -> assertEquals(3, filmographies.size(), "Should have exactly 3 actor filmographies")
+        );
         
-        // Verify each filmography
-        // Verify each movie is not empty
+        // Use AssertJ for complex validation of each filmography
         filmographies.forEach(actorFilms -> {
-            assertNotNull(actorFilms, "ActorFilms should not be null");
-            assertNotNull(actorFilms.actor(), "Actor name should not be null");
-            assertFalse(actorFilms.actor().trim().isEmpty(), "Actor name should not be empty");
-            assertNotNull(actorFilms.movies(), "Movies list should not be null");
-            assertEquals(4, actorFilms.movies().size(), "Each actor should have exactly 4 movies");
-            actorFilms.movies().forEach(movie -> {
-                assertNotNull(movie, "Movie should not be null");
-                assertFalse(movie.trim().isEmpty(), "Movie should not be empty");
-            });
+            assertThat(actorFilms)
+                    .as("Individual ActorFilms")
+                    .isNotNull()
+                    .satisfies(af -> {
+                        assertThat(af.actor()).as("Actor name").isNotNull().isNotBlank();
+                        assertThat(af.movies()).as("Actor's movies").hasSize(4);
+                    });
+            
+            // Verify each movie is not blank
+            actorFilms.movies().forEach(movie -> 
+                assertThat(movie).as("Individual movie").isNotBlank());
         });
     }
 
@@ -241,20 +255,21 @@ class StructuredDataExtractionTests {
         System.out.println("Movies:");
         actorFilms.movies().forEach(movie -> System.out.println("- " + movie));
 
-        // Verify the extracted data
-        assertNotNull(actorFilms, "ActorFilms should not be null");
-        assertNotNull(actorFilms.actor(), "Actor name should not be null");
-        assertTrue(actorFilms.actor().toLowerCase().contains("tom hanks") || 
-                  actorFilms.actor().toLowerCase().contains("hanks"), 
-                  "Actor should be Tom Hanks");
-        assertNotNull(actorFilms.movies(), "Movies list should not be null");
-        assertEquals(movieCount, actorFilms.movies().size(), 
-                    "Should have exactly " + movieCount + " movies");
+        // Verify the extracted data using hybrid approach
+        assertAll("Advanced extraction validation",
+            () -> assertNotNull(actorFilms, "ActorFilms should not be null"),
+            () -> assertNotNull(actorFilms.actor(), "Actor name should not be null"),
+            () -> assertEquals(movieCount, actorFilms.movies().size(), 
+                             "Should have exactly " + movieCount + " movies")
+        );
         
+        // Use AssertJ for string content validation where it excels
+        assertThat(actorFilms.actor())
+                .as("Actor name validation")
+                .containsIgnoringCase("hanks");
+                
         // Verify each movie is not empty
-        actorFilms.movies().forEach(movie -> {
-            assertNotNull(movie, "Movie should not be null");
-            assertFalse(movie.trim().isEmpty(), "Movie should not be empty");
-        });
+        actorFilms.movies().forEach(movie -> 
+            assertThat(movie).as("Individual movie").isNotBlank());
     }
 }

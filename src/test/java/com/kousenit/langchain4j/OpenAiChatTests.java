@@ -8,8 +8,8 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.junit.jupiter.api.Test;
 
 import static dev.langchain4j.model.openai.OpenAiChatModelName.*;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Lab 1: Basic Chat Interactions
@@ -45,8 +45,12 @@ class OpenAiChatTests {
         System.out.println(response);
         System.out.println("=".repeat(50));
         
-        assertNotNull(response, "Response should not be null");
-        assertFalse(response.isEmpty(), "Response should not be empty");
+        // Verify response using AssertJ
+        assertThat(response)
+                .as("Chat response")
+                .isNotNull()
+                .isNotEmpty()
+                .hasSizeGreaterThan(10);
     }
 
     /**
@@ -76,8 +80,12 @@ class OpenAiChatTests {
         System.out.println(responseText);
         System.out.println("=".repeat(50));
         
-        assertNotNull(responseText, "Response text should not be null");
-        assertFalse(responseText.isEmpty(), "Response text should not be empty");
+        // Verify pirate response using AssertJ
+        assertThat(responseText)
+                .as("Pirate response text")
+                .isNotNull()
+                .isNotEmpty()
+                .hasSizeGreaterThan(10);
         // Note: We could check for pirate-like language, but AI responses can vary
     }
 
@@ -102,7 +110,9 @@ class OpenAiChatTests {
         ChatResponse response = model.chat(userMessage);
 
         // Extract and print metadata
-        assertNotNull(response, "Response should not be null");
+        assertThat(response)
+                .as("Response object")
+                .isNotNull();
         
         String content = response.aiMessage().text();
         System.out.println("Response with Metadata:");
@@ -125,8 +135,11 @@ class OpenAiChatTests {
         
         System.out.println("=".repeat(50));
         
-        // Verify the response content
-        assertNotNull(content, "Response content should not be null");
-        assertFalse(content.isEmpty(), "Response content should not be empty");
+        // Verify the response content using AssertJ
+        assertThat(content)
+                .as("Response content")
+                .isNotNull()
+                .isNotEmpty()
+                .hasSizeGreaterThan(10);
     }
 }

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -68,14 +69,16 @@ class AiServicesTests {
         ActorFilms fullFilmography = service.getFullFilmography("Generate filmography for Leonardo DiCaprio with 5 movies");
         System.out.println("Full filmography: " + fullFilmography.actor() + " - " + fullFilmography.movies().size() + " movies");
 
-        // Verify results
-        assertNotNull(tomHanksMovies, "Movie list should not be null");
-        assertFalse(tomHanksMovies.isEmpty(), "Movie list should not be empty");
-        assertNotNull(analysis, "Analysis should not be null");
-        assertFalse(analysis.trim().isEmpty(), "Analysis should not be empty");
-        assertNotNull(fullFilmography, "Full filmography should not be null");
-        assertNotNull(fullFilmography.actor(), "Actor name should not be null");
-        assertNotNull(fullFilmography.movies(), "Movies list should not be null");
+        // Verify results using JUnit assertAll for grouped assertions
+        assertAll("Filmography service results",
+            () -> assertNotNull(tomHanksMovies, "Movie list should not be null"),
+            () -> assertFalse(tomHanksMovies.isEmpty(), "Movie list should not be empty"),
+            () -> assertNotNull(analysis, "Analysis should not be null"),
+            () -> assertFalse(analysis.trim().isEmpty(), "Analysis should not be empty"),
+            () -> assertNotNull(fullFilmography, "Full filmography should not be null"),
+            () -> assertNotNull(fullFilmography.actor(), "Actor name should not be null"),
+            () -> assertNotNull(fullFilmography.movies(), "Movies list should not be null")
+        );
     }
 
     /**
@@ -99,28 +102,28 @@ class AiServicesTests {
             String chat(String message);
         }
 
-        // Create AI service with memory and tools
+        // Create AI service with memory (tools will be covered in Lab 8)
         PersonalAssistant assistant = AiServices.builder(PersonalAssistant.class)
                 .chatModel(model)
                 .chatMemory(memory)
-                .tools(new DateTimeTool())
                 .build();
 
         // Have a conversation that uses both memory and tools
         String response1 = assistant.chat("Hi, my name is Alice and I'm a software developer.");
         System.out.println("Response 1: " + response1);
 
-        String response2 = assistant.chat("What's my name and what year will it be in 3 years?");
+        String response2 = assistant.chat("What's my name and what do I do for work?");
         System.out.println("Response 2: " + response2);
 
-        // Verify memory and tool usage
-        assertNotNull(response1, "First response should not be null");
-        assertNotNull(response2, "Second response should not be null");
-        assertTrue(response2.toLowerCase().contains("alice"), 
-                   "Response should remember the user's name from previous message");
-        // The response should contain a future year, indicating tool usage
-        assertTrue(response2.matches(".*202[7-9].*") || response2.matches(".*203[0-9].*"), 
-                   "Response should contain a future year from DateTimeTool");
+        // Verify memory usage (tools will be covered in Lab 8)
+        assertAll("Memory and conversation handling",
+            () -> assertNotNull(response1, "First response should not be null"),
+            () -> assertFalse(response1.trim().isEmpty(), "First response should not be empty"),
+            () -> assertNotNull(response2, "Second response should not be null"),
+            () -> assertFalse(response2.trim().isEmpty(), "Second response should not be empty"),
+            () -> assertTrue(response2.toLowerCase().contains("alice"), 
+                           "Response should remember the user's name from previous message")
+        );
     }
 
     /**
@@ -169,12 +172,15 @@ class AiServicesTests {
         System.out.println("Themes: " + themes);
         System.out.println("Sentiment: " + sentiment);
 
-        // Verify results
-        assertNotNull(analysis, "Analysis should not be null");
-        assertFalse(analysis.trim().isEmpty(), "Analysis should not be empty");
-        assertNotNull(themes, "Themes should not be null");
-        assertFalse(themes.isEmpty(), "Themes list should not be empty");
-        assertTrue(sentiment >= 1 && sentiment <= 10, "Sentiment should be between 1 and 10");
+        // Verify results using AssertJ for complex object validation
+        assertAll("Document analysis results",
+            () -> assertThat(analysis).as("Document analysis").isNotNull().isNotBlank(),
+            () -> assertThat(themes).as("Extracted themes").isNotNull().isNotEmpty(),
+            () -> assertThat(sentiment).as("Sentiment rating").isBetween(1, 10)
+        );
+        
+        // Verify each theme is not blank
+        themes.forEach(theme -> assertThat(theme).as("Individual theme").isNotBlank());
     }
 
     /**
@@ -184,13 +190,9 @@ class AiServicesTests {
      */
     @Test
     void advancedServiceConfiguration() {
-        // Create OpenAI chat model with specific configuration
-        ChatModel model = OpenAiChatModel.builder()
-                .apiKey(System.getenv("OPENAI_API_KEY"))
-                .modelName(GPT_4_1_NANO)
-                .temperature(0.3)  // Lower temperature for more consistent analysis
-                .build();
-
+        // Record for complex movie analysis data
+        record MovieAnalysis(String title, int rating, List<String> genres, String review) {}
+        
         // Define advanced movie analysis service
         interface MovieAnalysisService {
             @SystemMessage("You are a film critic and movie database expert.")
@@ -204,8 +206,12 @@ class AiServicesTests {
             MovieAnalysis getCompleteAnalysis(@V("movieTitle") String movieTitle);
         }
 
-        // Record for complex movie analysis data
-        record MovieAnalysis(String title, int rating, List<String> genres, String review) {}
+        // Create OpenAI chat model with specific configuration
+        ChatModel model = OpenAiChatModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName(GPT_4_1_NANO)
+                .temperature(0.3)  // Lower temperature for more consistent analysis
+                .build();
 
         // Create AI service
         MovieAnalysisService service = AiServices.builder(MovieAnalysisService.class)
@@ -227,15 +233,24 @@ class AiServicesTests {
         System.out.println("Genres: " + analysis.genres());
         System.out.println("Review: " + analysis.review());
 
-        // Verify results
-        assertTrue(rating >= 1 && rating <= 10, "Rating should be between 1 and 10");
-        assertNotNull(genres, "Genres should not be null");
-        assertFalse(genres.isEmpty(), "Genres should not be empty");
-        assertNotNull(analysis, "Complete analysis should not be null");
-        assertNotNull(analysis.title(), "Analysis title should not be null");
-        assertTrue(analysis.rating() >= 1 && analysis.rating() <= 10, "Analysis rating should be between 1 and 10");
-        assertNotNull(analysis.genres(), "Analysis genres should not be null");
-        assertNotNull(analysis.review(), "Analysis review should not be null");
-        assertFalse(analysis.review().trim().isEmpty(), "Analysis review should not be empty");
+        // Verify individual service results
+        assertAll("Individual service method results",
+            () -> assertThat(rating).as("Movie rating").isBetween(1, 10),
+            () -> assertThat(genres).as("Movie genres").isNotNull().isNotEmpty(),
+            () -> assertNotNull(analysis, "Complete analysis should not be null")
+        );
+        
+        // Verify complex analysis object using AssertJ where it shines
+        assertThat(analysis)
+                .as("Complete movie analysis")
+                .satisfies(movieAnalysis -> {
+                    assertThat(movieAnalysis.title()).as("Analysis title").isNotNull().isNotBlank();
+                    assertThat(movieAnalysis.rating()).as("Analysis rating").isBetween(1, 10);
+                    assertThat(movieAnalysis.genres()).as("Analysis genres").isNotNull().isNotEmpty();
+                    assertThat(movieAnalysis.review()).as("Analysis review").isNotNull().isNotBlank();
+                });
+                
+        // Verify each genre is not blank
+        genres.forEach(genre -> assertThat(genre).as("Individual genre").isNotBlank());
     }
 }

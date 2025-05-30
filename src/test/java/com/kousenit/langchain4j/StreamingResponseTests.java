@@ -13,6 +13,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -81,9 +82,11 @@ class StreamingResponseTests {
         // Wait for completion
         latch.await();
         
-        // Verify response was received
-        assertFalse(fullResponse.toString().isEmpty(), "Response should not be empty");
-        assertTrue(fullResponse.length() > 10, "Response should be substantial");
+        // Verify response was received using AssertJ
+        assertThat(fullResponse.toString())
+                .as("Streaming response")
+                .isNotEmpty()
+                .hasSizeGreaterThan(10);
         System.out.println("✅ Streaming test completed successfully");
     }
 
@@ -138,8 +141,14 @@ class StreamingResponseTests {
 
         // Wait for completion with timeout
         boolean completed = latch.await(30, TimeUnit.SECONDS);
-        assertTrue(completed, "Streaming should complete within 30 seconds");
-        assertFalse(responseBuilder.toString().isEmpty(), "Response should not be empty");
+        
+        assertAll("Streaming with context validation",
+            () -> assertTrue(completed, "Streaming should complete within 30 seconds"),
+            () -> assertThat(responseBuilder.toString())
+                    .as("Response content")
+                    .isNotEmpty()
+                    .hasSizeGreaterThan(10)
+        );
         System.out.println("✅ Context streaming test completed successfully");
     }
 
@@ -189,11 +198,20 @@ class StreamingResponseTests {
             }
         });
 
-        // Wait and verify error was handled
+        // Wait and verify error was handled using hybrid approach
         boolean completed = latch.await(10, TimeUnit.SECONDS);
-        assertTrue(completed, "Error handling should complete within 10 seconds");
-        assertTrue(errorOccurred[0], "Error should have been handled");
-        assertNotNull(errorMessage[0], "Error message should be captured");
+        
+        assertAll("Error handling validation",
+            () -> assertTrue(completed, "Error handling should complete within 10 seconds"),
+            () -> assertTrue(errorOccurred[0], "Error should have been handled"),
+            () -> assertNotNull(errorMessage[0], "Error message should be captured")
+        );
+        
+        // Use AssertJ for string content validation
+        assertThat(errorMessage[0])
+                .as("Error message content")
+                .isNotBlank()
+                .containsAnyOf("401", "invalid", "unauthorized", "api key");
         
         System.out.println("Error message captured: " + errorMessage[0]);
         System.out.println("✅ Error handling test completed successfully");
@@ -268,13 +286,20 @@ class StreamingResponseTests {
             }
         });
 
-        // Wait for completion
+        // Wait for completion and verify results using hybrid approach
         boolean completed = latch.await(15, TimeUnit.SECONDS);
-        assertTrue(completed, "Advanced streaming should complete within 15 seconds");
         
-        // Verify results
-        assertFalse(fullResponse.toString().isEmpty(), "Response should not be empty");
-        assertTrue(tokenCount[0] > 0, "Should have received tokens");
+        assertAll("Advanced streaming validation",
+            () -> assertTrue(completed, "Advanced streaming should complete within 15 seconds"),
+            () -> assertThat(fullResponse.toString())
+                    .as("Full response content")
+                    .isNotEmpty()
+                    .hasSizeGreaterThan(10),
+            () -> assertThat(tokenCount[0])
+                    .as("Token count")
+                    .isPositive()
+                    .isGreaterThan(5)
+        );
         
         System.out.println("✅ Advanced streaming test completed successfully");
     }
