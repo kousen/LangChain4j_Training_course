@@ -126,20 +126,20 @@ void streamingChat() throws InterruptedException {
             .modelName(GPT_4_1_NANO)
             .build();
 
-    UserMessage userMessage = UserMessage.from("Tell me a story about a brave robot.");
+    String userMessage = "Tell me a story about a brave robot.";
     
     CountDownLatch latch = new CountDownLatch(1);
     StringBuilder fullResponse = new StringBuilder();
 
-    model.chat(userMessage, new StreamingResponseHandler<AiMessage>() {
+    model.chat(userMessage, new StreamingChatResponseHandler() {
         @Override
-        public void onNext(String token) {
+        public void onPartialResponse(String token) {
             System.out.print(token);
             fullResponse.append(token);
         }
 
         @Override
-        public void onComplete(ChatResponse response) {
+        public void onCompleteResponse(ChatResponse response) {
             System.out.println("\n\nStreaming completed!");
             System.out.println("Full response: " + fullResponse.toString());
             latch.countDown();
@@ -174,14 +174,14 @@ void streamingWithContext() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
 
     model.chat(Arrays.asList(systemMessage, userMessage), 
-        new StreamingResponseHandler<AiMessage>() {
+        new StreamingChatResponseHandler() {
             @Override
-            public void onNext(String token) {
+            public void onPartialResponse(String token) {
                 System.out.print(token);
             }
 
             @Override
-            public void onComplete(ChatResponse response) {
+            public void onCompleteResponse(ChatResponse response) {
                 System.out.println("\n\nResponse completed with: " + response.finishReason());
                 latch.countDown();
             }
