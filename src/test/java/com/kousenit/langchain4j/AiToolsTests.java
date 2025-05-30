@@ -1,15 +1,9 @@
 package com.kousenit.langchain4j;
 
-import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,59 +20,38 @@ import static org.junit.jupiter.api.Assertions.*;
  * - Combine multiple tools for comprehensive AI assistants
  * <p>
  * TODO: Follow the exercises in labs.md Lab 6 to implement tool-enabled AI services.
- * The DateTimeTool class is provided as a reference - you can use it directly or create your own versions.
+ * Note: Tool classes are provided in src/main/java/com/kousenit/langchain4j/:
+ * - DateTimeTool.java (reference implementation)
+ * - WeatherTool.java (reference implementation) 
+ * - CalculatorTool.java (reference implementation)
+ * You can use these directly or study them to create your own versions.
  */
 class AiToolsTests {
 
-    /**
-     * TODO 6.1: Create Tool Classes
-     * <p>
-     * Create the following tool classes with @Tool annotations:
-     * 
-     * 1. DateTimeTool (or use the provided DateTimeTool.java):
-     *    - getCurrentDateTime() - returns current date/time
-     *    - getDateYearsFromNow(int years) - calculates future date
-     *    - setAlarm(String time) - simulates setting an alarm
-     * 
-     * 2. WeatherTool:
-     *    - getCurrentWeather(String city, String units) - simulates weather API call
-     * 
-     * 3. CalculatorTool:
-     *    - add(double a, double b) - addition
-     *    - multiply(double a, double b) - multiplication
-     *    - divide(double a, double b) - division with zero-check
-     * 
-     * Example tool method structure:
-     * 
-     * @Tool("Description of what this tool does")
-     * public String methodName(parameters) {
-     *     // Implementation here
-     *     return result;
-     * }
-     */
-
-    // TODO: Uncomment and implement tool classes here
     /*
-    static class DateTimeTool {
-        private static final Logger logger = LoggerFactory.getLogger(DateTimeTool.class);
-
-        // TODO: Add @Tool annotation and implement getCurrentDateTime()
-        
-        // TODO: Add @Tool annotation and implement getDateYearsFromNow(int years)
-        
-        // TODO: Add @Tool annotation and implement setAlarm(String time)
-    }
-
-    static class WeatherTool {
-        // TODO: Add @Tool annotation and implement getCurrentWeather(String city, String units)
-        // Return a formatted string like: "The current weather in {city} is 22°{C/F} and sunny"
-    }
-
-    static class CalculatorTool {
-        // TODO: Add @Tool annotations and implement add, multiply, divide methods
-        // Don't forget to handle division by zero!
-    }
-    */
+     * TODO 6.1: Study the Tool Classes
+     * <p>
+     * The tool classes are already provided in src/main/java/com/kousenit/langchain4j/:
+     * 
+     * 1. DateTimeTool.java:
+     *    - getCurrentDateTime() - returns current date/time
+     *    - getDateYearsFromNow(int years) - calculates future date  
+     *    - setAlarm(String time) - simulates setting an alarm
+     *    - getDateDaysFromNow(int days) - calculates future date by days
+     *    - getCurrentYear() - returns current year
+     * 
+     * 2. WeatherTool.java:
+     *    - getCurrentWeather(String city, String units) - simulates weather API call
+     *    - getWeatherForecast(String city, int days) - multi-day forecast
+     * 
+     * 3. CalculatorTool.java:
+     *    - add, subtract, multiply, divide - basic math operations
+     *    - power, sqrt, percentage - advanced operations
+     *    - Includes proper error handling for division by zero and negative square roots
+     * 
+     * These classes demonstrate the @Tool annotation pattern.
+     * You can use them directly in your tests: new DateTimeTool(), new WeatherTool(), etc.
+     */
 
     /**
      * Assistant interface for AI services with tool integration.
@@ -98,6 +71,7 @@ class AiToolsTests {
      * 4. Verifies responses are not null and contain expected content
      * 
      * Hint: Use .tools(new DateTimeTool()) when building the AiServices
+     * The DateTimeTool class is already available - just instantiate it!
      */
     @Test
     void useBasicDateTimeTool() {
