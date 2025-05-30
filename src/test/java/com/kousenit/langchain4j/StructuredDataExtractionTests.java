@@ -7,8 +7,6 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.output.Response;
 import dev.langchain4j.service.AiServices;
-import dev.langchain4j.service.SystemMessage as AiSystemMessage;
-import dev.langchain4j.service.UserMessage as AiUserMessage;
 import dev.langchain4j.service.V;
 import org.junit.jupiter.api.Test;
 
@@ -75,10 +73,10 @@ class StructuredDataExtractionTests {
      * This demonstrates type-safe AI service interfaces.
      */
     interface ActorService {
-        @AiSystemMessage("You are a movie database expert.")
-        ActorFilms getActorFilmography(@AiUserMessage String actorName);
+        @dev.langchain4j.service.SystemMessage("You are a movie database expert.")
+        ActorFilms getActorFilmography(@dev.langchain4j.service.UserMessage String actorName);
         
-        List<ActorFilms> getMultipleActorFilmographies(@AiUserMessage String actors);
+        List<ActorFilms> getMultipleActorFilmographies(@dev.langchain4j.service.UserMessage String actors);
     }
 
     /**
@@ -162,14 +160,14 @@ class StructuredDataExtractionTests {
      * More complex service interface demonstrating various data types.
      */
     interface MovieAnalysisService {
-        @AiSystemMessage("You are a film critic and movie database expert.")
-        @AiUserMessage("Analyze the movie {{movieTitle}} and provide a rating from 1-10")
+        @dev.langchain4j.service.SystemMessage("You are a film critic and movie database expert.")
+        @dev.langchain4j.service.UserMessage("Analyze the movie {{movieTitle}} and provide a rating from 1-10")
         int getMovieRating(@V("movieTitle") String movieTitle);
         
-        @AiUserMessage("List the main genres for the movie {{movieTitle}}")
+        @dev.langchain4j.service.UserMessage("List the main genres for the movie {{movieTitle}}")
         List<String> getMovieGenres(@V("movieTitle") String movieTitle);
         
-        @AiUserMessage("Provide a brief analysis of {{movieTitle}} including rating (1-10), genres, and a short review")
+        @dev.langchain4j.service.UserMessage("Provide a brief analysis of {{movieTitle}} including rating (1-10), genres, and a short review")
         MovieAnalysis getCompleteAnalysis(@V("movieTitle") String movieTitle);
     }
 
