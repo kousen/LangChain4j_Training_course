@@ -1,19 +1,19 @@
 package com.kousenit.langchain4j;
 
-import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.openai.OpenAiChatModel;
-import dev.langchain4j.model.output.Response;
 import org.junit.jupiter.api.Test;
 
-import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
-import static org.junit.jupiter.api.Assertions.*;
+import static dev.langchain4j.model.openai.OpenAiChatModelName.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Lab 1: Basic Chat Interactions
- * 
+ * <p>
  * This lab demonstrates the fundamental patterns for interacting with LangChain4j's ChatModel.
  * You'll learn how to:
  * - Create and configure an OpenAI ChatModel
@@ -25,7 +25,7 @@ class OpenAiChatTests {
 
     /**
      * Test 1.1: A Simple Query
-     * 
+     * <p>
      * Demonstrates basic chat interaction with OpenAI's ChatModel.
      * Creates a model, sends a query, and verifies the response.
      */
@@ -34,11 +34,11 @@ class OpenAiChatTests {
         // Create OpenAI chat model using builder pattern
         ChatModel model = OpenAiChatModel.builder()
                 .apiKey(System.getenv("OPENAI_API_KEY"))
-                .modelName(GPT_4_O_MINI)
+                .modelName(GPT_4_1_NANO)
                 .build();
 
         // Send a user message and get the response
-        String response = model.generate("Why is the sky blue?");
+        String response = model.chat("Why is the sky blue?");
 
         // Print and verify the response
         System.out.println("Simple Query Response:");
@@ -51,7 +51,7 @@ class OpenAiChatTests {
 
     /**
      * Test 1.2: System Message
-     * 
+     * <p>
      * Demonstrates how to use system messages to modify the model's behavior.
      * The system message acts as instructions that influence how the AI responds.
      */
@@ -60,7 +60,7 @@ class OpenAiChatTests {
         // Create OpenAI chat model
         ChatModel model = OpenAiChatModel.builder()
                 .apiKey(System.getenv("OPENAI_API_KEY"))
-                .modelName(GPT_4_O_MINI)
+                .modelName(GPT_4_1_NANO)
                 .build();
 
         // Create system and user messages
@@ -68,10 +68,10 @@ class OpenAiChatTests {
         UserMessage userMessage = UserMessage.from("Why is the sky blue?");
 
         // Generate response with both messages
-        Response<AiMessage> response = model.generate(systemMessage, userMessage);
+        ChatResponse response = model.chat(systemMessage, userMessage);
 
         // Extract and verify the response
-        String responseText = response.content().text();
+        String responseText = response.aiMessage().text();
         System.out.println("Pirate Response:");
         System.out.println(responseText);
         System.out.println("=".repeat(50));
@@ -83,7 +83,7 @@ class OpenAiChatTests {
 
     /**
      * Test 1.3: Accessing Response Metadata
-     * 
+     * <p>
      * Demonstrates how to access response metadata including token usage,
      * finish reason, and other information about the AI's response.
      */
@@ -92,19 +92,19 @@ class OpenAiChatTests {
         // Create OpenAI chat model
         ChatModel model = OpenAiChatModel.builder()
                 .apiKey(System.getenv("OPENAI_API_KEY"))
-                .modelName(GPT_4_O_MINI)
+                .modelName(GPT_4_1_NANO)
                 .build();
 
         // Create user message
         UserMessage userMessage = UserMessage.from("Why is the sky blue?");
         
         // Generate response
-        Response<AiMessage> response = model.generate(userMessage);
+        ChatResponse response = model.chat(userMessage);
 
         // Extract and print metadata
         assertNotNull(response, "Response should not be null");
         
-        String content = response.content().text();
+        String content = response.aiMessage().text();
         System.out.println("Response with Metadata:");
         System.out.println("Content: " + content);
         

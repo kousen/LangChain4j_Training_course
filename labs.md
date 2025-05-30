@@ -51,11 +51,11 @@ void simpleQuery() {
     // Create OpenAI chat model using builder pattern
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     // Send a user message and get the response
-    String response = model.generate("Why is the sky blue?");
+    String response = model.chat("Why is the sky blue?");
 
     System.out.println(response);
     assertNotNull(response);
@@ -72,43 +72,43 @@ Modify the previous test to include a system message that changes the model's be
 void simpleQueryWithSystemMessage() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     // Create system and user messages
     SystemMessage systemMessage = SystemMessage.from("You are a helpful assistant that responds like a pirate.");
     UserMessage userMessage = UserMessage.from("Why is the sky blue?");
 
-    Response<AiMessage> response = model.generate(systemMessage, userMessage);
+    ChatResponse response = model.chat(systemMessage, userMessage);
 
-    System.out.println(response.content().text());
-    assertNotNull(response.content().text());
+    System.out.println(response.aiMessage().text());
+    assertNotNull(response.aiMessage().text());
 }
 ```
 
 ### 1.3 Accessing Response Metadata
 
-Create a test that retrieves and displays the full `Response` object with metadata:
+Create a test that retrieves and displays the full `ChatResponse` object with metadata:
 
 ```java
 @Test
 void simpleQueryWithMetadata() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     UserMessage userMessage = UserMessage.from("Why is the sky blue?");
-    Response<AiMessage> response = model.generate(userMessage);
+    ChatResponse response = model.chat(userMessage);
 
     assertNotNull(response);
-    System.out.println("Content: " + response.content().text());
+    System.out.println("Content: " + response.aiMessage().text());
     System.out.println("Token Usage: " + response.tokenUsage());
     System.out.println("Finish Reason: " + response.finishReason());
 }
 ```
 
-Note how the `Response` object provides useful information about token usage and completion status.
+Note how the `ChatResponse` object provides useful information about token usage and completion status.
 
 [↑ Back to table of contents](#table-of-contents)
 
@@ -123,7 +123,7 @@ Create a test that streams the response using LangChain4j's streaming capabiliti
 void streamingChat() throws InterruptedException {
     StreamingChatModel model = OpenAiStreamingChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     UserMessage userMessage = UserMessage.from("Tell me a story about a brave robot.");
@@ -131,7 +131,7 @@ void streamingChat() throws InterruptedException {
     CountDownLatch latch = new CountDownLatch(1);
     StringBuilder fullResponse = new StringBuilder();
 
-    model.generate(userMessage, new StreamingResponseHandler<AiMessage>() {
+    model.chat(userMessage, new StreamingResponseHandler<AiMessage>() {
         @Override
         public void onNext(String token) {
             System.out.print(token);
@@ -139,7 +139,7 @@ void streamingChat() throws InterruptedException {
         }
 
         @Override
-        public void onComplete(Response<AiMessage> response) {
+        public void onComplete(ChatResponse response) {
             System.out.println("\n\nStreaming completed!");
             System.out.println("Full response: " + fullResponse.toString());
             latch.countDown();
@@ -165,7 +165,7 @@ Create a test that demonstrates streaming with conversation context:
 void streamingWithContext() throws InterruptedException {
     StreamingChatModel model = OpenAiStreamingChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     SystemMessage systemMessage = SystemMessage.from("You are a helpful coding assistant.");
@@ -173,7 +173,7 @@ void streamingWithContext() throws InterruptedException {
     
     CountDownLatch latch = new CountDownLatch(1);
 
-    model.generate(Arrays.asList(systemMessage, userMessage), 
+    model.chat(Arrays.asList(systemMessage, userMessage), 
         new StreamingResponseHandler<AiMessage>() {
             @Override
             public void onNext(String token) {
@@ -181,7 +181,7 @@ void streamingWithContext() throws InterruptedException {
             }
 
             @Override
-            public void onComplete(Response<AiMessage> response) {
+            public void onComplete(ChatResponse response) {
                 System.out.println("\n\nResponse completed with: " + response.finishReason());
                 latch.countDown();
             }
@@ -218,7 +218,7 @@ Create a test that extracts a single entity using LangChain4j's structured outpu
 void extractActorFilms() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .responseFormat("json_object")
             .build();
 
@@ -230,7 +230,7 @@ void extractActorFilms() {
             }
             """;
 
-    String response = model.generate(prompt);
+    String response = model.chat(prompt);
     System.out.println("JSON Response: " + response);
 
     // Parse JSON manually or use Jackson/Gson
@@ -256,7 +256,7 @@ interface ActorService {
 void extractActorFilmsWithAiServices() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     ActorService service = AiServices.builder(ActorService.class)
@@ -288,7 +288,7 @@ Create a test using LangChain4j's `PromptTemplate`:
 void promptTemplate() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     PromptTemplate template = PromptTemplate.from("Tell me {{count}} movies whose soundtrack was composed by {{composer}}");
@@ -298,7 +298,7 @@ void promptTemplate() {
     variables.put("composer", "John Williams");
     
     Prompt prompt = template.apply(variables);
-    String response = model.generate(prompt.text());
+    String response = model.chat(prompt.text());
 
     System.out.println(response);
     assertNotNull(response);
@@ -319,7 +319,7 @@ Then create a test that loads this template:
 void promptTemplateFromResource() throws IOException {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     String templateContent = new String(
@@ -333,7 +333,7 @@ void promptTemplateFromResource() throws IOException {
     variables.put("composer", "Michael Giacchino");
     
     Prompt prompt = template.apply(variables);
-    String response = model.generate(prompt.text());
+    String response = model.chat(prompt.text());
 
     System.out.println(response);
     assertNotNull(response);
@@ -354,7 +354,7 @@ interface MovieService {
 void templateWithAiServices() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     MovieService service = AiServices.builder(MovieService.class)
@@ -381,15 +381,15 @@ All requests to AI models are stateless by default. Create a test that demonstra
 void defaultRequestsAreStateless() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     System.out.println("First interaction:");
-    String response1 = model.generate("My name is Inigo Montoya. You killed my father. Prepare to die.");
+    String response1 = model.chat("My name is Inigo Montoya. You killed my father. Prepare to die.");
     System.out.println(response1);
 
     System.out.println("\nSecond interaction:");
-    String response2 = model.generate("Who am I?");
+    String response2 = model.chat("Who am I?");
     System.out.println(response2);
 
     // Verify the model doesn't remember the previous conversation
@@ -407,7 +407,7 @@ Use LangChain4j's `ChatMemory` to maintain conversation state:
 void requestsWithMemory() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
@@ -416,20 +416,20 @@ void requestsWithMemory() {
     UserMessage firstMessage = UserMessage.from("My name is Inigo Montoya. You killed my father. Prepare to die.");
     memory.add(firstMessage);
     
-    Response<AiMessage> response1 = model.generate(memory.messages());
+    ChatResponse response1 = model.chat(memory.messages());
     memory.add(response1.content());
-    System.out.println(response1.content().text());
+    System.out.println(response1.aiMessage().text());
 
     System.out.println("\nSecond interaction with memory:");
     UserMessage secondMessage = UserMessage.from("Who am I?");
     memory.add(secondMessage);
     
-    Response<AiMessage> response2 = model.generate(memory.messages());
+    ChatResponse response2 = model.chat(memory.messages());
     memory.add(response2.content());
-    System.out.println(response2.content().text());
+    System.out.println(response2.aiMessage().text());
 
     // Verify the model correctly identifies the user
-    assertTrue(response2.content().text().toLowerCase().contains("inigo montoya"),
+    assertTrue(response2.aiMessage().text().toLowerCase().contains("inigo montoya"),
             "The model should remember the user's identity when using memory");
 }
 ```
@@ -443,11 +443,11 @@ LangChain4j provides different memory implementations:
 void differentMemoryTypes() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     // Token-based memory - limits based on token count
-    ChatMemory tokenMemory = TokenWindowChatMemory.withMaxTokens(1000, new OpenAiTokenizer(GPT_4_O_MINI));
+    ChatMemory tokenMemory = TokenWindowChatMemory.withMaxTokens(1000, new OpenAiTokenizer(GPT_4_1_NANO));
     
     // Message-based memory - limits based on message count
     ChatMemory messageMemory = MessageWindowChatMemory.withMaxMessages(5);
@@ -460,10 +460,10 @@ void differentMemoryTypes() {
     UserMessage newMessage = UserMessage.from("What did I just tell you about myself?");
     tokenMemory.add(newMessage);
     
-    Response<AiMessage> response = model.generate(tokenMemory.messages());
-    System.out.println("Token memory response: " + response.content().text());
+    ChatResponse response = model.chat(tokenMemory.messages());
+    System.out.println("Token memory response: " + response.aiMessage().text());
     
-    assertNotNull(response.content().text());
+    assertNotNull(response.aiMessage().text());
 }
 ```
 
@@ -480,7 +480,7 @@ interface AssistantWithMemory {
 void aiServicesWithMemory() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
@@ -530,7 +530,7 @@ void localImageAnalysis() throws IOException {
     
     UserMessage userMessage = UserMessage.from(textContent, imageContent);
     
-    String response = model.generate(userMessage).content().text();
+    String response = model.chat(userMessage).aiMessage().text();
     
     System.out.println(response);
     assertNotNull(response);
@@ -557,7 +557,7 @@ void remoteImageAnalysis() {
     
     UserMessage userMessage = UserMessage.from(textContent, imageContent);
     
-    String response = model.generate(userMessage).content().text();
+    String response = model.chat(userMessage).aiMessage().text();
     
     System.out.println(response);
     assertNotNull(response);
@@ -741,7 +741,7 @@ interface Assistant {
 void useToolsWithAiServices() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     Assistant assistant = AiServices.builder(Assistant.class)
@@ -782,7 +782,7 @@ class WeatherTool {
 void useWeatherTool() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     Assistant assistant = AiServices.builder(Assistant.class)
@@ -819,7 +819,7 @@ class CalculatorTool {
 void useMultipleTools() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     Assistant assistant = AiServices.builder(Assistant.class)
@@ -908,7 +908,7 @@ void audioServiceIntegration() {
     
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     // Simulate audio data
@@ -919,7 +919,7 @@ void audioServiceIntegration() {
     // 2. Pass the transcribed text to LangChain4j for processing
     
     String simulatedTranscription = "This is a meeting about quarterly sales figures and growth projections.";
-    String summary = model.generate("Summarize the main points: " + simulatedTranscription);
+    String summary = model.chat("Summarize the main points: " + simulatedTranscription);
     
     System.out.println("Audio summary: " + summary);
     assertNotNull(summary);
@@ -956,7 +956,7 @@ Create a test that uses the `AiServices` to implement the interface:
 void useFilmographyService() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     FilmographyService service = AiServices.builder(FilmographyService.class)
@@ -990,7 +990,7 @@ interface PersonalAssistant {
 void personalAssistantWithMemoryAndTools() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
@@ -1035,7 +1035,7 @@ interface DocumentAnalyzer {
 void advancedServiceConfiguration() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .temperature(0.3)  // Lower temperature for more consistent analysis
             .build();
 
@@ -1124,7 +1124,7 @@ void ragWithContentRetriever() {
     // Set up models
     ChatModel chatModel = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     EmbeddingModel embeddingModel = AllMiniLmL6V2EmbeddingModel.builder().build();
@@ -1201,7 +1201,7 @@ void ragWithFileDocuments() throws IOException {
     try {
         ChatModel chatModel = OpenAiChatModel.builder()
                 .apiKey(System.getenv("OPENAI_API_KEY"))
-                .modelName(GPT_4_O_MINI)
+                .modelName(GPT_4_1_NANO)
                 .build();
 
         EmbeddingModel embeddingModel = AllMiniLmL6V2EmbeddingModel.builder().build();
@@ -1254,7 +1254,7 @@ Create a more advanced RAG system that uses metadata for filtering:
 void ragWithMetadataFiltering() {
     ChatModel chatModel = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     EmbeddingModel embeddingModel = AllMiniLmL6V2EmbeddingModel.builder().build();
@@ -1394,7 +1394,7 @@ void ragWithRedisPersistence() {
 
     ChatModel chatModel = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     EmbeddingModel embeddingModel = AllMiniLmL6V2EmbeddingModel.builder().build();
@@ -1505,7 +1505,7 @@ void productionRagConfiguration() {
     // Configure models with production settings
     ChatModel chatModel = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .temperature(0.1) // Lower temperature for more consistent responses
             .maxTokens(500)
             .build();
