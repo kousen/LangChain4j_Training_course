@@ -315,3 +315,107 @@ The course follows a structured progression documented in `labs.md`:
 - **Service classes**: Skeleton code with clear instructions
 - **Working examples**: DateTimeTools, ActorFilms (students use these)
 - **Reference implementations**: Available in solutions branch
+
+## Testing Strategy
+
+This course uses a **hybrid testing approach** combining JUnit 5 and AssertJ for optimal test readability and maintainability.
+
+### Assertion Libraries
+
+We use two complementary assertion libraries:
+
+1. **JUnit 5 Assertions** (`org.junit.jupiter.api.Assertions.*`)
+   - Primary choice for basic assertions and grouped validations
+   - Use `assertAll()` for grouping related assertions with descriptive names
+   - Ideal for simple null checks, boolean assertions, and basic comparisons
+
+2. **AssertJ** (`org.assertj.core.api.Assertions.*`)
+   - Use selectively for complex object validation and fluent string operations
+   - Excellent for collections, string content validation, and object property checking
+   - Provides more readable error messages for complex scenarios
+
+### When to Use Each Library
+
+#### Use JUnit's `assertAll()` for:
+```java
+assertAll("Basic validation group",
+    () -> assertNotNull(response, "Response should not be null"),
+    () -> assertFalse(response.isEmpty(), "Response should not be empty"),
+    () -> assertTrue(sentiment >= 1 && sentiment <= 10, "Sentiment should be 1-10")
+);
+```
+
+#### Use AssertJ for:
+```java
+// Complex object validation
+assertThat(actorFilms)
+    .as("Parsed ActorFilms structure")
+    .satisfies(af -> {
+        assertThat(af.actor()).as("Actor name").isNotNull().isNotBlank();
+        assertThat(af.movies()).as("Movies list").hasSize(5);
+    });
+
+// String content validation
+assertThat(errorMessage)
+    .as("Error message content")
+    .isNotBlank()
+    .containsAnyOf("401", "invalid", "unauthorized", "api key");
+
+// Collection validation
+actorFilms.movies().forEach(movie -> 
+    assertThat(movie).as("Individual movie").isNotBlank());
+```
+
+### Testing Patterns for LangChain4j
+
+#### AI Response Validation
+```java
+// Basic response validation
+assertAll("AI response validation",
+    () -> assertNotNull(response, "Response should not be null"),
+    () -> assertThat(response).as("Response content").isNotEmpty().hasSizeGreaterThan(10)
+);
+```
+
+#### Structured Data Extraction
+```java
+// Validate extracted data using hybrid approach
+assertAll("Structured data validation",
+    () -> assertNotNull(extractedData, "Extracted data should not be null"),
+    () -> assertEquals(expectedCount, extractedData.size(), "Should have expected count")
+);
+
+// Use AssertJ for complex object validation
+assertThat(extractedData)
+    .as("Complex object validation")
+    .satisfies(data -> {
+        assertThat(data.getProperty()).as("Property check").isNotNull();
+        assertThat(data.getList()).as("List property").isNotEmpty();
+    });
+```
+
+#### Error Handling Tests
+```java
+// Error validation with grouped assertions
+assertAll("Error handling validation",
+    () -> assertTrue(errorOccurred, "Error should have been handled"),
+    () -> assertNotNull(errorMessage, "Error message should be captured")
+);
+
+// Use AssertJ for error message content validation
+assertThat(errorMessage)
+    .as("Error message content")
+    .isNotBlank()
+    .containsAnyOf("expected", "error", "keywords");
+```
+
+### Guidelines
+
+1. **Prefer JUnit for basic assertions** - Use `assertNotNull`, `assertTrue`, `assertEquals` for simple checks
+2. **Use `assertAll()` for logical groupings** - Group related assertions with descriptive names
+3. **Use AssertJ selectively** - For complex validations, fluent string operations, and detailed object checking
+4. **Avoid `assertSoftly()`** - Our hybrid approach provides better readability without the complexity
+5. **Always include descriptive messages** - Both in `assertAll()` group names and AssertJ `.as()` descriptions
+6. **Test AI responses appropriately** - Focus on structure and non-null checks rather than exact content matching
+
+This hybrid approach provides clear, maintainable tests that are easy for students to understand and extend.
