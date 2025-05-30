@@ -214,8 +214,10 @@ public record ActorFilms(String actor, List<String> movies) {}
 Create a test that extracts a single entity using LangChain4j's structured output capabilities:
 
 ```java
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @Test
-void extractActorFilms() {
+void extractActorFilms() throws JsonProcessingException {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
             .modelName(GPT_4_1_NANO)
@@ -233,10 +235,18 @@ void extractActorFilms() {
     String response = model.chat(prompt);
     System.out.println("JSON Response: " + response);
 
-    // Parse JSON manually or use Jackson/Gson
+    // Parse JSON manually using Jackson
+    ObjectMapper objectMapper = new ObjectMapper();
+    ActorFilms actorFilms = objectMapper.readValue(response, ActorFilms.class);
+
+    // Verify the parsed data
     assertNotNull(response);
     assertTrue(response.contains("actor"));
     assertTrue(response.contains("movies"));
+    assertNotNull(actorFilms);
+    assertNotNull(actorFilms.actor());
+    assertNotNull(actorFilms.movies());
+    assertEquals(5, actorFilms.movies().size());
 }
 ```
 
@@ -245,11 +255,15 @@ void extractActorFilms() {
 LangChain4j provides `AiServices` for automatic parsing into Java objects:
 
 ```java
+// Wrapper record for multiple actor filmographies
+record ActorFilmographies(List<ActorFilms> filmographies) {}
+
 interface ActorService {
     @SystemMessage("You are a movie database expert.")
     ActorFilms getActorFilmography(@UserMessage String actorName);
     
-    List<ActorFilms> getMultipleActorFilmographies(@UserMessage String actors);
+    @SystemMessage("You are a comprehensive movie database expert. Provide accurate filmographies.")
+    ActorFilmographies getMultipleActorFilmographies(@UserMessage String actors);
 }
 
 @Test
@@ -260,7 +274,7 @@ void extractActorFilmsWithAiServices() {
             .build();
 
     ActorService service = AiServices.builder(ActorService.class)
-            .chatLanguageModel(model)
+            .chatModel(model)
             .build();
 
     ActorFilms actorFilms = service.getActorFilmography("Generate filmography for a random famous actor with exactly 5 movies");
@@ -274,6 +288,80 @@ void extractActorFilmsWithAiServices() {
     actorFilms.movies().forEach(movie -> System.out.println("- " + movie));
 }
 ```
+
+### 3.4 Multiple Actor Filmographies
+
+Test extracting multiple structured entities using the wrapper record pattern:
+
+```java
+@Test
+void extractMultipleActorFilmographies() {
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .build();
+
+    ActorService service = AiServices.builder(ActorService.class)
+            .chatModel(model)
+            .build();
+
+    ActorFilmographies result = service.getMultipleActorFilmographies(
+        "Return a JSON object with a 'filmographies' field containing an array of exactly 3 different famous actors. Each actor should have exactly 4 movies."
+    );
+
+    List<ActorFilms> filmographies = result.filmographies();
+    
+    assertNotNull(result);
+    assertNotNull(filmographies);
+    assertEquals(3, filmographies.size());
+    
+    // Verify each filmography has exactly 4 movies
+    filmographies.forEach(actorFilms -> {
+        assertNotNull(actorFilms.actor());
+        assertNotNull(actorFilms.movies());
+        assertEquals(4, actorFilms.movies().size());
+    });
+}
+```
+
+### 3.5 Advanced Variable Substitution
+
+Use the `@V` annotation for dynamic prompt parameters:
+
+```java
+interface AdvancedActorService {
+    @SystemMessage("You are an expert movie database assistant specializing in actor filmographies.")
+    @UserMessage("Generate filmography for {{actorName}} with exactly {{movieCount}} of their most famous movies")
+    ActorFilms getSpecificActorFilmography(
+        @V("actorName") String actorName, 
+        @V("movieCount") int movieCount
+    );
+}
+
+@Test
+void advancedStructuredDataExtraction() {
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .build();
+
+    AdvancedActorService service = AiServices.builder(AdvancedActorService.class)
+            .chatModel(model)
+            .build();
+
+    ActorFilms actorFilms = service.getSpecificActorFilmography("Tom Hanks", 6);
+
+    assertNotNull(actorFilms);
+    assertTrue(actorFilms.actor().toLowerCase().contains("hanks"));
+    assertEquals(6, actorFilms.movies().size());
+}
+```
+
+**Important Notes for Lab 3:**
+- Add Jackson dependency for JSON parsing: `com.fasterxml.jackson.core:jackson-databind`
+- Use wrapper records like `ActorFilmographies` for better parsing of collections
+- The `@SystemMessage`, `@UserMessage`, and `@V` annotations are from `dev.langchain4j.service`
+- Use `.chatModel()` method (not `.chatLanguageModel()`) in LangChain4j 1.0.1
 
 [↑ Back to table of contents](#table-of-contents)
 
@@ -358,7 +446,7 @@ void templateWithAiServices() {
             .build();
 
     MovieService service = AiServices.builder(MovieService.class)
-            .chatLanguageModel(model)
+            .chatModel(model)
             .build();
 
     String movies = service.getMoviesByComposer(7, "Hans Zimmer");
@@ -486,7 +574,7 @@ void aiServicesWithMemory() {
     ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
 
     AssistantWithMemory assistant = AiServices.builder(AssistantWithMemory.class)
-            .chatLanguageModel(model)
+            .chatModel(model)
             .chatMemory(memory)
             .build();
 
@@ -585,7 +673,7 @@ void visionWithAiServices() throws IOException {
             .build();
 
     VisionAnalyst analyst = AiServices.builder(VisionAnalyst.class)
-            .chatLanguageModel(model)
+            .chatModel(model)
             .build();
 
     // Load image
@@ -745,7 +833,7 @@ void useToolsWithAiServices() {
             .build();
 
     Assistant assistant = AiServices.builder(Assistant.class)
-            .chatLanguageModel(model)
+            .chatModel(model)
             .tools(new DateTimeTool())
             .build();
 
@@ -786,7 +874,7 @@ void useWeatherTool() {
             .build();
 
     Assistant assistant = AiServices.builder(Assistant.class)
-            .chatLanguageModel(model)
+            .chatModel(model)
             .tools(new WeatherTool())
             .build();
 
@@ -823,7 +911,7 @@ void useMultipleTools() {
             .build();
 
     Assistant assistant = AiServices.builder(Assistant.class)
-            .chatLanguageModel(model)
+            .chatModel(model)
             .tools(new DateTimeTool(), new CalculatorTool(), new WeatherTool())
             .build();
 
@@ -960,7 +1048,7 @@ void useFilmographyService() {
             .build();
 
     FilmographyService service = AiServices.builder(FilmographyService.class)
-            .chatLanguageModel(model)
+            .chatModel(model)
             .build();
 
     // Test simple movie list
@@ -996,7 +1084,7 @@ void personalAssistantWithMemoryAndTools() {
     ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
 
     PersonalAssistant assistant = AiServices.builder(PersonalAssistant.class)
-            .chatLanguageModel(model)
+            .chatModel(model)
             .chatMemory(memory)
             .tools(new DateTimeTool())
             .build();
@@ -1040,7 +1128,7 @@ void advancedServiceConfiguration() {
             .build();
 
     DocumentAnalyzer analyzer = AiServices.builder(DocumentAnalyzer.class)
-            .chatLanguageModel(model)
+            .chatModel(model)
             .build();
 
     String sampleContent = """
@@ -1158,7 +1246,7 @@ void ragWithContentRetriever() {
     }
 
     RagAssistant assistant = AiServices.builder(RagAssistant.class)
-            .chatLanguageModel(chatModel)
+            .chatModel(chatModel)
             .contentRetriever(retriever)
             .build();
 
@@ -1227,7 +1315,7 @@ void ragWithFileDocuments() throws IOException {
         }
 
         DocumentAssistant assistant = AiServices.builder(DocumentAssistant.class)
-                .chatLanguageModel(chatModel)
+                .chatModel(chatModel)
                 .contentRetriever(retriever)
                 .build();
 
@@ -1299,7 +1387,7 @@ void ragWithMetadataFiltering() {
     }
 
     LanguageAssistant assistant = AiServices.builder(LanguageAssistant.class)
-            .chatLanguageModel(chatModel)
+            .chatModel(chatModel)
             .contentRetriever(retriever)
             .build();
 
@@ -1435,7 +1523,7 @@ void ragWithRedisPersistence() {
     }
 
     KnowledgeAssistant assistant = AiServices.builder(KnowledgeAssistant.class)
-            .chatLanguageModel(chatModel)
+            .chatModel(chatModel)
             .contentRetriever(retriever)
             .build();
 
@@ -1563,7 +1651,7 @@ void productionRagConfiguration() {
     }
 
     ProductionAssistant assistant = AiServices.builder(ProductionAssistant.class)
-            .chatLanguageModel(chatModel)
+            .chatModel(chatModel)
             .contentRetriever(retriever)
             .build();
 
