@@ -5,8 +5,9 @@ import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import dev.langchain4j.model.output.Response;
-import dev.langchain4j.model.streaming.StreamingChatModel;
-import dev.langchain4j.model.streaming.StreamingResponseHandler;
+import dev.langchain4j.model.chat.StreamingChatModel;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -56,15 +57,15 @@ class StreamingResponseTests {
         // StringBuilder fullResponse = new StringBuilder();
 
         // TODO: Start streaming with response handler
-        // model.generate(userMessage, new StreamingResponseHandler<AiMessage>() {
+        // model.chat(userMessage, new StreamingChatResponseHandler() {
         //     @Override
-        //     public void onNext(String token) {
+        //     public void onPartialResponse(String token) {
         //         System.out.print(token);
         //         fullResponse.append(token);
         //     }
         //
         //     @Override
-        //     public void onComplete(Response<AiMessage> response) {
+        //     public void onCompleteResponse(ChatResponse response) {
         //         System.out.println("\n\nStreaming completed!");
         //         System.out.println("Full response: " + fullResponse.toString());
         //         latch.countDown();
@@ -111,15 +112,15 @@ class StreamingResponseTests {
         // CountDownLatch latch = new CountDownLatch(1);
 
         // TODO: Stream with multiple messages
-        // model.generate(Arrays.asList(systemMessage, userMessage), 
-        //     new StreamingResponseHandler<AiMessage>() {
+        // model.chat(Arrays.asList(systemMessage, userMessage), 
+        //     new StreamingChatResponseHandler() {
         //         @Override
-        //         public void onNext(String token) {
+        //         public void onPartialResponse(String token) {
         //             System.out.print(token);
         //         }
         //
         //         @Override
-        //         public void onComplete(Response<AiMessage> response) {
+        //         public void onCompleteResponse(ChatResponse response) {
         //             System.out.println("\n\nResponse completed with: " + response.finishReason());
         //             latch.countDown();
         //         }
@@ -160,14 +161,14 @@ class StreamingResponseTests {
         // TODO: Attempt streaming with error handling
         // UserMessage userMessage = UserMessage.from("This should fail");
         // 
-        // model.generate(userMessage, new StreamingResponseHandler<AiMessage>() {
+        // model.chat(userMessage, new StreamingChatResponseHandler() {
         //     @Override
-        //     public void onNext(String token) {
+        //     public void onPartialResponse(String token) {
         //         System.out.print(token);
         //     }
         //
         //     @Override
-        //     public void onComplete(Response<AiMessage> response) {
+        //     public void onCompleteResponse(ChatResponse response) {
         //         System.out.println("Unexpected completion");
         //         latch.countDown();
         //     }

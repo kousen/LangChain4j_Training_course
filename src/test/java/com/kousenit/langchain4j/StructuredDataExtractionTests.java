@@ -1,11 +1,7 @@
 package com.kousenit.langchain4j;
 
-import dev.langchain4j.data.message.AiMessage;
-import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
-import dev.langchain4j.model.output.Response;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.V;
 import org.junit.jupiter.api.Test;
@@ -57,7 +53,7 @@ class StructuredDataExtractionTests {
         //         """;
 
         // TODO: Generate JSON response
-        // String response = model.generate(prompt);
+        // String response = model.chat(prompt);
         // System.out.println("JSON Response: " + response);
 
         // TODO: Verify JSON structure
@@ -99,7 +95,7 @@ class StructuredDataExtractionTests {
 
         // TODO: Create AiServices instance
         // ActorService service = AiServices.builder(ActorService.class)
-        //         .chatLanguageModel(model)
+        //         .chatModel(model)
         //         .build();
 
         // TODO: Extract structured data
@@ -136,7 +132,7 @@ class StructuredDataExtractionTests {
 
         // TODO: Create AiServices instance
         // ActorService service = AiServices.builder(ActorService.class)
-        //         .chatLanguageModel(model)
+        //         .chatModel(model)
         //         .build();
 
         // TODO: Extract multiple filmographies
@@ -196,7 +192,7 @@ class StructuredDataExtractionTests {
 
         // TODO: Create MovieAnalysisService
         // MovieAnalysisService service = AiServices.builder(MovieAnalysisService.class)
-        //         .chatLanguageModel(model)
+        //         .chatModel(model)
         //         .build();
 
         // TODO: Test different data extraction methods

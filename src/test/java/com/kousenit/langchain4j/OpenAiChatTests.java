@@ -1,11 +1,10 @@
 package com.kousenit.langchain4j;
 
-import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.openai.OpenAiChatModel;
-import dev.langchain4j.model.output.Response;
 import org.junit.jupiter.api.Test;
 
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
@@ -39,7 +38,7 @@ class OpenAiChatTests {
         // ChatModel model = OpenAiChatModel.builder()...
         
         // TODO: Send a user message and get the response
-        // String response = model.generate("Why is the sky blue?");
+        // String response = model.chat("Why is the sky blue?");
 
         // TODO: Print and verify the response
         // System.out.println(response);
@@ -66,10 +65,10 @@ class OpenAiChatTests {
         // UserMessage userMessage = UserMessage.from("Why is the sky blue?");
 
         // TODO: Generate response with both messages
-        // Response<AiMessage> response = model.generate(systemMessage, userMessage);
+        // ChatResponse response = model.chat(systemMessage, userMessage);
 
         // TODO: Extract and verify the response
-        // String responseText = response.content().text();
+        // String responseText = response.aiMessage().text();
         // System.out.println(responseText);
         // assertNotNull(responseText);
     }
@@ -92,14 +91,14 @@ class OpenAiChatTests {
         // UserMessage userMessage = UserMessage.from("Why is the sky blue?");
         
         // TODO: Generate response
-        // Response<AiMessage> response = model.generate(userMessage);
+        // ChatResponse response = model.chat(userMessage);
 
         // TODO: Extract and print metadata
-        // System.out.println("Content: " + response.content().text());
+        // System.out.println("Content: " + response.aiMessage().text());
         // System.out.println("Token Usage: " + response.tokenUsage());
         // System.out.println("Finish Reason: " + response.finishReason());
         
         // TODO: Verify the response content
-        // assertNotNull(response.content().text());
+        // assertNotNull(response.aiMessage().text());
     }
 }
