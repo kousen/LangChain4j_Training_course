@@ -10,15 +10,14 @@ This series of labs will guide you through building LangChain4j applications tha
 - [Lab 1: Basic Chat Interactions](#lab-1-basic-chat-interactions)
 - [Lab 2: Streaming Responses](#lab-2-streaming-responses)
 - [Lab 3: Structured Data Extraction](#lab-3-structured-data-extraction)
-- [Lab 4: Prompt Templates](#lab-4-prompt-templates)
+- [Lab 4: AI Services Interface](#lab-4-ai-services-interface)
 - [Lab 5: Chat Memory](#lab-5-chat-memory)
 - [Lab 6: Vision Capabilities](#lab-6-vision-capabilities)
 - [Lab 7: Image Generation](#lab-7-image-generation)
 - [Lab 8: AI Tools](#lab-8-ai-tools)
 - [Lab 9: Audio Capabilities](#lab-9-audio-capabilities)
-- [Lab 10: AI Services Interface](#lab-10-ai-services-interface)
-- [Lab 11: Retrieval-Augmented Generation (RAG)](#lab-11-retrieval-augmented-generation-rag)
-- [Lab 12: Redis Vector Store for RAG](#lab-12-redis-vector-store-for-rag)
+- [Lab 10: Retrieval-Augmented Generation (RAG)](#lab-10-retrieval-augmented-generation-rag)
+- [Lab 11: Redis Vector Store for RAG](#lab-11-redis-vector-store-for-rag)
 - [Conclusion](#conclusion)
 
 ## Setup
@@ -365,94 +364,139 @@ void advancedStructuredDataExtraction() {
 
 [↑ Back to table of contents](#table-of-contents)
 
-## Lab 4: Prompt Templates
+## Lab 4: AI Services Interface
 
-### 4.1 Simple Template
+### 4.1 Create a Service Interface
 
-Create a test using LangChain4j's `PromptTemplate`:
+Define a high-level service interface for your AI application:
+
+```java
+interface FilmographyService {
+    
+    @SystemMessage("You are a helpful assistant that provides accurate information about actors and their movies.")
+    List<String> getMovies(@UserMessage String actor);
+    
+    @SystemMessage("You are a movie expert. Provide detailed analysis.")
+    String analyzeActor(@UserMessage String actorName);
+    
+    ActorFilms getFullFilmography(String actorName);
+}
+```
+
+### 4.2 Implement the Service
+
+Create a test that uses the `AiServices` to implement the interface:
 
 ```java
 @Test
-void promptTemplate() {
+void useFilmographyService() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
             .modelName(GPT_4_1_NANO)
             .build();
 
-    PromptTemplate template = PromptTemplate.from("Tell me {{count}} movies whose soundtrack was composed by {{composer}}");
-    
-    Map<String, Object> variables = new HashMap<>();
-    variables.put("count", "5");
-    variables.put("composer", "John Williams");
-    
-    Prompt prompt = template.apply(variables);
-    String response = model.chat(prompt.text());
-
-    System.out.println(response);
-    assertNotNull(response);
-}
-```
-
-### 4.2 Template from Resource
-
-Create a template file at `src/main/resources/movie_prompt.mustache`:
-```
-Tell me {{count}} movies whose soundtrack was composed by {{composer}}
-```
-
-Then create a test that loads this template:
-
-```java
-@Test
-void promptTemplateFromResource() throws IOException {
-    ChatModel model = OpenAiChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
-            .build();
-
-    String templateContent = new String(
-        getClass().getClassLoader().getResourceAsStream("movie_prompt.mustache").readAllBytes()
-    );
-    
-    PromptTemplate template = PromptTemplate.from(templateContent);
-    
-    Map<String, Object> variables = new HashMap<>();
-    variables.put("count", "10");
-    variables.put("composer", "Michael Giacchino");
-    
-    Prompt prompt = template.apply(variables);
-    String response = model.chat(prompt.text());
-
-    System.out.println(response);
-    assertNotNull(response);
-}
-```
-
-### 4.3 Advanced Template with AiServices
-
-You can also use templates with `AiServices` annotations:
-
-```java
-interface MovieService {
-    @UserMessage("Tell me {{count}} movies whose soundtrack was composed by {{composer}}")
-    String getMoviesByComposer(@V("count") int count, @V("composer") String composer);
-}
-
-@Test
-void templateWithAiServices() {
-    ChatModel model = OpenAiChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
-            .build();
-
-    MovieService service = AiServices.builder(MovieService.class)
+    FilmographyService service = AiServices.builder(FilmographyService.class)
             .chatModel(model)
             .build();
 
-    String movies = service.getMoviesByComposer(7, "Hans Zimmer");
+    // Test simple movie list
+    List<String> tomHanksMovies = service.getMovies("Tom Hanks");
+    System.out.println("Tom Hanks movies: " + tomHanksMovies);
     
-    System.out.println(movies);
-    assertNotNull(movies);
+    // Test actor analysis
+    String analysis = service.analyzeActor("Meryl Streep");
+    System.out.println("Meryl Streep analysis: " + analysis);
+
+    assertNotNull(tomHanksMovies);
+    assertFalse(tomHanksMovies.isEmpty());
+    assertNotNull(analysis);
+}
+```
+
+### 4.3 Service with Memory and Tools
+
+Create an advanced service that combines memory and tools:
+
+```java
+interface PersonalAssistant {
+    String chat(String message);
+}
+
+@Test
+void personalAssistantWithMemoryAndTools() {
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .build();
+
+    ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
+
+    PersonalAssistant assistant = AiServices.builder(PersonalAssistant.class)
+            .chatModel(model)
+            .chatMemory(memory)
+            .tools(new DateTimeTool())
+            .build();
+
+    // Have a conversation that uses both memory and tools
+    String response1 = assistant.chat("Hi, my name is Alice and I'm a software developer.");
+    System.out.println("Response 1: " + response1);
+
+    String response2 = assistant.chat("What's my name and what year will it be in 3 years?");
+    System.out.println("Response 2: " + response2);
+
+    // Verify memory and tool usage
+    assertTrue(response2.toLowerCase().contains("alice"));
+    assertNotNull(response2);
+}
+```
+
+### 4.4 Advanced Service Configuration
+
+Create a more sophisticated service with custom configuration:
+
+```java
+interface DocumentAnalyzer {
+    @SystemMessage("You are an expert document analyzer. Provide concise, accurate analysis.")
+    @UserMessage("Analyze this document content and provide key insights: {{content}}")
+    String analyzeDocument(@V("content") String documentContent);
+    
+    @UserMessage("Extract the main themes from: {{content}}")
+    List<String> extractThemes(@V("content") String documentContent);
+    
+    @UserMessage("Rate the sentiment of this content from 1-10: {{content}}")
+    int analyzeSentiment(@V("content") String documentContent);
+}
+
+@Test
+void advancedServiceConfiguration() {
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .temperature(0.3)  // Lower temperature for more consistent analysis
+            .build();
+
+    DocumentAnalyzer analyzer = AiServices.builder(DocumentAnalyzer.class)
+            .chatModel(model)
+            .build();
+
+    String sampleContent = """
+        The quarterly earnings report shows strong growth in the technology sector,
+        with cloud computing services leading the way. Customer satisfaction remains high,
+        though there are concerns about increasing competition and market saturation.
+        """;
+
+    String analysis = analyzer.analyzeDocument(sampleContent);
+    List<String> themes = analyzer.extractThemes(sampleContent);
+    int sentiment = analyzer.analyzeSentiment(sampleContent);
+
+    System.out.println("Analysis: " + analysis);
+    System.out.println("Themes: " + themes);
+    System.out.println("Sentiment: " + sentiment);
+
+    assertNotNull(analysis);
+    assertNotNull(themes);
+    assertFalse(themes.isEmpty());
+    assertTrue(sentiment >= 1 && sentiment <= 10);
 }
 ```
 
@@ -1016,147 +1060,9 @@ void audioServiceIntegration() {
 
 [↑ Back to table of contents](#table-of-contents)
 
-## Lab 10: AI Services Interface
+## Lab 10: Retrieval-Augmented Generation (RAG)
 
-### 10.1 Create a Service Interface
-
-Define a high-level service interface for your AI application:
-
-```java
-interface FilmographyService {
-    
-    @SystemMessage("You are a helpful assistant that provides accurate information about actors and their movies.")
-    List<String> getMovies(@UserMessage String actor);
-    
-    @SystemMessage("You are a movie expert. Provide detailed analysis.")
-    String analyzeActor(@UserMessage String actorName);
-    
-    ActorFilms getFullFilmography(String actorName);
-}
-```
-
-### 10.2 Implement the Service
-
-Create a test that uses the `AiServices` to implement the interface:
-
-```java
-@Test
-void useFilmographyService() {
-    ChatModel model = OpenAiChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
-            .build();
-
-    FilmographyService service = AiServices.builder(FilmographyService.class)
-            .chatModel(model)
-            .build();
-
-    // Test simple movie list
-    List<String> tomHanksMovies = service.getMovies("Tom Hanks");
-    System.out.println("Tom Hanks movies: " + tomHanksMovies);
-    
-    // Test actor analysis
-    String analysis = service.analyzeActor("Meryl Streep");
-    System.out.println("Meryl Streep analysis: " + analysis);
-
-    assertNotNull(tomHanksMovies);
-    assertFalse(tomHanksMovies.isEmpty());
-    assertNotNull(analysis);
-}
-```
-
-### 10.3 Service with Memory and Tools
-
-Create an advanced service that combines memory and tools:
-
-```java
-interface PersonalAssistant {
-    String chat(String message);
-}
-
-@Test
-void personalAssistantWithMemoryAndTools() {
-    ChatModel model = OpenAiChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
-            .build();
-
-    ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
-
-    PersonalAssistant assistant = AiServices.builder(PersonalAssistant.class)
-            .chatModel(model)
-            .chatMemory(memory)
-            .tools(new DateTimeTool())
-            .build();
-
-    // Have a conversation that uses both memory and tools
-    String response1 = assistant.chat("Hi, my name is Alice and I'm a software developer.");
-    System.out.println("Response 1: " + response1);
-
-    String response2 = assistant.chat("What's my name and what year will it be in 3 years?");
-    System.out.println("Response 2: " + response2);
-
-    // Verify memory and tool usage
-    assertTrue(response2.toLowerCase().contains("alice"));
-    assertNotNull(response2);
-}
-```
-
-### 10.4 Advanced Service Configuration
-
-Create a more sophisticated service with custom configuration:
-
-```java
-interface DocumentAnalyzer {
-    @SystemMessage("You are an expert document analyzer. Provide concise, accurate analysis.")
-    @UserMessage("Analyze this document content and provide key insights: {{content}}")
-    String analyzeDocument(@V("content") String documentContent);
-    
-    @UserMessage("Extract the main themes from: {{content}}")
-    List<String> extractThemes(@V("content") String documentContent);
-    
-    @UserMessage("Rate the sentiment of this content from 1-10: {{content}}")
-    int analyzeSentiment(@V("content") String documentContent);
-}
-
-@Test
-void advancedServiceConfiguration() {
-    ChatModel model = OpenAiChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
-            .temperature(0.3)  // Lower temperature for more consistent analysis
-            .build();
-
-    DocumentAnalyzer analyzer = AiServices.builder(DocumentAnalyzer.class)
-            .chatModel(model)
-            .build();
-
-    String sampleContent = """
-        The quarterly earnings report shows strong growth in the technology sector,
-        with cloud computing services leading the way. Customer satisfaction remains high,
-        though there are concerns about increasing competition and market saturation.
-        """;
-
-    String analysis = analyzer.analyzeDocument(sampleContent);
-    List<String> themes = analyzer.extractThemes(sampleContent);
-    int sentiment = analyzer.analyzeSentiment(sampleContent);
-
-    System.out.println("Analysis: " + analysis);
-    System.out.println("Themes: " + themes);
-    System.out.println("Sentiment: " + sentiment);
-
-    assertNotNull(analysis);
-    assertNotNull(themes);
-    assertFalse(themes.isEmpty());
-    assertTrue(sentiment >= 1 && sentiment <= 10);
-}
-```
-
-[↑ Back to table of contents](#table-of-contents)
-
-## Lab 11: Retrieval-Augmented Generation (RAG)
-
-### 11.1 Basic Document Loading and Embedding
+### 10.1 Basic Document Loading and Embedding
 
 Create a test that demonstrates document loading and embedding:
 
@@ -1202,7 +1108,7 @@ void basicDocumentEmbedding() {
 }
 ```
 
-### 11.2 RAG with ContentRetriever
+### 10.2 RAG with ContentRetriever
 
 Create a more sophisticated RAG implementation:
 
@@ -1262,7 +1168,7 @@ void ragWithContentRetriever() {
 }
 ```
 
-### 11.3 RAG with File Documents
+### 10.3 RAG with File Documents
 
 Create a test that loads documents from files:
 
@@ -1333,7 +1239,7 @@ void ragWithFileDocuments() throws IOException {
 }
 ```
 
-### 11.4 Advanced RAG with Metadata Filtering
+### 10.4 Advanced RAG with Metadata Filtering
 
 Create a more advanced RAG system that uses metadata for filtering:
 
@@ -1401,9 +1307,9 @@ void ragWithMetadataFiltering() {
 
 [↑ Back to table of contents](#table-of-contents)
 
-## Lab 12: Redis Vector Store for RAG
+## Lab 11: Redis Vector Store for RAG
 
-### 12.1 Prerequisites
+### 11.1 Prerequisites
 
 To use Redis as a vector store, you need a running Redis instance with vector search capabilities:
 
@@ -1411,7 +1317,7 @@ To use Redis as a vector store, you need a running Redis instance with vector se
 docker run -p 6379:6379 redis/redis-stack:latest
 ```
 
-### 12.2 Basic Redis Vector Store Setup
+### 11.2 Basic Redis Vector Store Setup
 
 Create a test that demonstrates Redis vector store usage:
 
@@ -1471,7 +1377,7 @@ private boolean isRedisAvailable() {
 }
 ```
 
-### 12.3 RAG with Redis Persistence
+### 11.3 RAG with Redis Persistence
 
 Create a comprehensive RAG system using Redis:
 
@@ -1546,7 +1452,7 @@ void ragWithRedisPersistence() {
 }
 ```
 
-### 12.4 Data Persistence and Cleanup
+### 11.4 Data Persistence and Cleanup
 
 Create utilities for managing the Redis vector store:
 
@@ -1581,7 +1487,7 @@ void redisDataManagement() {
 }
 ```
 
-### 12.5 Production RAG Configuration
+### 11.5 Production RAG Configuration
 
 Create a more production-ready RAG configuration:
 
