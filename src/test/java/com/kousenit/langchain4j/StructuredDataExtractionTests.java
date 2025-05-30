@@ -11,6 +11,7 @@ import dev.langchain4j.service.V;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
 import static org.junit.jupiter.api.Assertions.*;
@@ -156,18 +157,22 @@ class StructuredDataExtractionTests {
 
         // Request filmographies for multiple actors
         ActorFilmographies result = service.getMultipleActorFilmographies(
-            "Return a JSON object with a 'filmographies' field containing an array of exactly 3 different famous actors. Each actor should have exactly 4 movies. Format each actor as an object with 'actor' and 'movies' fields."
+            """
+            Return a JSON object with a 'filmographies' field containing
+            an array of exactly 3 different famous actors. Each actor
+            should have exactly 4 movies. Format each actor as an object
+            with 'actor' and 'movies' fields."""
         );
 
         List<ActorFilms> filmographies = result.filmographies();
 
         // Display results
         System.out.println("Multiple Actor Filmographies:");
-        for (int i = 0; i < filmographies.size(); i++) {
+        IntStream.range(0, filmographies.size()).forEach(i -> {
             ActorFilms actorFilms = filmographies.get(i);
             System.out.println((i + 1) + ". " + actorFilms.actor() + ":");
             actorFilms.movies().forEach(movie -> System.out.println("   - " + movie));
-        }
+        });
 
         // Verify the extracted data
         assertNotNull(result, "Result should not be null");
@@ -175,19 +180,18 @@ class StructuredDataExtractionTests {
         assertEquals(3, filmographies.size(), "Should have exactly 3 actor filmographies");
         
         // Verify each filmography
-        for (ActorFilms actorFilms : filmographies) {
+        // Verify each movie is not empty
+        filmographies.forEach(actorFilms -> {
             assertNotNull(actorFilms, "ActorFilms should not be null");
             assertNotNull(actorFilms.actor(), "Actor name should not be null");
             assertFalse(actorFilms.actor().trim().isEmpty(), "Actor name should not be empty");
             assertNotNull(actorFilms.movies(), "Movies list should not be null");
             assertEquals(4, actorFilms.movies().size(), "Each actor should have exactly 4 movies");
-            
-            // Verify each movie is not empty
             actorFilms.movies().forEach(movie -> {
                 assertNotNull(movie, "Movie should not be null");
                 assertFalse(movie.trim().isEmpty(), "Movie should not be empty");
             });
-        }
+        });
     }
 
     /**
