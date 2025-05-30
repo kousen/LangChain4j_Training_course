@@ -26,80 +26,107 @@ class OpenAiChatTests {
     /**
      * Test 1.1: A Simple Query
      * 
-     * TODO: Implement a basic chat interaction
-     * 1. Create an OpenAI chat model using the builder pattern
-     * 2. Set the API key from environment variable: System.getenv("OPENAI_API_KEY")
-     * 3. Use GPT_4_O_MINI model
-     * 4. Send a simple user message and get the response
-     * 5. Print the response and verify it's not null or empty
+     * Demonstrates basic chat interaction with OpenAI's ChatModel.
+     * Creates a model, sends a query, and verifies the response.
      */
     @Test
     void simpleQuery() {
-        // TODO: Create OpenAI chat model using builder pattern
-        // ChatModel model = OpenAiChatModel.builder()...
-        
-        // TODO: Send a user message and get the response
-        // String response = model.generate("Why is the sky blue?");
+        // Create OpenAI chat model using builder pattern
+        ChatModel model = OpenAiChatModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName(GPT_4_O_MINI)
+                .build();
 
-        // TODO: Print and verify the response
-        // System.out.println(response);
-        // assertNotNull(response);
-        // assertFalse(response.isEmpty());
+        // Send a user message and get the response
+        String response = model.generate("Why is the sky blue?");
+
+        // Print and verify the response
+        System.out.println("Simple Query Response:");
+        System.out.println(response);
+        System.out.println("=".repeat(50));
+        
+        assertNotNull(response, "Response should not be null");
+        assertFalse(response.isEmpty(), "Response should not be empty");
     }
 
     /**
      * Test 1.2: System Message
      * 
-     * TODO: Implement a chat interaction with a system message
-     * 1. Create the same OpenAI chat model
-     * 2. Create a SystemMessage to modify the model's behavior
-     * 3. Create a UserMessage with your query
-     * 4. Send both messages and get the Response object
-     * 5. Extract the text from the response and verify it
+     * Demonstrates how to use system messages to modify the model's behavior.
+     * The system message acts as instructions that influence how the AI responds.
      */
     @Test
     void simpleQueryWithSystemMessage() {
-        // TODO: Create OpenAI chat model
+        // Create OpenAI chat model
+        ChatModel model = OpenAiChatModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName(GPT_4_O_MINI)
+                .build();
+
+        // Create system and user messages
+        SystemMessage systemMessage = SystemMessage.from("You are a helpful assistant that responds like a pirate.");
+        UserMessage userMessage = UserMessage.from("Why is the sky blue?");
+
+        // Generate response with both messages
+        Response<AiMessage> response = model.generate(systemMessage, userMessage);
+
+        // Extract and verify the response
+        String responseText = response.content().text();
+        System.out.println("Pirate Response:");
+        System.out.println(responseText);
+        System.out.println("=".repeat(50));
         
-        // TODO: Create system and user messages
-        // SystemMessage systemMessage = SystemMessage.from("You are a helpful assistant that responds like a pirate.");
-        // UserMessage userMessage = UserMessage.from("Why is the sky blue?");
-
-        // TODO: Generate response with both messages
-        // Response<AiMessage> response = model.generate(systemMessage, userMessage);
-
-        // TODO: Extract and verify the response
-        // String responseText = response.content().text();
-        // System.out.println(responseText);
-        // assertNotNull(responseText);
+        assertNotNull(responseText, "Response text should not be null");
+        assertFalse(responseText.isEmpty(), "Response text should not be empty");
+        // Note: We could check for pirate-like language, but AI responses can vary
     }
 
     /**
      * Test 1.3: Accessing Response Metadata
      * 
-     * TODO: Implement a chat interaction that accesses response metadata
-     * 1. Create the OpenAI chat model
-     * 2. Create a UserMessage
-     * 3. Generate a response and get the full Response object
-     * 4. Extract and print the content, token usage, and finish reason
-     * 5. Verify all metadata is present
+     * Demonstrates how to access response metadata including token usage,
+     * finish reason, and other information about the AI's response.
      */
     @Test
     void simpleQueryWithMetadata() {
-        // TODO: Create OpenAI chat model
-        
-        // TODO: Create user message
-        // UserMessage userMessage = UserMessage.from("Why is the sky blue?");
-        
-        // TODO: Generate response
-        // Response<AiMessage> response = model.generate(userMessage);
+        // Create OpenAI chat model
+        ChatModel model = OpenAiChatModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName(GPT_4_O_MINI)
+                .build();
 
-        // TODO: Extract and print metadata
-        // System.out.println("Content: " + response.content().text());
-        // System.out.println("Token Usage: " + response.tokenUsage());
-        // System.out.println("Finish Reason: " + response.finishReason());
+        // Create user message
+        UserMessage userMessage = UserMessage.from("Why is the sky blue?");
         
-        // TODO: Verify the response content
-        // assertNotNull(response.content().text());
+        // Generate response
+        Response<AiMessage> response = model.generate(userMessage);
+
+        // Extract and print metadata
+        assertNotNull(response, "Response should not be null");
+        
+        String content = response.content().text();
+        System.out.println("Response with Metadata:");
+        System.out.println("Content: " + content);
+        
+        if (response.tokenUsage() != null) {
+            System.out.println("Token Usage: " + response.tokenUsage());
+            System.out.println("  Input Tokens: " + response.tokenUsage().inputTokenCount());
+            System.out.println("  Output Tokens: " + response.tokenUsage().outputTokenCount());
+            System.out.println("  Total Tokens: " + response.tokenUsage().totalTokenCount());
+        } else {
+            System.out.println("Token Usage: Not available");
+        }
+        
+        if (response.finishReason() != null) {
+            System.out.println("Finish Reason: " + response.finishReason());
+        } else {
+            System.out.println("Finish Reason: Not available");
+        }
+        
+        System.out.println("=".repeat(50));
+        
+        // Verify the response content
+        assertNotNull(content, "Response content should not be null");
+        assertFalse(content.isEmpty(), "Response content should not be empty");
     }
 }
