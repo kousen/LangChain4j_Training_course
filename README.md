@@ -46,10 +46,10 @@ Follow the exercises in [labs.md](labs.md) to build LangChain4j applications fro
 2. **Streaming Responses** - Real-time AI responses  
 3. **Structured Data Extraction** - AI-powered data parsing
 4. **Prompt Templates** - Reusable AI prompts
-5. **Chat Memory** - Conversation context
-6. **Vision Capabilities** - Image analysis
-7. **Image Generation** - AI-created images
-8. **AI Tools** - Function calling
+5. **Chat Memory** - Conversation context and multi-user memory isolation
+6. **AI Tools** - Function calling
+7. **Vision Capabilities** - Image analysis
+8. **Image Generation** - AI-created images
 9. **Audio Processing** - Speech-to-text and text-to-speech
 10. **Retrieval-Augmented Generation (RAG)** - AI with knowledge base
 11. **Production RAG** - Redis vector store optimization
