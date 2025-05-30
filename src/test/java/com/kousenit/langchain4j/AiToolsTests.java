@@ -1,15 +1,9 @@
 package com.kousenit.langchain4j;
 
-import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,68 +21,14 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class AiToolsTests {
 
-    /**
-     * DateTimeTool provides date and time related functionality for AI assistants.
-     * This demonstrates the basic pattern for creating AI tools.
+    /*
+     * Tool classes are now standalone classes in src/main/java/com/kousenit/langchain4j/:
+     * - DateTimeTool.java - Date and time related functionality
+     * - WeatherTool.java - Weather information with parameters  
+     * - CalculatorTool.java - Mathematical operations with error handling
+     * 
+     * These can be imported and used directly in tests and other classes.
      */
-    static class DateTimeTool {
-        private static final Logger logger = LoggerFactory.getLogger(DateTimeTool.class);
-
-        @Tool("Get the current date and time")
-        String getCurrentDateTime() {
-            logger.info("Getting current date and time");
-            return LocalDateTime.now().toString();
-        }
-
-        @Tool("Get the date that is a specified number of years from now")
-        String getDateYearsFromNow(int years) {
-            logger.info("Calculating date {} years from now", years);
-            return LocalDate.now().plusYears(years).toString();
-        }
-
-        @Tool("Set an alarm for a specific time")
-        String setAlarm(String time) {
-            logger.info("Setting alarm for {}", time);
-            // In a real implementation, this would actually set an alarm
-            return "Alarm set for " + time;
-        }
-    }
-
-    /**
-     * WeatherTool demonstrates tools with parameters.
-     * Shows how AI can call tools with specific arguments.
-     */
-    static class WeatherTool {
-        @Tool("Get the current weather for a specific city")
-        String getCurrentWeather(String city, String units) {
-            // In a real implementation, this would call a weather API
-            return String.format("The current weather in %s is 22°%s and sunny", 
-                    city, units.equals("metric") ? "C" : "F");
-        }
-    }
-
-    /**
-     * CalculatorTool demonstrates multiple related tools in one class.
-     */
-    static class CalculatorTool {
-        @Tool("Add two numbers")
-        double add(double a, double b) {
-            return a + b;
-        }
-        
-        @Tool("Multiply two numbers")
-        double multiply(double a, double b) {
-            return a * b;
-        }
-        
-        @Tool("Divide two numbers")
-        double divide(double a, double b) {
-            if (b == 0) {
-                throw new IllegalArgumentException("Cannot divide by zero");
-            }
-            return a / b;
-        }
-    }
 
     /**
      * Assistant interface for AI services with tool integration.
@@ -130,7 +70,7 @@ class AiToolsTests {
         String response3 = assistant.chat("Set an alarm for 8:00 AM tomorrow");
         System.out.println("Alarm response: " + response3);
         
-        System.out.println("=" * 50);
+        System.out.println("=".repeat(50));
 
         // Verify all responses are not null and contain meaningful content
         assertAll("Basic tool usage validation",
@@ -183,7 +123,7 @@ class AiToolsTests {
         String response2 = assistant.chat("How about the weather in New York with Fahrenheit?");
         System.out.println("New York weather (Fahrenheit): " + response2);
         
-        System.out.println("=" * 50);
+        System.out.println("=".repeat(50));
 
         // Verify responses contain expected information
         assertAll("Weather tool parameter validation",
@@ -236,7 +176,7 @@ class AiToolsTests {
         String response3 = assistant.chat("What's 25 + 17? Also, what's the weather in London with metric units?");
         System.out.println("Math and weather response: " + response3);
         
-        System.out.println("=" * 50);
+        System.out.println("=".repeat(50));
 
         // Verify all multi-tool responses
         assertAll("Multiple tools integration validation",
@@ -296,7 +236,7 @@ class AiToolsTests {
         String response3 = assistant.chat("Calculate what year it will be in 10 years, then set an alarm for midnight of that year");
         System.out.println("Tool chaining response: " + response3);
         
-        System.out.println("=" * 50);
+        System.out.println("=".repeat(50));
 
         // Verify advanced scenarios work
         assertAll("Advanced tool scenarios validation",
@@ -349,7 +289,7 @@ class AiToolsTests {
         String response2 = assistant.chat("What is 10 divided by 2?");
         System.out.println("Normal division response: " + response2);
         
-        System.out.println("=" * 50);
+        System.out.println("=".repeat(50));
 
         // Verify error handling responses
         assertAll("Tool error handling validation",
