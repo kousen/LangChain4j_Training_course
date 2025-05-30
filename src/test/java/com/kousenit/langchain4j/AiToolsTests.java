@@ -136,9 +136,9 @@ class AiToolsTests {
                 .as("Paris weather response")
                 .containsIgnoringCase("paris");
                 
-        assertThat(response2)
+        assertThat(response2.toLowerCase())
                 .as("New York weather response")  
-                .containsAnyOfIgnoringCase("new york", "york");
+                .containsAnyOf("new york", "york");
     }
 
     /**
@@ -196,8 +196,10 @@ class AiToolsTests {
                 
         assertThat(response3)
                 .as("Math and weather combination")
-                .containsAnyOf("42", "25", "17", "add")
-                .containsAnyOfIgnoringCase("london", "weather");
+                .containsAnyOf("42", "25", "17", "add");
+        assertThat(response3.toLowerCase())
+                .as("Math and weather combination - location")
+                .containsAnyOf("london", "weather");
     }
 
     /**
