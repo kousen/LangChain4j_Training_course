@@ -66,8 +66,9 @@ class AiServicesTests {
         System.out.println("Meryl Streep analysis: " + analysis);
 
         // Test structured data return
-        ActorFilms fullFilmography = service.getFullFilmography("Generate filmography for Leonardo DiCaprio with 5 movies");
-        System.out.println("Full filmography: " + fullFilmography.actor() + " - " + fullFilmography.movies().size() + " movies");
+        ActorFilms fullFilmography = service.getFullFilmography("""
+                Generate filmography for Leonardo DiCaprio with 5 movies""");
+        System.out.printf("Full filmography: %s - %d movies%n", fullFilmography.actor(), fullFilmography.movies().size());
 
         // Verify results using JUnit assertAll for grouped assertions
         assertAll("Filmography service results",
