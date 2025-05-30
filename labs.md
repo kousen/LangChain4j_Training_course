@@ -12,9 +12,9 @@ This series of labs will guide you through building LangChain4j applications tha
 - [Lab 3: Structured Data Extraction](#lab-3-structured-data-extraction)
 - [Lab 4: AI Services Interface](#lab-4-ai-services-interface)
 - [Lab 5: Chat Memory](#lab-5-chat-memory)
-- [Lab 6: Vision Capabilities](#lab-6-vision-capabilities)
-- [Lab 7: Image Generation](#lab-7-image-generation)
-- [Lab 8: AI Tools](#lab-8-ai-tools)
+- [Lab 6: AI Tools](#lab-6-ai-tools)
+- [Lab 7: Vision Capabilities](#lab-7-vision-capabilities)
+- [Lab 8: Image Generation](#lab-8-image-generation)
 - [Lab 9: Audio Capabilities](#lab-9-audio-capabilities)
 - [Lab 10: Retrieval-Augmented Generation (RAG)](#lab-10-retrieval-augmented-generation-rag)
 - [Lab 11: Redis Vector Store for RAG](#lab-11-redis-vector-store-for-rag)
@@ -366,13 +366,6 @@ void advancedStructuredDataExtraction() {
 
 ## Lab 4: AI Services Interface
 
-This lab demonstrates how to create high-level AI services using LangChain4j's AiServices. You'll learn how to:
-- Define service interfaces with @SystemMessage and @UserMessage annotations
-- Create type-safe AI-powered services
-- Integrate memory and tools with AI services
-- Use variable substitution with @V annotation for dynamic prompts
-- Work with complex return types including records
-
 ### 4.1 Create a Service Interface
 
 Define a high-level service interface for your AI application:
@@ -390,7 +383,7 @@ interface FilmographyService {
 }
 ```
 
-### 4.1b Basic Service Implementation
+### 4.2 Implement the Service
 
 Create a test that uses the `AiServices` to implement the interface:
 
@@ -420,7 +413,7 @@ void useFilmographyService() {
 }
 ```
 
-### 4.2 Service with Memory and Tools
+### 4.3 Service with Memory and Tools
 
 Create an advanced service that combines memory and tools:
 
@@ -438,29 +431,28 @@ void personalAssistantWithMemoryAndTools() {
 
     ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
 
-    // Create AI service with memory (tools will be covered in Lab 8)
     PersonalAssistant assistant = AiServices.builder(PersonalAssistant.class)
             .chatModel(model)
             .chatMemory(memory)
+            .tools(new DateTimeTool())
             .build();
 
-    // Have a conversation that uses memory
+    // Have a conversation that uses both memory and tools
     String response1 = assistant.chat("Hi, my name is Alice and I'm a software developer.");
     System.out.println("Response 1: " + response1);
 
-    String response2 = assistant.chat("What's my name and what do I do for work?");
+    String response2 = assistant.chat("What's my name and what year will it be in 3 years?");
     System.out.println("Response 2: " + response2);
 
-    // Verify memory usage
-    assertNotNull(response1);
-    assertNotNull(response2);
+    // Verify memory and tool usage
     assertTrue(response2.toLowerCase().contains("alice"));
+    assertNotNull(response2);
 }
 ```
 
-### 4.3 Advanced Service with Variable Substitution
+### 4.4 Advanced Service Configuration
 
-Demonstrate using @V annotation for dynamic prompt variable substitution:
+Create a more sophisticated service with custom configuration:
 
 ```java
 interface DocumentAnalyzer {
@@ -476,17 +468,17 @@ interface DocumentAnalyzer {
 }
 
 @Test
-void advancedServiceWithVariableSubstitution() {
+void advancedServiceConfiguration() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
             .modelName(GPT_4_1_NANO)
+            .temperature(0.3)  // Lower temperature for more consistent analysis
             .build();
 
     DocumentAnalyzer analyzer = AiServices.builder(DocumentAnalyzer.class)
             .chatModel(model)
             .build();
 
-    // Test document with various data types
     String sampleContent = """
         The quarterly earnings report shows strong growth in the technology sector,
         with cloud computing services leading the way. Customer satisfaction remains high,
@@ -501,72 +493,10 @@ void advancedServiceWithVariableSubstitution() {
     System.out.println("Themes: " + themes);
     System.out.println("Sentiment: " + sentiment);
 
-    // Verify results
     assertNotNull(analysis);
-    assertFalse(analysis.trim().isEmpty());
     assertNotNull(themes);
     assertFalse(themes.isEmpty());
     assertTrue(sentiment >= 1 && sentiment <= 10);
-}
-```
-
-### 4.4 Advanced Service Configuration with Complex Return Types
-
-Create a more sophisticated service with custom configuration and complex return types:
-
-```java
-// Record for complex movie analysis data
-record MovieAnalysis(String title, int rating, List<String> genres, String review) {}
-
-interface MovieAnalysisService {
-    @SystemMessage("You are a film critic and movie database expert.")
-    @UserMessage("Analyze the movie {{movieTitle}} and provide a rating from 1-10")
-    int getMovieRating(@V("movieTitle") String movieTitle);
-    
-    @UserMessage("List the main genres for the movie {{movieTitle}}")
-    List<String> getMovieGenres(@V("movieTitle") String movieTitle);
-    
-    @UserMessage("Provide a brief analysis of {{movieTitle}} including rating (1-10), genres, and a short review")
-    MovieAnalysis getCompleteAnalysis(@V("movieTitle") String movieTitle);
-}
-
-@Test
-void advancedServiceConfiguration() {
-    // Create OpenAI chat model with specific configuration
-    ChatModel model = OpenAiChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
-            .temperature(0.3)  // Lower temperature for more consistent analysis
-            .build();
-
-    MovieAnalysisService service = AiServices.builder(MovieAnalysisService.class)
-            .chatModel(model)
-            .build();
-
-    // Test different data extraction methods
-    String movieTitle = "The Matrix";
-    
-    int rating = service.getMovieRating(movieTitle);
-    List<String> genres = service.getMovieGenres(movieTitle);
-    MovieAnalysis analysis = service.getCompleteAnalysis(movieTitle);
-
-    System.out.println("Movie Rating: " + rating);
-    System.out.println("Genres: " + genres);
-    System.out.println("Complete Analysis: " + analysis);
-
-    // Verify individual service results
-    assertNotNull(rating);
-    assertTrue(rating >= 1 && rating <= 10);
-    assertNotNull(genres);
-    assertFalse(genres.isEmpty());
-    assertNotNull(analysis);
-    
-    // Verify complex analysis object
-    assertNotNull(analysis.title());
-    assertTrue(analysis.rating() >= 1 && analysis.rating() <= 10);
-    assertNotNull(analysis.genres());
-    assertFalse(analysis.genres().isEmpty());
-    assertNotNull(analysis.review());
 }
 ```
 
@@ -706,9 +636,150 @@ void aiServicesWithMemory() {
 
 [↑ Back to table of contents](#table-of-contents)
 
-## Lab 6: Vision Capabilities
+## Lab 6: AI Tools
 
-### 6.1 Local Image Analysis
+### 6.1 Create a Tool Class
+
+Create a `DateTimeTool` class that the AI can use:
+
+```java
+class DateTimeTool {
+    private static final Logger logger = LoggerFactory.getLogger(DateTimeTool.class);
+
+    @Tool("Get the current date and time")
+    String getCurrentDateTime() {
+        logger.info("Getting current date and time");
+        return LocalDateTime.now().toString();
+    }
+
+    @Tool("Get the date that is a specified number of years from now")
+    String getDateYearsFromNow(int years) {
+        logger.info("Calculating date {} years from now", years);
+        return LocalDate.now().plusYears(years).toString();
+    }
+
+    @Tool("Set an alarm for a specific time")
+    String setAlarm(String time) {
+        logger.info("Setting alarm for {}", time);
+        // In a real implementation, this would actually set an alarm
+        return "Alarm set for " + time;
+    }
+}
+```
+
+### 6.2 Use Tools with AiServices
+
+Create a test that uses the tools with LangChain4j's `AiServices`:
+
+```java
+interface Assistant {
+    String chat(String message);
+}
+
+@Test
+void useToolsWithAiServices() {
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .build();
+
+    Assistant assistant = AiServices.builder(Assistant.class)
+            .chatModel(model)
+            .tools(new DateTimeTool())
+            .build();
+
+    String response1 = assistant.chat("What day is tomorrow?");
+    System.out.println("Response 1: " + response1);
+
+    String response2 = assistant.chat("What year will it be in 5 years?");
+    System.out.println("Response 2: " + response2);
+
+    String response3 = assistant.chat("Set an alarm for 8:00 AM tomorrow");
+    System.out.println("Response 3: " + response3);
+
+    assertNotNull(response1);
+    assertNotNull(response2);
+    assertNotNull(response3);
+}
+```
+
+### 6.3 Tools with Parameters
+
+Create a more complex tool that demonstrates parameter usage:
+
+```java
+class WeatherTool {
+    @Tool("Get the current weather for a specific city")
+    String getCurrentWeather(String city, String units) {
+        // In a real implementation, this would call a weather API
+        return String.format("The current weather in %s is 22°%s and sunny", 
+                city, units.equals("metric") ? "C" : "F");
+    }
+}
+
+@Test
+void useWeatherTool() {
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .build();
+
+    Assistant assistant = AiServices.builder(Assistant.class)
+            .chatModel(model)
+            .tools(new WeatherTool())
+            .build();
+
+    String response = assistant.chat("What's the weather like in Paris? Use metric units.");
+    System.out.println("Weather response: " + response);
+
+    assertNotNull(response);
+    assertTrue(response.contains("Paris") || response.contains("22°C"));
+}
+```
+
+### 6.4 Multiple Tools
+
+Create a test that demonstrates using multiple tools together:
+
+```java
+class CalculatorTool {
+    @Tool("Add two numbers")
+    double add(double a, double b) {
+        return a + b;
+    }
+    
+    @Tool("Multiply two numbers")
+    double multiply(double a, double b) {
+        return a * b;
+    }
+}
+
+@Test
+void useMultipleTools() {
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .build();
+
+    Assistant assistant = AiServices.builder(Assistant.class)
+            .chatModel(model)
+            .tools(new DateTimeTool(), new CalculatorTool(), new WeatherTool())
+            .build();
+
+    String response = assistant.chat("What's 15 multiplied by 8, and what year will it be in 3 years?");
+    System.out.println("Multi-tool response: " + response);
+
+    assertNotNull(response);
+    // Should contain both calculation result and year
+    assertTrue(response.contains("120") || response.contains("calculation"));
+}
+```
+
+[↑ Back to table of contents](#table-of-contents)
+
+## Lab 7: Vision Capabilities
+
+### 7.1 Local Image Analysis
 
 First, make sure you have a test image in `src/main/resources/bowl_of_fruit.png`.
 
@@ -740,7 +811,7 @@ void localImageAnalysis() throws IOException {
 }
 ```
 
-### 6.2 Remote Image Analysis
+### 7.2 Remote Image Analysis
 
 Create a test that analyzes a remote image:
 
@@ -766,7 +837,7 @@ void remoteImageAnalysis() {
 }
 ```
 
-### 6.3 Vision with AiServices
+### 7.3 Vision with AiServices
 
 You can also use vision capabilities with `AiServices`:
 
@@ -810,9 +881,9 @@ void visionWithAiServices() throws IOException {
 
 [↑ Back to table of contents](#table-of-contents)
 
-## Lab 7: Image Generation
+## Lab 8: Image Generation
 
-### 7.1 Basic Image Generation
+### 8.1 Basic Image Generation
 
 Create a test that generates an image using OpenAI's DALL-E:
 
@@ -837,7 +908,7 @@ void generateImage() {
 }
 ```
 
-### 7.2 Image Generation with Options
+### 8.2 Image Generation with Options
 
 Create a test with more specific generation options:
 
@@ -869,7 +940,7 @@ void generateImageWithOptions() throws IOException {
 }
 ```
 
-### 7.3 Image Generation with AiServices
+### 8.3 Image Generation with AiServices
 
 You can also use image generation with `AiServices`:
 
@@ -894,147 +965,6 @@ void imageGenerationWithAiServices() {
     
     System.out.println("Generated image: " + image.url());
     assertNotNull(image.url());
-}
-```
-
-[↑ Back to table of contents](#table-of-contents)
-
-## Lab 8: AI Tools
-
-### 8.1 Create a Tool Class
-
-Create a `DateTimeTool` class that the AI can use:
-
-```java
-class DateTimeTool {
-    private static final Logger logger = LoggerFactory.getLogger(DateTimeTool.class);
-
-    @Tool("Get the current date and time")
-    String getCurrentDateTime() {
-        logger.info("Getting current date and time");
-        return LocalDateTime.now().toString();
-    }
-
-    @Tool("Get the date that is a specified number of years from now")
-    String getDateYearsFromNow(int years) {
-        logger.info("Calculating date {} years from now", years);
-        return LocalDate.now().plusYears(years).toString();
-    }
-
-    @Tool("Set an alarm for a specific time")
-    String setAlarm(String time) {
-        logger.info("Setting alarm for {}", time);
-        // In a real implementation, this would actually set an alarm
-        return "Alarm set for " + time;
-    }
-}
-```
-
-### 8.2 Use Tools with AiServices
-
-Create a test that uses the tools with LangChain4j's `AiServices`:
-
-```java
-interface Assistant {
-    String chat(String message);
-}
-
-@Test
-void useToolsWithAiServices() {
-    ChatModel model = OpenAiChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
-            .build();
-
-    Assistant assistant = AiServices.builder(Assistant.class)
-            .chatModel(model)
-            .tools(new DateTimeTool())
-            .build();
-
-    String response1 = assistant.chat("What day is tomorrow?");
-    System.out.println("Response 1: " + response1);
-
-    String response2 = assistant.chat("What year will it be in 5 years?");
-    System.out.println("Response 2: " + response2);
-
-    String response3 = assistant.chat("Set an alarm for 8:00 AM tomorrow");
-    System.out.println("Response 3: " + response3);
-
-    assertNotNull(response1);
-    assertNotNull(response2);
-    assertNotNull(response3);
-}
-```
-
-### 8.3 Tools with Parameters
-
-Create a more complex tool that demonstrates parameter usage:
-
-```java
-class WeatherTool {
-    @Tool("Get the current weather for a specific city")
-    String getCurrentWeather(String city, String units) {
-        // In a real implementation, this would call a weather API
-        return String.format("The current weather in %s is 22°%s and sunny", 
-                city, units.equals("metric") ? "C" : "F");
-    }
-}
-
-@Test
-void useWeatherTool() {
-    ChatModel model = OpenAiChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
-            .build();
-
-    Assistant assistant = AiServices.builder(Assistant.class)
-            .chatModel(model)
-            .tools(new WeatherTool())
-            .build();
-
-    String response = assistant.chat("What's the weather like in Paris? Use metric units.");
-    System.out.println("Weather response: " + response);
-
-    assertNotNull(response);
-    assertTrue(response.contains("Paris") || response.contains("22°C"));
-}
-```
-
-### 8.4 Multiple Tools
-
-Create a test that demonstrates using multiple tools together:
-
-```java
-class CalculatorTool {
-    @Tool("Add two numbers")
-    double add(double a, double b) {
-        return a + b;
-    }
-    
-    @Tool("Multiply two numbers")
-    double multiply(double a, double b) {
-        return a * b;
-    }
-}
-
-@Test
-void useMultipleTools() {
-    ChatModel model = OpenAiChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
-            .build();
-
-    Assistant assistant = AiServices.builder(Assistant.class)
-            .chatModel(model)
-            .tools(new DateTimeTool(), new CalculatorTool(), new WeatherTool())
-            .build();
-
-    String response = assistant.chat("What's 15 multiplied by 8, and what year will it be in 3 years?");
-    System.out.println("Multi-tool response: " + response);
-
-    assertNotNull(response);
-    // Should contain both calculation result and year
-    assertTrue(response.contains("120") || response.contains("calculation"));
 }
 ```
 
