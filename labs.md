@@ -10,15 +10,14 @@ This series of labs will guide you through building LangChain4j applications tha
 - [Lab 1: Basic Chat Interactions](#lab-1-basic-chat-interactions)
 - [Lab 2: Streaming Responses](#lab-2-streaming-responses)
 - [Lab 3: Structured Data Extraction](#lab-3-structured-data-extraction)
-- [Lab 4: Prompt Templates](#lab-4-prompt-templates)
+- [Lab 4: AI Services Interface](#lab-4-ai-services-interface)
 - [Lab 5: Chat Memory](#lab-5-chat-memory)
 - [Lab 6: Vision Capabilities](#lab-6-vision-capabilities)
 - [Lab 7: Image Generation](#lab-7-image-generation)
 - [Lab 8: AI Tools](#lab-8-ai-tools)
 - [Lab 9: Audio Capabilities](#lab-9-audio-capabilities)
-- [Lab 10: AI Services Interface](#lab-10-ai-services-interface)
-- [Lab 11: Retrieval-Augmented Generation (RAG)](#lab-11-retrieval-augmented-generation-rag)
-- [Lab 12: Redis Vector Store for RAG](#lab-12-redis-vector-store-for-rag)
+- [Lab 10: Retrieval-Augmented Generation (RAG)](#lab-10-retrieval-augmented-generation-rag)
+- [Lab 11: Redis Vector Store for RAG](#lab-11-redis-vector-store-for-rag)
 - [Conclusion](#conclusion)
 
 ## Setup
@@ -51,11 +50,11 @@ void simpleQuery() {
     // Create OpenAI chat model using builder pattern
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     // Send a user message and get the response
-    String response = model.generate("Why is the sky blue?");
+    String response = model.chat("Why is the sky blue?");
 
     System.out.println(response);
     assertNotNull(response);
@@ -72,43 +71,43 @@ Modify the previous test to include a system message that changes the model's be
 void simpleQueryWithSystemMessage() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     // Create system and user messages
     SystemMessage systemMessage = SystemMessage.from("You are a helpful assistant that responds like a pirate.");
     UserMessage userMessage = UserMessage.from("Why is the sky blue?");
 
-    Response<AiMessage> response = model.generate(systemMessage, userMessage);
+    ChatResponse response = model.chat(systemMessage, userMessage);
 
-    System.out.println(response.content().text());
-    assertNotNull(response.content().text());
+    System.out.println(response.aiMessage().text());
+    assertNotNull(response.aiMessage().text());
 }
 ```
 
 ### 1.3 Accessing Response Metadata
 
-Create a test that retrieves and displays the full `Response` object with metadata:
+Create a test that retrieves and displays the full `ChatResponse` object with metadata:
 
 ```java
 @Test
 void simpleQueryWithMetadata() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     UserMessage userMessage = UserMessage.from("Why is the sky blue?");
-    Response<AiMessage> response = model.generate(userMessage);
+    ChatResponse response = model.chat(userMessage);
 
     assertNotNull(response);
-    System.out.println("Content: " + response.content().text());
+    System.out.println("Content: " + response.aiMessage().text());
     System.out.println("Token Usage: " + response.tokenUsage());
     System.out.println("Finish Reason: " + response.finishReason());
 }
 ```
 
-Note how the `Response` object provides useful information about token usage and completion status.
+Note how the `ChatResponse` object provides useful information about token usage and completion status.
 
 [↑ Back to table of contents](#table-of-contents)
 
@@ -123,23 +122,23 @@ Create a test that streams the response using LangChain4j's streaming capabiliti
 void streamingChat() throws InterruptedException {
     StreamingChatModel model = OpenAiStreamingChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
-    UserMessage userMessage = UserMessage.from("Tell me a story about a brave robot.");
+    String userMessage = "Tell me a story about a brave robot.";
     
     CountDownLatch latch = new CountDownLatch(1);
     StringBuilder fullResponse = new StringBuilder();
 
-    model.generate(userMessage, new StreamingResponseHandler<AiMessage>() {
+    model.chat(userMessage, new StreamingChatResponseHandler() {
         @Override
-        public void onNext(String token) {
+        public void onPartialResponse(String token) {
             System.out.print(token);
             fullResponse.append(token);
         }
 
         @Override
-        public void onComplete(Response<AiMessage> response) {
+        public void onCompleteResponse(ChatResponse response) {
             System.out.println("\n\nStreaming completed!");
             System.out.println("Full response: " + fullResponse.toString());
             latch.countDown();
@@ -165,7 +164,7 @@ Create a test that demonstrates streaming with conversation context:
 void streamingWithContext() throws InterruptedException {
     StreamingChatModel model = OpenAiStreamingChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     SystemMessage systemMessage = SystemMessage.from("You are a helpful coding assistant.");
@@ -173,15 +172,15 @@ void streamingWithContext() throws InterruptedException {
     
     CountDownLatch latch = new CountDownLatch(1);
 
-    model.generate(Arrays.asList(systemMessage, userMessage), 
-        new StreamingResponseHandler<AiMessage>() {
+    model.chat(Arrays.asList(systemMessage, userMessage), 
+        new StreamingChatResponseHandler() {
             @Override
-            public void onNext(String token) {
+            public void onPartialResponse(String token) {
                 System.out.print(token);
             }
 
             @Override
-            public void onComplete(Response<AiMessage> response) {
+            public void onCompleteResponse(ChatResponse response) {
                 System.out.println("\n\nResponse completed with: " + response.finishReason());
                 latch.countDown();
             }
@@ -214,11 +213,13 @@ public record ActorFilms(String actor, List<String> movies) {}
 Create a test that extracts a single entity using LangChain4j's structured output capabilities:
 
 ```java
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 @Test
-void extractActorFilms() {
+void extractActorFilms() throws JsonProcessingException {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .responseFormat("json_object")
             .build();
 
@@ -230,13 +231,21 @@ void extractActorFilms() {
             }
             """;
 
-    String response = model.generate(prompt);
+    String response = model.chat(prompt);
     System.out.println("JSON Response: " + response);
 
-    // Parse JSON manually or use Jackson/Gson
+    // Parse JSON manually using Jackson
+    ObjectMapper objectMapper = new ObjectMapper();
+    ActorFilms actorFilms = objectMapper.readValue(response, ActorFilms.class);
+
+    // Verify the parsed data
     assertNotNull(response);
     assertTrue(response.contains("actor"));
     assertTrue(response.contains("movies"));
+    assertNotNull(actorFilms);
+    assertNotNull(actorFilms.actor());
+    assertNotNull(actorFilms.movies());
+    assertEquals(5, actorFilms.movies().size());
 }
 ```
 
@@ -245,22 +254,26 @@ void extractActorFilms() {
 LangChain4j provides `AiServices` for automatic parsing into Java objects:
 
 ```java
+// Wrapper record for multiple actor filmographies
+record ActorFilmographies(List<ActorFilms> filmographies) {}
+
 interface ActorService {
     @SystemMessage("You are a movie database expert.")
     ActorFilms getActorFilmography(@UserMessage String actorName);
     
-    List<ActorFilms> getMultipleActorFilmographies(@UserMessage String actors);
+    @SystemMessage("You are a comprehensive movie database expert. Provide accurate filmographies.")
+    ActorFilmographies getMultipleActorFilmographies(@UserMessage String actors);
 }
 
 @Test
 void extractActorFilmsWithAiServices() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     ActorService service = AiServices.builder(ActorService.class)
-            .chatLanguageModel(model)
+            .chatModel(model)
             .build();
 
     ActorFilms actorFilms = service.getActorFilmography("Generate filmography for a random famous actor with exactly 5 movies");
@@ -275,96 +288,215 @@ void extractActorFilmsWithAiServices() {
 }
 ```
 
+### 3.4 Multiple Actor Filmographies
+
+Test extracting multiple structured entities using the wrapper record pattern:
+
+```java
+@Test
+void extractMultipleActorFilmographies() {
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .build();
+
+    ActorService service = AiServices.builder(ActorService.class)
+            .chatModel(model)
+            .build();
+
+    ActorFilmographies result = service.getMultipleActorFilmographies(
+        "Return a JSON object with a 'filmographies' field containing an array of exactly 3 different famous actors. Each actor should have exactly 4 movies."
+    );
+
+    List<ActorFilms> filmographies = result.filmographies();
+    
+    assertNotNull(result);
+    assertNotNull(filmographies);
+    assertEquals(3, filmographies.size());
+    
+    // Verify each filmography has exactly 4 movies
+    filmographies.forEach(actorFilms -> {
+        assertNotNull(actorFilms.actor());
+        assertNotNull(actorFilms.movies());
+        assertEquals(4, actorFilms.movies().size());
+    });
+}
+```
+
+### 3.5 Advanced Variable Substitution
+
+Use the `@V` annotation for dynamic prompt parameters:
+
+```java
+interface AdvancedActorService {
+    @SystemMessage("You are an expert movie database assistant specializing in actor filmographies.")
+    @UserMessage("Generate filmography for {{actorName}} with exactly {{movieCount}} of their most famous movies")
+    ActorFilms getSpecificActorFilmography(
+        @V("actorName") String actorName, 
+        @V("movieCount") int movieCount
+    );
+}
+
+@Test
+void advancedStructuredDataExtraction() {
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .build();
+
+    AdvancedActorService service = AiServices.builder(AdvancedActorService.class)
+            .chatModel(model)
+            .build();
+
+    ActorFilms actorFilms = service.getSpecificActorFilmography("Tom Hanks", 6);
+
+    assertNotNull(actorFilms);
+    assertTrue(actorFilms.actor().toLowerCase().contains("hanks"));
+    assertEquals(6, actorFilms.movies().size());
+}
+```
+
+**Important Notes for Lab 3:**
+- Add Jackson dependency for JSON parsing: `com.fasterxml.jackson.core:jackson-databind`
+- Use wrapper records like `ActorFilmographies` for better parsing of collections
+- The `@SystemMessage`, `@UserMessage`, and `@V` annotations are from `dev.langchain4j.service`
+- Use `.chatModel()` method (not `.chatLanguageModel()`) in LangChain4j 1.0.1
+
 [↑ Back to table of contents](#table-of-contents)
 
-## Lab 4: Prompt Templates
+## Lab 4: AI Services Interface
 
-### 4.1 Simple Template
+### 4.1 Create a Service Interface
 
-Create a test using LangChain4j's `PromptTemplate`:
+Define a high-level service interface for your AI application:
 
 ```java
-@Test
-void promptTemplate() {
-    ChatModel model = OpenAiChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
-            .build();
-
-    PromptTemplate template = PromptTemplate.from("Tell me {{count}} movies whose soundtrack was composed by {{composer}}");
+interface FilmographyService {
     
-    Map<String, Object> variables = new HashMap<>();
-    variables.put("count", "5");
-    variables.put("composer", "John Williams");
+    @SystemMessage("You are a helpful assistant that provides accurate information about actors and their movies.")
+    List<String> getMovies(@UserMessage String actor);
     
-    Prompt prompt = template.apply(variables);
-    String response = model.generate(prompt.text());
-
-    System.out.println(response);
-    assertNotNull(response);
+    @SystemMessage("You are a movie expert. Provide detailed analysis.")
+    String analyzeActor(@UserMessage String actorName);
+    
+    ActorFilms getFullFilmography(String actorName);
 }
 ```
 
-### 4.2 Template from Resource
+### 4.2 Implement the Service
 
-Create a template file at `src/main/resources/movie_prompt.mustache`:
-```
-Tell me {{count}} movies whose soundtrack was composed by {{composer}}
-```
-
-Then create a test that loads this template:
+Create a test that uses the `AiServices` to implement the interface:
 
 ```java
 @Test
-void promptTemplateFromResource() throws IOException {
+void useFilmographyService() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
-    String templateContent = new String(
-        getClass().getClassLoader().getResourceAsStream("movie_prompt.mustache").readAllBytes()
-    );
-    
-    PromptTemplate template = PromptTemplate.from(templateContent);
-    
-    Map<String, Object> variables = new HashMap<>();
-    variables.put("count", "10");
-    variables.put("composer", "Michael Giacchino");
-    
-    Prompt prompt = template.apply(variables);
-    String response = model.generate(prompt.text());
+    FilmographyService service = AiServices.builder(FilmographyService.class)
+            .chatModel(model)
+            .build();
 
-    System.out.println(response);
-    assertNotNull(response);
+    // Test simple movie list
+    List<String> tomHanksMovies = service.getMovies("Tom Hanks");
+    System.out.println("Tom Hanks movies: " + tomHanksMovies);
+    
+    // Test actor analysis
+    String analysis = service.analyzeActor("Meryl Streep");
+    System.out.println("Meryl Streep analysis: " + analysis);
+
+    assertNotNull(tomHanksMovies);
+    assertFalse(tomHanksMovies.isEmpty());
+    assertNotNull(analysis);
 }
 ```
 
-### 4.3 Advanced Template with AiServices
+### 4.3 Service with Memory and Tools
 
-You can also use templates with `AiServices` annotations:
+Create an advanced service that combines memory and tools:
 
 ```java
-interface MovieService {
-    @UserMessage("Tell me {{count}} movies whose soundtrack was composed by {{composer}}")
-    String getMoviesByComposer(@V("count") int count, @V("composer") String composer);
+interface PersonalAssistant {
+    String chat(String message);
 }
 
 @Test
-void templateWithAiServices() {
+void personalAssistantWithMemoryAndTools() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
-    MovieService service = AiServices.builder(MovieService.class)
-            .chatLanguageModel(model)
+    ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
+
+    PersonalAssistant assistant = AiServices.builder(PersonalAssistant.class)
+            .chatModel(model)
+            .chatMemory(memory)
+            .tools(new DateTimeTool())
             .build();
 
-    String movies = service.getMoviesByComposer(7, "Hans Zimmer");
+    // Have a conversation that uses both memory and tools
+    String response1 = assistant.chat("Hi, my name is Alice and I'm a software developer.");
+    System.out.println("Response 1: " + response1);
+
+    String response2 = assistant.chat("What's my name and what year will it be in 3 years?");
+    System.out.println("Response 2: " + response2);
+
+    // Verify memory and tool usage
+    assertTrue(response2.toLowerCase().contains("alice"));
+    assertNotNull(response2);
+}
+```
+
+### 4.4 Advanced Service Configuration
+
+Create a more sophisticated service with custom configuration:
+
+```java
+interface DocumentAnalyzer {
+    @SystemMessage("You are an expert document analyzer. Provide concise, accurate analysis.")
+    @UserMessage("Analyze this document content and provide key insights: {{content}}")
+    String analyzeDocument(@V("content") String documentContent);
     
-    System.out.println(movies);
-    assertNotNull(movies);
+    @UserMessage("Extract the main themes from: {{content}}")
+    List<String> extractThemes(@V("content") String documentContent);
+    
+    @UserMessage("Rate the sentiment of this content from 1-10: {{content}}")
+    int analyzeSentiment(@V("content") String documentContent);
+}
+
+@Test
+void advancedServiceConfiguration() {
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .temperature(0.3)  // Lower temperature for more consistent analysis
+            .build();
+
+    DocumentAnalyzer analyzer = AiServices.builder(DocumentAnalyzer.class)
+            .chatModel(model)
+            .build();
+
+    String sampleContent = """
+        The quarterly earnings report shows strong growth in the technology sector,
+        with cloud computing services leading the way. Customer satisfaction remains high,
+        though there are concerns about increasing competition and market saturation.
+        """;
+
+    String analysis = analyzer.analyzeDocument(sampleContent);
+    List<String> themes = analyzer.extractThemes(sampleContent);
+    int sentiment = analyzer.analyzeSentiment(sampleContent);
+
+    System.out.println("Analysis: " + analysis);
+    System.out.println("Themes: " + themes);
+    System.out.println("Sentiment: " + sentiment);
+
+    assertNotNull(analysis);
+    assertNotNull(themes);
+    assertFalse(themes.isEmpty());
+    assertTrue(sentiment >= 1 && sentiment <= 10);
 }
 ```
 
@@ -381,15 +513,15 @@ All requests to AI models are stateless by default. Create a test that demonstra
 void defaultRequestsAreStateless() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     System.out.println("First interaction:");
-    String response1 = model.generate("My name is Inigo Montoya. You killed my father. Prepare to die.");
+    String response1 = model.chat("My name is Inigo Montoya. You killed my father. Prepare to die.");
     System.out.println(response1);
 
     System.out.println("\nSecond interaction:");
-    String response2 = model.generate("Who am I?");
+    String response2 = model.chat("Who am I?");
     System.out.println(response2);
 
     // Verify the model doesn't remember the previous conversation
@@ -407,7 +539,7 @@ Use LangChain4j's `ChatMemory` to maintain conversation state:
 void requestsWithMemory() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
@@ -416,20 +548,20 @@ void requestsWithMemory() {
     UserMessage firstMessage = UserMessage.from("My name is Inigo Montoya. You killed my father. Prepare to die.");
     memory.add(firstMessage);
     
-    Response<AiMessage> response1 = model.generate(memory.messages());
+    ChatResponse response1 = model.chat(memory.messages());
     memory.add(response1.content());
-    System.out.println(response1.content().text());
+    System.out.println(response1.aiMessage().text());
 
     System.out.println("\nSecond interaction with memory:");
     UserMessage secondMessage = UserMessage.from("Who am I?");
     memory.add(secondMessage);
     
-    Response<AiMessage> response2 = model.generate(memory.messages());
+    ChatResponse response2 = model.chat(memory.messages());
     memory.add(response2.content());
-    System.out.println(response2.content().text());
+    System.out.println(response2.aiMessage().text());
 
     // Verify the model correctly identifies the user
-    assertTrue(response2.content().text().toLowerCase().contains("inigo montoya"),
+    assertTrue(response2.aiMessage().text().toLowerCase().contains("inigo montoya"),
             "The model should remember the user's identity when using memory");
 }
 ```
@@ -443,11 +575,11 @@ LangChain4j provides different memory implementations:
 void differentMemoryTypes() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     // Token-based memory - limits based on token count
-    ChatMemory tokenMemory = TokenWindowChatMemory.withMaxTokens(1000, new OpenAiTokenizer(GPT_4_O_MINI));
+    ChatMemory tokenMemory = TokenWindowChatMemory.withMaxTokens(1000, new OpenAiTokenizer(GPT_4_1_NANO));
     
     // Message-based memory - limits based on message count
     ChatMemory messageMemory = MessageWindowChatMemory.withMaxMessages(5);
@@ -460,10 +592,10 @@ void differentMemoryTypes() {
     UserMessage newMessage = UserMessage.from("What did I just tell you about myself?");
     tokenMemory.add(newMessage);
     
-    Response<AiMessage> response = model.generate(tokenMemory.messages());
-    System.out.println("Token memory response: " + response.content().text());
+    ChatResponse response = model.chat(tokenMemory.messages());
+    System.out.println("Token memory response: " + response.aiMessage().text());
     
-    assertNotNull(response.content().text());
+    assertNotNull(response.aiMessage().text());
 }
 ```
 
@@ -480,13 +612,13 @@ interface AssistantWithMemory {
 void aiServicesWithMemory() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
 
     AssistantWithMemory assistant = AiServices.builder(AssistantWithMemory.class)
-            .chatLanguageModel(model)
+            .chatModel(model)
             .chatMemory(memory)
             .build();
 
@@ -530,7 +662,7 @@ void localImageAnalysis() throws IOException {
     
     UserMessage userMessage = UserMessage.from(textContent, imageContent);
     
-    String response = model.generate(userMessage).content().text();
+    String response = model.chat(userMessage).aiMessage().text();
     
     System.out.println(response);
     assertNotNull(response);
@@ -557,7 +689,7 @@ void remoteImageAnalysis() {
     
     UserMessage userMessage = UserMessage.from(textContent, imageContent);
     
-    String response = model.generate(userMessage).content().text();
+    String response = model.chat(userMessage).aiMessage().text();
     
     System.out.println(response);
     assertNotNull(response);
@@ -585,7 +717,7 @@ void visionWithAiServices() throws IOException {
             .build();
 
     VisionAnalyst analyst = AiServices.builder(VisionAnalyst.class)
-            .chatLanguageModel(model)
+            .chatModel(model)
             .build();
 
     // Load image
@@ -741,11 +873,11 @@ interface Assistant {
 void useToolsWithAiServices() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     Assistant assistant = AiServices.builder(Assistant.class)
-            .chatLanguageModel(model)
+            .chatModel(model)
             .tools(new DateTimeTool())
             .build();
 
@@ -782,11 +914,11 @@ class WeatherTool {
 void useWeatherTool() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     Assistant assistant = AiServices.builder(Assistant.class)
-            .chatLanguageModel(model)
+            .chatModel(model)
             .tools(new WeatherTool())
             .build();
 
@@ -819,11 +951,11 @@ class CalculatorTool {
 void useMultipleTools() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     Assistant assistant = AiServices.builder(Assistant.class)
-            .chatLanguageModel(model)
+            .chatModel(model)
             .tools(new DateTimeTool(), new CalculatorTool(), new WeatherTool())
             .build();
 
@@ -908,7 +1040,7 @@ void audioServiceIntegration() {
     
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     // Simulate audio data
@@ -919,7 +1051,7 @@ void audioServiceIntegration() {
     // 2. Pass the transcribed text to LangChain4j for processing
     
     String simulatedTranscription = "This is a meeting about quarterly sales figures and growth projections.";
-    String summary = model.generate("Summarize the main points: " + simulatedTranscription);
+    String summary = model.chat("Summarize the main points: " + simulatedTranscription);
     
     System.out.println("Audio summary: " + summary);
     assertNotNull(summary);
@@ -928,147 +1060,9 @@ void audioServiceIntegration() {
 
 [↑ Back to table of contents](#table-of-contents)
 
-## Lab 10: AI Services Interface
+## Lab 10: Retrieval-Augmented Generation (RAG)
 
-### 10.1 Create a Service Interface
-
-Define a high-level service interface for your AI application:
-
-```java
-interface FilmographyService {
-    
-    @SystemMessage("You are a helpful assistant that provides accurate information about actors and their movies.")
-    List<String> getMovies(@UserMessage String actor);
-    
-    @SystemMessage("You are a movie expert. Provide detailed analysis.")
-    String analyzeActor(@UserMessage String actorName);
-    
-    ActorFilms getFullFilmography(String actorName);
-}
-```
-
-### 10.2 Implement the Service
-
-Create a test that uses the `AiServices` to implement the interface:
-
-```java
-@Test
-void useFilmographyService() {
-    ChatModel model = OpenAiChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
-            .build();
-
-    FilmographyService service = AiServices.builder(FilmographyService.class)
-            .chatLanguageModel(model)
-            .build();
-
-    // Test simple movie list
-    List<String> tomHanksMovies = service.getMovies("Tom Hanks");
-    System.out.println("Tom Hanks movies: " + tomHanksMovies);
-    
-    // Test actor analysis
-    String analysis = service.analyzeActor("Meryl Streep");
-    System.out.println("Meryl Streep analysis: " + analysis);
-
-    assertNotNull(tomHanksMovies);
-    assertFalse(tomHanksMovies.isEmpty());
-    assertNotNull(analysis);
-}
-```
-
-### 10.3 Service with Memory and Tools
-
-Create an advanced service that combines memory and tools:
-
-```java
-interface PersonalAssistant {
-    String chat(String message);
-}
-
-@Test
-void personalAssistantWithMemoryAndTools() {
-    ChatModel model = OpenAiChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
-            .build();
-
-    ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
-
-    PersonalAssistant assistant = AiServices.builder(PersonalAssistant.class)
-            .chatLanguageModel(model)
-            .chatMemory(memory)
-            .tools(new DateTimeTool())
-            .build();
-
-    // Have a conversation that uses both memory and tools
-    String response1 = assistant.chat("Hi, my name is Alice and I'm a software developer.");
-    System.out.println("Response 1: " + response1);
-
-    String response2 = assistant.chat("What's my name and what year will it be in 3 years?");
-    System.out.println("Response 2: " + response2);
-
-    // Verify memory and tool usage
-    assertTrue(response2.toLowerCase().contains("alice"));
-    assertNotNull(response2);
-}
-```
-
-### 10.4 Advanced Service Configuration
-
-Create a more sophisticated service with custom configuration:
-
-```java
-interface DocumentAnalyzer {
-    @SystemMessage("You are an expert document analyzer. Provide concise, accurate analysis.")
-    @UserMessage("Analyze this document content and provide key insights: {{content}}")
-    String analyzeDocument(@V("content") String documentContent);
-    
-    @UserMessage("Extract the main themes from: {{content}}")
-    List<String> extractThemes(@V("content") String documentContent);
-    
-    @UserMessage("Rate the sentiment of this content from 1-10: {{content}}")
-    int analyzeSentiment(@V("content") String documentContent);
-}
-
-@Test
-void advancedServiceConfiguration() {
-    ChatModel model = OpenAiChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
-            .temperature(0.3)  // Lower temperature for more consistent analysis
-            .build();
-
-    DocumentAnalyzer analyzer = AiServices.builder(DocumentAnalyzer.class)
-            .chatLanguageModel(model)
-            .build();
-
-    String sampleContent = """
-        The quarterly earnings report shows strong growth in the technology sector,
-        with cloud computing services leading the way. Customer satisfaction remains high,
-        though there are concerns about increasing competition and market saturation.
-        """;
-
-    String analysis = analyzer.analyzeDocument(sampleContent);
-    List<String> themes = analyzer.extractThemes(sampleContent);
-    int sentiment = analyzer.analyzeSentiment(sampleContent);
-
-    System.out.println("Analysis: " + analysis);
-    System.out.println("Themes: " + themes);
-    System.out.println("Sentiment: " + sentiment);
-
-    assertNotNull(analysis);
-    assertNotNull(themes);
-    assertFalse(themes.isEmpty());
-    assertTrue(sentiment >= 1 && sentiment <= 10);
-}
-```
-
-[↑ Back to table of contents](#table-of-contents)
-
-## Lab 11: Retrieval-Augmented Generation (RAG)
-
-### 11.1 Basic Document Loading and Embedding
+### 10.1 Basic Document Loading and Embedding
 
 Create a test that demonstrates document loading and embedding:
 
@@ -1114,7 +1108,7 @@ void basicDocumentEmbedding() {
 }
 ```
 
-### 11.2 RAG with ContentRetriever
+### 10.2 RAG with ContentRetriever
 
 Create a more sophisticated RAG implementation:
 
@@ -1124,7 +1118,7 @@ void ragWithContentRetriever() {
     // Set up models
     ChatModel chatModel = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     EmbeddingModel embeddingModel = AllMiniLmL6V2EmbeddingModel.builder().build();
@@ -1158,7 +1152,7 @@ void ragWithContentRetriever() {
     }
 
     RagAssistant assistant = AiServices.builder(RagAssistant.class)
-            .chatLanguageModel(chatModel)
+            .chatModel(chatModel)
             .contentRetriever(retriever)
             .build();
 
@@ -1174,7 +1168,7 @@ void ragWithContentRetriever() {
 }
 ```
 
-### 11.3 RAG with File Documents
+### 10.3 RAG with File Documents
 
 Create a test that loads documents from files:
 
@@ -1201,7 +1195,7 @@ void ragWithFileDocuments() throws IOException {
     try {
         ChatModel chatModel = OpenAiChatModel.builder()
                 .apiKey(System.getenv("OPENAI_API_KEY"))
-                .modelName(GPT_4_O_MINI)
+                .modelName(GPT_4_1_NANO)
                 .build();
 
         EmbeddingModel embeddingModel = AllMiniLmL6V2EmbeddingModel.builder().build();
@@ -1227,7 +1221,7 @@ void ragWithFileDocuments() throws IOException {
         }
 
         DocumentAssistant assistant = AiServices.builder(DocumentAssistant.class)
-                .chatLanguageModel(chatModel)
+                .chatModel(chatModel)
                 .contentRetriever(retriever)
                 .build();
 
@@ -1245,7 +1239,7 @@ void ragWithFileDocuments() throws IOException {
 }
 ```
 
-### 11.4 Advanced RAG with Metadata Filtering
+### 10.4 Advanced RAG with Metadata Filtering
 
 Create a more advanced RAG system that uses metadata for filtering:
 
@@ -1254,7 +1248,7 @@ Create a more advanced RAG system that uses metadata for filtering:
 void ragWithMetadataFiltering() {
     ChatModel chatModel = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     EmbeddingModel embeddingModel = AllMiniLmL6V2EmbeddingModel.builder().build();
@@ -1299,7 +1293,7 @@ void ragWithMetadataFiltering() {
     }
 
     LanguageAssistant assistant = AiServices.builder(LanguageAssistant.class)
-            .chatLanguageModel(chatModel)
+            .chatModel(chatModel)
             .contentRetriever(retriever)
             .build();
 
@@ -1313,9 +1307,9 @@ void ragWithMetadataFiltering() {
 
 [↑ Back to table of contents](#table-of-contents)
 
-## Lab 12: Redis Vector Store for RAG
+## Lab 11: Redis Vector Store for RAG
 
-### 12.1 Prerequisites
+### 11.1 Prerequisites
 
 To use Redis as a vector store, you need a running Redis instance with vector search capabilities:
 
@@ -1323,7 +1317,7 @@ To use Redis as a vector store, you need a running Redis instance with vector se
 docker run -p 6379:6379 redis/redis-stack:latest
 ```
 
-### 12.2 Basic Redis Vector Store Setup
+### 11.2 Basic Redis Vector Store Setup
 
 Create a test that demonstrates Redis vector store usage:
 
@@ -1383,7 +1377,7 @@ private boolean isRedisAvailable() {
 }
 ```
 
-### 12.3 RAG with Redis Persistence
+### 11.3 RAG with Redis Persistence
 
 Create a comprehensive RAG system using Redis:
 
@@ -1394,7 +1388,7 @@ void ragWithRedisPersistence() {
 
     ChatModel chatModel = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     EmbeddingModel embeddingModel = AllMiniLmL6V2EmbeddingModel.builder().build();
@@ -1435,7 +1429,7 @@ void ragWithRedisPersistence() {
     }
 
     KnowledgeAssistant assistant = AiServices.builder(KnowledgeAssistant.class)
-            .chatLanguageModel(chatModel)
+            .chatModel(chatModel)
             .contentRetriever(retriever)
             .build();
 
@@ -1458,7 +1452,7 @@ void ragWithRedisPersistence() {
 }
 ```
 
-### 12.4 Data Persistence and Cleanup
+### 11.4 Data Persistence and Cleanup
 
 Create utilities for managing the Redis vector store:
 
@@ -1493,7 +1487,7 @@ void redisDataManagement() {
 }
 ```
 
-### 12.5 Production RAG Configuration
+### 11.5 Production RAG Configuration
 
 Create a more production-ready RAG configuration:
 
@@ -1505,7 +1499,7 @@ void productionRagConfiguration() {
     // Configure models with production settings
     ChatModel chatModel = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_O_MINI)
+            .modelName(GPT_4_1_NANO)
             .temperature(0.1) // Lower temperature for more consistent responses
             .maxTokens(500)
             .build();
@@ -1563,7 +1557,7 @@ void productionRagConfiguration() {
     }
 
     ProductionAssistant assistant = AiServices.builder(ProductionAssistant.class)
-            .chatLanguageModel(chatModel)
+            .chatModel(chatModel)
             .contentRetriever(retriever)
             .build();
 

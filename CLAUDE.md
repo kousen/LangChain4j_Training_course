@@ -86,6 +86,82 @@ gh issue close <issue-number>
 
 This workflow ensures proper documentation and project tracking. Don't forget to close issues upon completion!
 
+## Lab Implementation Workflow
+
+Follow this established workflow when implementing each lab:
+
+### 1. Create GitHub Issue
+```bash
+gh issue create --title "Lab X: [Lab Title]" --body "Implement Lab X exercises following the labs.md specification"
+```
+
+### 2. Create Feature Branch (from main)
+```bash
+git checkout main
+git pull origin main
+git checkout -b labX-[descriptive-name]
+```
+
+### 3. Implement Starter Code (on feature branch)
+- Create test class with TODO comments guiding students
+- Include proper imports and basic structure
+- Add comprehensive JavaDoc comments explaining each exercise
+- Ensure tests fail gracefully with clear guidance
+
+### 4. Merge to Main Branch
+```bash
+git checkout main
+git merge labX-[descriptive-name]
+git push origin main
+```
+
+### 5. Switch to Solutions Branch
+```bash
+git checkout solutions
+git pull origin solutions
+```
+
+### 6. Implement Complete Solutions (on solutions branch)
+- Replace all TODO comments with working implementations
+- Ensure all tests pass with OPENAI_API_KEY set
+- Include proper error handling and assertions
+- Add detailed logging/output for educational value
+
+### 7. Test and Commit Solutions
+```bash
+OPENAI_API_KEY=your_key ./gradlew test --tests [TestClass]
+git add .
+git commit -m "Complete Lab X: [Lab Title] implementation
+
+- Implement all working test methods
+- Add proper error handling and assertions  
+- Include educational logging and output
+- All tests pass with valid API keys
+
+Closes #[issue-number]
+
+🤖 Generated with [Claude Code](https://claude.ai/code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+### 8. Push and Clean Up
+```bash
+git push origin solutions
+git branch -d labX-[descriptive-name]  # Delete local feature branch
+gh issue close [issue-number] --comment "Lab X implementation complete with starter code and solutions"
+```
+
+### 9. Verification Steps
+- ✅ Main branch has starter code with TODO comments
+- ✅ Solutions branch has complete working implementation
+- ✅ All tests pass on solutions branch
+- ✅ Feature branch deleted
+- ✅ GitHub issue closed
+- ✅ labs.md documentation matches implementation
+
+**Important**: Always test solutions before committing. Use `OPENAI_API_KEY=your_key ./gradlew test` to verify all tests pass.
+
 ## CRITICAL: Branch Management Guidelines
 
 **⚠️ NEVER merge main branch into solutions branch without careful review!**

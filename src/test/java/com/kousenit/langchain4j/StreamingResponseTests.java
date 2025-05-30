@@ -1,20 +1,18 @@
 package com.kousenit.langchain4j;
 
-import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
-import dev.langchain4j.model.output.Response;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
+import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -46,11 +44,11 @@ class StreamingResponseTests {
         // TODO: Create OpenAI streaming chat model
         // StreamingChatModel model = OpenAiStreamingChatModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_O_MINI)
+        //         .modelName(GPT_4_1_NANO)
         //         .build();
 
         // TODO: Create user message
-        // UserMessage userMessage = UserMessage.from("Tell me a story about a brave robot.");
+        // String userMessage = "Tell me a story about a brave robot.";
         
         // TODO: Set up synchronization and response collection
         // CountDownLatch latch = new CountDownLatch(1);
@@ -101,7 +99,7 @@ class StreamingResponseTests {
         // TODO: Create OpenAI streaming chat model
         // StreamingChatModel model = OpenAiStreamingChatModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_O_MINI)
+        //         .modelName(GPT_4_1_NANO)
         //         .build();
 
         // TODO: Create system and user messages
@@ -110,6 +108,7 @@ class StreamingResponseTests {
         
         // TODO: Set up synchronization
         // CountDownLatch latch = new CountDownLatch(1);
+        // StringBuilder responseBuilder = new StringBuilder();
 
         // TODO: Stream with multiple messages
         // model.chat(Arrays.asList(systemMessage, userMessage), 
@@ -117,6 +116,7 @@ class StreamingResponseTests {
         //         @Override
         //         public void onPartialResponse(String token) {
         //             System.out.print(token);
+        //             responseBuilder.append(token);
         //         }
         //
         //         @Override
@@ -133,7 +133,9 @@ class StreamingResponseTests {
         //     });
 
         // TODO: Wait for completion with timeout
-        // latch.await(30, TimeUnit.SECONDS);
+        // boolean completed = latch.await(30, TimeUnit.SECONDS);
+        // assertTrue(completed, "Streaming should complete within 30 seconds");
+        // assertFalse(responseBuilder.toString().isEmpty(), "Response should not be empty");
     }
 
     /**
@@ -151,15 +153,16 @@ class StreamingResponseTests {
         // Note: You could use an invalid API key or model name to test error handling
         // StreamingChatModel model = OpenAiStreamingChatModel.builder()
         //         .apiKey("invalid-key") // This should cause an error
-        //         .modelName(GPT_4_O_MINI)
+        //         .modelName(GPT_4_1_NANO)
         //         .build();
 
         // TODO: Set up error tracking
         // CountDownLatch latch = new CountDownLatch(1);
         // final boolean[] errorOccurred = {false};
+        // final String[] errorMessage = {null};
 
         // TODO: Attempt streaming with error handling
-        // UserMessage userMessage = UserMessage.from("This should fail");
+        // String userMessage = "This should fail due to invalid API key";
         // 
         // model.chat(userMessage, new StreamingChatResponseHandler() {
         //     @Override
@@ -177,12 +180,15 @@ class StreamingResponseTests {
         //     public void onError(Throwable error) {
         //         System.err.println("Expected error occurred: " + error.getMessage());
         //         errorOccurred[0] = true;
+        //         errorMessage[0] = error.getMessage();
         //         latch.countDown();
         //     }
         // });
 
         // TODO: Wait and verify error was handled
-        // latch.await(10, TimeUnit.SECONDS);
+        // boolean completed = latch.await(10, TimeUnit.SECONDS);
+        // assertTrue(completed, "Error handling should complete within 10 seconds");
         // assertTrue(errorOccurred[0], "Error should have been handled");
+        // assertNotNull(errorMessage[0], "Error message should be captured");
     }
 }
