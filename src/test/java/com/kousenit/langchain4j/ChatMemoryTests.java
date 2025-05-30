@@ -8,6 +8,7 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
+import dev.langchain4j.service.MemoryId;
 import org.junit.jupiter.api.Test;
 
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
@@ -315,5 +316,88 @@ class ChatMemoryTests {
         //         .reduce("", (a, b) -> a + " " + b);
                 
         // assertThat(allMessages).as("Recent memory content").contains("weather").contains("last question");
+    }
+
+    /**
+     * Test 5.6: Memory Per User with @MemoryId
+     * <p>
+     * TODO: Demonstrate separate memory instances for different users
+     * 1. Create an OpenAI chat model
+     * 2. Define a MultiUserAssistant interface with @MemoryId parameter
+     * 3. Use chatMemoryProvider to create separate memory per user
+     * 4. Test conversations with multiple users
+     * 5. Verify each user has isolated memory
+     */
+    @Test
+    void memoryPerUserWithMemoryId() {
+        // TODO: Create OpenAI chat model
+        // ChatModel model = OpenAiChatModel.builder()
+        //         .apiKey(System.getenv("OPENAI_API_KEY"))
+        //         .modelName(GPT_4_O_MINI)
+        //         .build();
+
+        // TODO: Define multi-user assistant interface
+        // interface MultiUserAssistant {
+        //     String chat(@MemoryId int memoryId, @dev.langchain4j.service.UserMessage String userMessage);
+        // }
+
+        // TODO: Create AI service with memory provider for separate memory per user
+        // MultiUserAssistant assistant = AiServices.builder(MultiUserAssistant.class)
+        //         .chatLanguageModel(model)
+        //         .chatMemoryProvider(memoryId -> MessageWindowChatMemory.withMaxMessages(10))
+        //         .build();
+
+        // TODO: Test multi-user conversations
+        // System.out.println("=== Memory Per User with @MemoryId ===");
+        
+        // // User 1 introduces themselves
+        // String user1Response1 = assistant.chat(1, "Hello, my name is Klaus and I'm a software engineer.");
+        // System.out.println("User 1 (Klaus) - Introduction: " + user1Response1);
+
+        // // User 2 introduces themselves  
+        // String user2Response1 = assistant.chat(2, "Hello, my name is Francine and I'm a data scientist.");
+        // System.out.println("User 2 (Francine) - Introduction: " + user2Response1);
+
+        // // User 1 asks about their identity
+        // String user1Response2 = assistant.chat(1, "What is my name and profession?");
+        // System.out.println("User 1 (Klaus) - Identity check: " + user1Response2);
+
+        // // User 2 asks about their identity
+        // String user2Response2 = assistant.chat(2, "What is my name and profession?");
+        // System.out.println("User 2 (Francine) - Identity check: " + user2Response2);
+
+        // // Cross-check: User 1 asks about User 2's info (should not know)
+        // String user1Response3 = assistant.chat(1, "Do you know anything about Francine?");
+        // System.out.println("User 1 (Klaus) - Cross-check: " + user1Response3);
+
+        // System.out.println("=".repeat(50));
+
+        // TODO: Verify each user has separate memory
+        // assertAll("Multi-user memory validation",
+        //     () -> assertNotNull(user1Response1, "User 1 introduction response should not be null"),
+        //     () -> assertNotNull(user2Response1, "User 2 introduction response should not be null"),
+        //     () -> assertNotNull(user1Response2, "User 1 identity response should not be null"),
+        //     () -> assertNotNull(user2Response2, "User 2 identity response should not be null"),
+        //     () -> assertNotNull(user1Response3, "User 1 cross-check response should not be null")
+        // );
+
+        // TODO: Verify User 1's memory contains Klaus but not Francine
+        // assertThat(user1Response2)
+        //         .as("User 1 should remember Klaus")
+        //         .containsIgnoringCase("klaus")
+        //         .containsAnyOf("software", "engineer");
+
+        // TODO: Verify User 2's memory contains Francine but not Klaus  
+        // assertThat(user2Response2)
+        //         .as("User 2 should remember Francine")
+        //         .containsIgnoringCase("francine")
+        //         .containsAnyOf("data", "scientist");
+
+        // TODO: Verify memory isolation - User 1 doesn't know about User 2
+        // assertThat(user1Response3)
+        //         .as("User 1 cross-check response")
+        //         .isNotBlank();
+
+        // System.out.println("✅ Multi-user memory isolation verified successfully");
     }
 }

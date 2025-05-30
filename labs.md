@@ -634,6 +634,52 @@ void aiServicesWithMemory() {
 }
 ```
 
+### 5.5 Memory Per User with @MemoryId
+
+For multi-user applications, you need separate memory instances per user:
+
+```java
+interface MultiUserAssistant {
+    String chat(@MemoryId int memoryId, @UserMessage String userMessage);
+}
+
+@Test
+void memoryPerUserWithMemoryId() {
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .build();
+
+    // Create AI service with memory provider that creates separate memory per user
+    MultiUserAssistant assistant = AiServices.builder(MultiUserAssistant.class)
+            .chatModel(model)
+            .chatMemoryProvider(memoryId -> MessageWindowChatMemory.withMaxMessages(10))
+            .build();
+
+    // User 1 introduces themselves
+    String user1Response1 = assistant.chat(1, "Hello, my name is Klaus and I'm a software engineer.");
+    System.out.println("User 1 (Klaus): " + user1Response1);
+
+    // User 2 introduces themselves  
+    String user2Response1 = assistant.chat(2, "Hello, my name is Francine and I'm a data scientist.");
+    System.out.println("User 2 (Francine): " + user2Response1);
+
+    // User 1 asks about their identity
+    String user1Response2 = assistant.chat(1, "What is my name and profession?");
+    System.out.println("User 1 identity check: " + user1Response2);
+
+    // User 2 asks about their identity
+    String user2Response2 = assistant.chat(2, "What is my name and profession?");
+    System.out.println("User 2 identity check: " + user2Response2);
+
+    // Verify each user has separate memory
+    assertTrue(user1Response2.toLowerCase().contains("klaus"));
+    assertTrue(user2Response2.toLowerCase().contains("francine"));
+}
+```
+
+This pattern is essential for production multi-user conversational AI applications.
+
 [↑ Back to table of contents](#table-of-contents)
 
 ## Lab 6: Vision Capabilities
