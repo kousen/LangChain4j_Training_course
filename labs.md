@@ -366,6 +366,13 @@ void advancedStructuredDataExtraction() {
 
 ## Lab 4: AI Services Interface
 
+This lab demonstrates how to create high-level AI services using LangChain4j's AiServices. You'll learn how to:
+- Define service interfaces with @SystemMessage and @UserMessage annotations
+- Create type-safe AI-powered services
+- Integrate memory and tools with AI services
+- Use variable substitution with @V annotation for dynamic prompts
+- Work with complex return types including records
+
 ### 4.1 Create a Service Interface
 
 Define a high-level service interface for your AI application:
@@ -383,7 +390,7 @@ interface FilmographyService {
 }
 ```
 
-### 4.2 Implement the Service
+### 4.1b Basic Service Implementation
 
 Create a test that uses the `AiServices` to implement the interface:
 
@@ -413,7 +420,7 @@ void useFilmographyService() {
 }
 ```
 
-### 4.3 Service with Memory and Tools
+### 4.2 Service with Memory and Tools
 
 Create an advanced service that combines memory and tools:
 
@@ -431,28 +438,29 @@ void personalAssistantWithMemoryAndTools() {
 
     ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
 
+    // Create AI service with memory (tools will be covered in Lab 8)
     PersonalAssistant assistant = AiServices.builder(PersonalAssistant.class)
             .chatModel(model)
             .chatMemory(memory)
-            .tools(new DateTimeTool())
             .build();
 
-    // Have a conversation that uses both memory and tools
+    // Have a conversation that uses memory
     String response1 = assistant.chat("Hi, my name is Alice and I'm a software developer.");
     System.out.println("Response 1: " + response1);
 
-    String response2 = assistant.chat("What's my name and what year will it be in 3 years?");
+    String response2 = assistant.chat("What's my name and what do I do for work?");
     System.out.println("Response 2: " + response2);
 
-    // Verify memory and tool usage
-    assertTrue(response2.toLowerCase().contains("alice"));
+    // Verify memory usage
+    assertNotNull(response1);
     assertNotNull(response2);
+    assertTrue(response2.toLowerCase().contains("alice"));
 }
 ```
 
-### 4.4 Advanced Service Configuration
+### 4.3 Advanced Service with Variable Substitution
 
-Create a more sophisticated service with custom configuration:
+Demonstrate using @V annotation for dynamic prompt variable substitution:
 
 ```java
 interface DocumentAnalyzer {
@@ -468,17 +476,17 @@ interface DocumentAnalyzer {
 }
 
 @Test
-void advancedServiceConfiguration() {
+void advancedServiceWithVariableSubstitution() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
             .modelName(GPT_4_1_NANO)
-            .temperature(0.3)  // Lower temperature for more consistent analysis
             .build();
 
     DocumentAnalyzer analyzer = AiServices.builder(DocumentAnalyzer.class)
             .chatModel(model)
             .build();
 
+    // Test document with various data types
     String sampleContent = """
         The quarterly earnings report shows strong growth in the technology sector,
         with cloud computing services leading the way. Customer satisfaction remains high,
@@ -493,10 +501,72 @@ void advancedServiceConfiguration() {
     System.out.println("Themes: " + themes);
     System.out.println("Sentiment: " + sentiment);
 
+    // Verify results
     assertNotNull(analysis);
+    assertFalse(analysis.trim().isEmpty());
     assertNotNull(themes);
     assertFalse(themes.isEmpty());
     assertTrue(sentiment >= 1 && sentiment <= 10);
+}
+```
+
+### 4.4 Advanced Service Configuration with Complex Return Types
+
+Create a more sophisticated service with custom configuration and complex return types:
+
+```java
+// Record for complex movie analysis data
+record MovieAnalysis(String title, int rating, List<String> genres, String review) {}
+
+interface MovieAnalysisService {
+    @SystemMessage("You are a film critic and movie database expert.")
+    @UserMessage("Analyze the movie {{movieTitle}} and provide a rating from 1-10")
+    int getMovieRating(@V("movieTitle") String movieTitle);
+    
+    @UserMessage("List the main genres for the movie {{movieTitle}}")
+    List<String> getMovieGenres(@V("movieTitle") String movieTitle);
+    
+    @UserMessage("Provide a brief analysis of {{movieTitle}} including rating (1-10), genres, and a short review")
+    MovieAnalysis getCompleteAnalysis(@V("movieTitle") String movieTitle);
+}
+
+@Test
+void advancedServiceConfiguration() {
+    // Create OpenAI chat model with specific configuration
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .temperature(0.3)  // Lower temperature for more consistent analysis
+            .build();
+
+    MovieAnalysisService service = AiServices.builder(MovieAnalysisService.class)
+            .chatModel(model)
+            .build();
+
+    // Test different data extraction methods
+    String movieTitle = "The Matrix";
+    
+    int rating = service.getMovieRating(movieTitle);
+    List<String> genres = service.getMovieGenres(movieTitle);
+    MovieAnalysis analysis = service.getCompleteAnalysis(movieTitle);
+
+    System.out.println("Movie Rating: " + rating);
+    System.out.println("Genres: " + genres);
+    System.out.println("Complete Analysis: " + analysis);
+
+    // Verify individual service results
+    assertNotNull(rating);
+    assertTrue(rating >= 1 && rating <= 10);
+    assertNotNull(genres);
+    assertFalse(genres.isEmpty());
+    assertNotNull(analysis);
+    
+    // Verify complex analysis object
+    assertNotNull(analysis.title());
+    assertTrue(analysis.rating() >= 1 && analysis.rating() <= 10);
+    assertNotNull(analysis.genres());
+    assertFalse(analysis.genres().isEmpty());
+    assertNotNull(analysis.review());
 }
 ```
 
