@@ -33,6 +33,9 @@ dependencies {
     implementation("dev.langchain4j:langchain4j-redis")
     implementation("redis.clients:jedis:5.1.0")
     
+    // Security fix: override vulnerable transitive dependency
+    implementation("org.apache.poi:poi-ooxml:5.4.0")
+    
     // Utilities for exercises
     implementation("org.slf4j:slf4j-simple:2.0.9")
     
