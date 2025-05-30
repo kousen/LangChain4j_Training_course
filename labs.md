@@ -638,34 +638,56 @@ void aiServicesWithMemory() {
 
 ## Lab 6: AI Tools
 
-### 6.1 Create a Tool Class
+### 6.1 Understanding Tool Classes
 
-Create a `DateTimeTool` class that the AI can use:
+Tool classes are already provided in `src/main/java/com/kousenit/langchain4j/`:
 
+**DateTimeTool.java** - Date and time functionality:
 ```java
-class DateTimeTool {
-    private static final Logger logger = LoggerFactory.getLogger(DateTimeTool.class);
+@Tool("Get the current date and time")
+public String getCurrentDateTime() {
+    return LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+}
 
-    @Tool("Get the current date and time")
-    String getCurrentDateTime() {
-        logger.info("Getting current date and time");
-        return LocalDateTime.now().toString();
-    }
+@Tool("Get the date that is a specified number of years from now")
+public String getDateYearsFromNow(int years) {
+    return LocalDate.now().plusYears(years).toString();
+}
 
-    @Tool("Get the date that is a specified number of years from now")
-    String getDateYearsFromNow(int years) {
-        logger.info("Calculating date {} years from now", years);
-        return LocalDate.now().plusYears(years).toString();
-    }
-
-    @Tool("Set an alarm for a specific time")
-    String setAlarm(String time) {
-        logger.info("Setting alarm for {}", time);
-        // In a real implementation, this would actually set an alarm
-        return "Alarm set for " + time;
-    }
+@Tool("Set an alarm for a specific time")
+public String setAlarm(String time) {
+    return "Alarm set for " + time + ". You will be notified at the specified time.";
 }
 ```
+
+**WeatherTool.java** - Weather simulation:
+```java
+@Tool("Get the current weather for a specific city")
+public String getCurrentWeather(String city, String units) {
+    String tempUnit = units.equals("metric") ? "C" : "F";
+    int temperature = units.equals("metric") ? 22 : 72;
+    return String.format("The current weather in %s is %d°%s and sunny with light clouds.",
+                       city, temperature, tempUnit);
+}
+```
+
+**CalculatorTool.java** - Mathematical operations:
+```java
+@Tool("Add two numbers")
+public double add(double a, double b) {
+    return a + b;
+}
+
+@Tool("Divide the first number by the second number")
+public double divide(double a, double b) {
+    if (b == 0) {
+        throw new IllegalArgumentException("Cannot divide by zero");
+    }
+    return a / b;
+}
+```
+
+These classes demonstrate the `@Tool` annotation pattern for creating AI-callable functions.
 
 ### 6.2 Use Tools with AiServices
 
@@ -705,17 +727,7 @@ void useToolsWithAiServices() {
 
 ### 6.3 Tools with Parameters
 
-Create a more complex tool that demonstrates parameter usage:
-
-```java
-class WeatherTool {
-    @Tool("Get the current weather for a specific city")
-    String getCurrentWeather(String city, String units) {
-        // In a real implementation, this would call a weather API
-        return String.format("The current weather in %s is 22°%s and sunny", 
-                city, units.equals("metric") ? "C" : "F");
-    }
-}
+Use the provided `WeatherTool` to demonstrate how tools can accept parameters:
 
 @Test
 void useWeatherTool() {
@@ -739,20 +751,7 @@ void useWeatherTool() {
 
 ### 6.4 Multiple Tools
 
-Create a test that demonstrates using multiple tools together:
-
-```java
-class CalculatorTool {
-    @Tool("Add two numbers")
-    double add(double a, double b) {
-        return a + b;
-    }
-    
-    @Tool("Multiply two numbers")
-    double multiply(double a, double b) {
-        return a * b;
-    }
-}
+Use multiple provided tools together (`DateTimeTool`, `CalculatorTool`, and `WeatherTool`):
 
 @Test
 void useMultipleTools() {
