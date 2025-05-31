@@ -50,9 +50,8 @@ Follow the exercises in [labs.md](labs.md) to build LangChain4j applications fro
 6. **AI Tools** - Function calling
 7. **Vision Capabilities** - Image analysis
 8. **Image Generation** - AI-created images
-9. **Audio Processing** - Speech-to-text and text-to-speech
-10. **Retrieval-Augmented Generation (RAG)** - AI with knowledge base
-11. **Production RAG** - Redis vector store optimization
+9. **Retrieval-Augmented Generation (RAG)** - AI with knowledge base
+10. **Production RAG** - Redis vector store optimization
 
 ## Learning Approach
 
