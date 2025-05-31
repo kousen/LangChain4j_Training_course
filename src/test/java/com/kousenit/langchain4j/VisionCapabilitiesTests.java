@@ -1,0 +1,189 @@
+package com.kousenit.langchain4j;
+
+import dev.langchain4j.data.message.ImageContent;
+import dev.langchain4j.data.message.TextContent;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.service.AiServices;
+import dev.langchain4j.service.V;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.util.Base64;
+import java.util.List;
+
+import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_MINI;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * Lab 7: Vision Capabilities
+ * <p>
+ * This lab demonstrates how to use LangChain4j with vision-enabled AI models for image analysis.
+ * You'll learn how to:
+ * - Analyze local images using GPT-4
+ * - Analyze remote images from URLs
+ * - Use vision capabilities with AiServices for structured responses
+ * - Extract specific information from images (objects, text, descriptions)
+ */
+class VisionCapabilitiesTests {
+
+    /**
+     * Test 7.1: Local Image Analysis
+     * <p>
+     * Demonstrates how to analyze an image loaded from local resources using GPT-4 Vision.
+     * 
+     * TODO: Implement this test method:
+     * 1. Create a GPT-4 model using OpenAiChatModel.builder()
+     * 2. Load the image from resources (bowl_of_fruit.jpg) with proper null checking
+     * 3. Convert the image bytes to Base64 string
+     * 4. Create ImageContent and TextContent for the message
+     * 5. Send the message to the model and get response
+     * 6. Add proper assertions to verify the response
+     */
+    @Test
+    void localImageAnalysis() throws IOException {
+        // TODO: Create GPT-4 model
+        
+        // TODO: Load image from resources with null check
+        
+        // TODO: Convert image to Base64 string
+        
+        // TODO: Create ImageContent and TextContent
+        
+        // TODO: Create UserMessage and send to model
+        
+        // TODO: Add assertions to verify response
+        
+        fail("TODO: Implement localImageAnalysis test");
+    }
+
+    /**
+     * Test 7.2: Remote Image Analysis
+     * <p>
+     * Demonstrates how to analyze an image from a remote URL using GPT-4 Vision.
+     * 
+     * TODO: Implement this test method:
+     * 1. Create a GPT-4 model using OpenAiChatModel.builder()
+     * 2. Use the provided image URL for a nature boardwalk
+     * 3. Create ImageContent from the URL and TextContent for the prompt
+     * 4. Send the message to the model and get response
+     * 5. Add proper assertions to verify the response contains landscape-related content
+     */
+    @Test
+    void remoteImageAnalysis() {
+        // TODO: Create GPT-4 Vision model
+        
+        // Use this publicly available image URL:
+        String imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg";
+        
+        // TODO: Create ImageContent from URL and TextContent for prompt
+        
+        // TODO: Create UserMessage and send to model
+        
+        // TODO: Add assertions to verify response contains landscape content
+        
+        fail("TODO: Implement remoteImageAnalysis test");
+    }
+
+    /**
+     * VisionAnalyst interface for structured image analysis using AiServices.
+     * 
+     * TODO: Complete the interface methods with proper annotations:
+     * 1. analyzeImage - General image analysis
+     * 2. identifyObjects - List of objects in the image
+     * 3. identifyColors - List of dominant colors
+     * 4. extractText - Extract any visible text
+     */
+    interface VisionAnalyst {
+        // TODO: Add @UserMessage annotation and method for analyzing image
+        String analyzeImage(@V("image") ImageContent image);
+        
+        // TODO: Add @UserMessage annotation and method for identifying objects
+        List<String> identifyObjects(@V("image") ImageContent image);
+        
+        // TODO: Add @UserMessage annotation and method for identifying colors
+        List<String> identifyColors(@V("image") ImageContent image);
+        
+        // TODO: Add @UserMessage annotation and method for extracting text
+        String extractText(@V("image") ImageContent image);
+    }
+
+    /**
+     * Test 7.3: Vision with AiServices
+     * <p>
+     * Demonstrates how to use vision capabilities with AiServices for structured image analysis.
+     * 
+     * TODO: Implement this test method:
+     * 1. Create GPT-4 model and VisionAnalyst service
+     * 2. Load image from resources with proper null checking
+     * 3. Test all four VisionAnalyst methods (with delays to avoid rate limits)
+     * 4. Add comprehensive assertions for all responses
+     */
+    @Test
+    void visionWithAiServices() throws Exception {
+        // TODO: Create GPT-4 model
+        
+        // TODO: Create VisionAnalyst service using AiServices.builder()
+        
+        // TODO: Load image from resources with null check
+        
+        // TODO: Call all four analyst methods with delays between calls
+        // Remember to add Thread.sleep(3000) between API calls to avoid rate limits
+        
+        // TODO: Add comprehensive assertions for all responses
+        
+        fail("TODO: Implement visionWithAiServices test");
+    }
+
+    /**
+     * DetailedAnalyst interface for comprehensive image analysis.
+     * 
+     * TODO: Complete the interface method with proper annotation for comprehensive analysis
+     */
+    interface DetailedAnalyst {
+        // TODO: Add @UserMessage annotation for comprehensive analysis
+        ImageAnalysisResult analyzeComprehensively(@V("image") ImageContent image);
+    }
+
+    /**
+     * Record to hold comprehensive image analysis results.
+     * 
+     * This record is already complete - no TODO needed.
+     */
+    record ImageAnalysisResult(
+        String description,
+        List<String> objects,
+        List<String> colors,
+        String composition,
+        String mood,
+        String textContent
+    ) {}
+
+    /**
+     * Test 7.4: Structured Image Analysis
+     * <p>
+     * Demonstrates extracting structured data from image analysis results.
+     * 
+     * TODO: Implement this test method:
+     * 1. Create GPT-4 model and DetailedAnalyst service
+     * 2. Load image from resources with proper null checking
+     * 3. Get comprehensive structured analysis using the service
+     * 4. Add assertions to verify all fields in the result record
+     */
+    @Test
+    void structuredImageAnalysis() throws IOException {
+        // TODO: Create GPT-4 Vision model
+        
+        // TODO: Create DetailedAnalyst service using AiServices.builder()
+        
+        // TODO: Load image from resources with null check
+        
+        // TODO: Get comprehensive analysis result
+        
+        // TODO: Add comprehensive assertions for the structured result
+        
+        fail("TODO: Implement structuredImageAnalysis test");
+    }
+}
