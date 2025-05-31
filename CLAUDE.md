@@ -304,11 +304,16 @@ The course follows a structured progression documented in `labs.md`:
 1. **Basic chat interactions** - Simple AI conversations
 2. **Streaming responses** - Real-time AI communication
 3. **Structured data extraction** - AI-powered data parsing
-4. **Prompt engineering** - Template-based prompts
-5. **Memory management** - Conversation context
-6. **Vision and audio capabilities** - Multimodal AI
-7. **RAG implementation** - Knowledge-augmented AI
-8. **Vector store optimization** - Production-ready RAG with Redis
+4. **AI Services interface** - High-level AI integration patterns
+5. **Chat memory** - Conversation context and multi-user memory isolation
+6. **AI Tools** - Function calling with @Tool annotation (IMPLEMENTED)
+7. **Vision capabilities** - Image analysis with GPT-4 Vision
+8. **Image generation** - AI-created images with DALL-E
+9. **Audio capabilities** - Speech processing patterns
+10. **RAG implementation** - Knowledge-augmented AI
+11. **Vector store optimization** - Production-ready RAG with Redis
+
+**Note**: Lab ordering was optimized for pedagogical flow - tools before vision/image generation.
 
 ### Code Structure for Students
 - **Test classes**: Contain TODO comments guiding implementation
@@ -316,106 +321,70 @@ The course follows a structured progression documented in `labs.md`:
 - **Working examples**: DateTimeTools, ActorFilms (students use these)
 - **Reference implementations**: Available in solutions branch
 
-## Testing Strategy
+## Implementation Best Practices (Lessons Learned)
 
-This course uses a **hybrid testing approach** combining JUnit 5 and AssertJ for optimal test readability and maintainability.
+### Tool Classes Architecture
+**IMPORTANT**: Tool classes should be standalone classes in `src/main/java`, NOT static inner classes in test files.
 
-### Assertion Libraries
-
-We use two complementary assertion libraries:
-
-1. **JUnit 5 Assertions** (`org.junit.jupiter.api.Assertions.*`)
-   - Primary choice for basic assertions and grouped validations
-   - Use `assertAll()` for grouping related assertions with descriptive names
-   - Ideal for simple null checks, boolean assertions, and basic comparisons
-
-2. **AssertJ** (`org.assertj.core.api.Assertions.*`)
-   - Use selectively for complex object validation and fluent string operations
-   - Excellent for collections, string content validation, and object property checking
-   - Provides more readable error messages for complex scenarios
-
-### When to Use Each Library
-
-#### Use JUnit's `assertAll()` for:
-```java
-assertAll("Basic validation group",
-    () -> assertNotNull(response, "Response should not be null"),
-    () -> assertFalse(response.isEmpty(), "Response should not be empty"),
-    () -> assertTrue(sentiment >= 1 && sentiment <= 10, "Sentiment should be 1-10")
-);
+**Correct Structure:**
+```
+src/main/java/com/kousenit/langchain4j/
+├── DateTimeTool.java      # @Tool methods for date/time operations
+├── WeatherTool.java       # @Tool methods for weather simulation
+├── CalculatorTool.java    # @Tool methods for math operations
+└── ActorFilms.java        # Data classes for structured extraction
 ```
 
-#### Use AssertJ for:
+**Benefits:**
+- **Reusability** across multiple test classes
+- **Proper separation of concerns** (tools vs tests)
+- **Professional code organization** 
+- **Students can study tool implementation patterns**
+
+### Testing Strategy: Hybrid JUnit 5 + AssertJ
+Use JUnit 5 `assertAll()` for grouping related assertions and AssertJ for complex string/object validation:
+
 ```java
-// Complex object validation
-assertThat(actorFilms)
-    .as("Parsed ActorFilms structure")
-    .satisfies(af -> {
-        assertThat(af.actor()).as("Actor name").isNotNull().isNotBlank();
-        assertThat(af.movies()).as("Movies list").hasSize(5);
-    });
-
-// String content validation
-assertThat(errorMessage)
-    .as("Error message content")
-    .isNotBlank()
-    .containsAnyOf("401", "invalid", "unauthorized", "api key");
-
-// Collection validation
-actorFilms.movies().forEach(movie -> 
-    assertThat(movie).as("Individual movie").isNotBlank());
-```
-
-### Testing Patterns for LangChain4j
-
-#### AI Response Validation
-```java
-// Basic response validation
-assertAll("AI response validation",
-    () -> assertNotNull(response, "Response should not be null"),
-    () -> assertThat(response).as("Response content").isNotEmpty().hasSizeGreaterThan(10)
-);
-```
-
-#### Structured Data Extraction
-```java
-// Validate extracted data using hybrid approach
-assertAll("Structured data validation",
-    () -> assertNotNull(extractedData, "Extracted data should not be null"),
-    () -> assertEquals(expectedCount, extractedData.size(), "Should have expected count")
+// Group related assertions
+assertAll("Basic tool usage validation",
+    () -> assertNotNull(response1, "Response should not be null"),
+    () -> assertFalse(response1.trim().isEmpty(), "Response should not be empty")
 );
 
-// Use AssertJ for complex object validation
-assertThat(extractedData)
-    .as("Complex object validation")
-    .satisfies(data -> {
-        assertThat(data.getProperty()).as("Property check").isNotNull();
-        assertThat(data.getList()).as("List property").isNotEmpty();
-    });
+// Complex content validation with AssertJ
+assertThat(response2.toLowerCase())
+    .as("Location-specific response")
+    .containsAnyOf("new york", "york");
 ```
 
-#### Error Handling Tests
+**Key Lessons:**
+- **Avoid case sensitivity issues** with `.toLowerCase()` + `containsAnyOf()`
+- **Don't test exact AI response wording** - test for essential keywords
+- **Use proper AssertJ methods** - no `containsAnyOfIgnoringCase()` (doesn't exist)
+
+### Lab Documentation Synchronization
+**CRITICAL**: `labs.md` on solutions branch is the authoritative version.
+
+**Process:**
+1. Update `labs.md` on solutions branch first
+2. Copy to main branch: `git checkout solutions -- labs.md`
+3. Verify both branches have identical content: `git diff main solutions -- labs.md`
+
+### Memory Pattern Examples
+Lab 5 includes the crucial **multi-user memory pattern** with `@MemoryId`:
+
 ```java
-// Error validation with grouped assertions
-assertAll("Error handling validation",
-    () -> assertTrue(errorOccurred, "Error should have been handled"),
-    () -> assertNotNull(errorMessage, "Error message should be captured")
-);
+interface MultiUserAssistant {
+    String chat(@MemoryId int memoryId, @UserMessage String userMessage);
+}
 
-// Use AssertJ for error message content validation
-assertThat(errorMessage)
-    .as("Error message content")
-    .isNotBlank()
-    .containsAnyOf("expected", "error", "keywords");
+// Separate memory per user
+.chatMemoryProvider(memoryId -> MessageWindowChatMemory.withMaxMessages(10))
 ```
 
-### Guidelines
+This pattern is **essential for production conversational AI applications**.
 
-1. **Prefer JUnit for basic assertions** - Use `assertNotNull`, `assertTrue`, `assertEquals` for simple checks
-2. **Use `assertAll()` for logical groupings** - Group related assertions with descriptive names
-3. **Use AssertJ selectively** - For complex validations, fluent string operations, and detailed object checking
-4. **Avoid `assertSoftly()`** - Our hybrid approach provides better readability without the complexity
-5. **Always include descriptive messages** - Both in `assertAll()` group names and AssertJ `.as()` descriptions
-6. **Test AI responses appropriately** - Focus on structure and non-null checks rather than exact content matching
-
-This hybrid approach provides clear, maintainable tests that are easy for students to understand and extend.
+### Future Considerations
+- **MCP Integration**: LangChain4j provides MCP client support (not server) - potential Lab 6.5
+- **Vision capabilities**: Next priority - Lab 7 implementation needed
+- **Error handling patterns**: Include division by zero, invalid inputs in tool examples
