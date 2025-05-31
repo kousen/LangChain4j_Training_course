@@ -995,11 +995,12 @@ Image generation capabilities allow AI models to create images from text prompts
 - Understanding of prompt engineering for image generation
 
 **Lab Structure:**
-This lab includes 4 progressive image generation tests:
+This lab includes 5 progressive image generation tests:
 1. **Basic Image Generation** - Simple image creation with DALL-E
 2. **Image Generation with Options** - Configuration options for quality and style  
 3. **Advanced Image Generation** - Different artistic and technical styles
 4. **Creative Image Variations** - Multiple images with varied prompts
+5. **Base64 Image Generation** - Using gpt-image-1 model with base64-encoded images
 
 ### 8.1 Basic Image Generation
 
@@ -1181,13 +1182,78 @@ void creativeImageVariations() {
 }
 ```
 
+### 8.5 Base64 Image Generation with GPT-Image-1
+
+Demonstrate using the new OpenAI "gpt-image-1" model that returns base64-encoded images:
+
+```java
+@Test
+void base64ImageGeneration() throws IOException {
+    // Create OpenAI ImageModel using the new gpt-image-1 model
+    // Note: No constant available yet for this new model
+    ImageModel model = OpenAiImageModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName("gpt-image-1")
+            .build();
+
+    // Define a creative prompt
+    String prompt = "A warrior cat rides a dragon into battle";
+    
+    System.out.println("=== Base64 Image Generation Test ===");
+    System.out.println("Prompt: " + prompt);
+    System.out.println("Model: gpt-image-1 (returns base64-encoded images)");
+    
+    // Generate the image
+    Response<Image> response = model.generate(prompt);
+    Image image = response.content();
+    
+    // The gpt-image-1 model returns base64-encoded images instead of URLs
+    String base64Data = null;
+    if (image.base64Data() != null) {
+        base64Data = image.base64Data();
+    } else if (image.url() != null && image.url().toString().startsWith("data:")) {
+        // Fallback: parse from data URL format
+        base64Data = image.url().toString().split(",")[1];
+    }
+    
+    assertNotNull(base64Data, "Base64 image data should not be null");
+    System.out.println("Base64 data length: " + base64Data.length() + " characters");
+    
+    // Decode the base64 to bytes using Java's built-in decoder
+    byte[] imageBytes = Base64.getDecoder().decode(base64Data);
+    
+    // Create output directory if it doesn't exist
+    Path outputDir = Path.of("src/main/resources");
+    if (!Files.exists(outputDir)) {
+        Files.createDirectories(outputDir);
+    }
+    
+    // Write to file (PNG format)
+    Path outputPath = outputDir.resolve("generated_image.png");
+    Files.write(outputPath, imageBytes);
+    
+    System.out.println("Image saved as: " + outputPath);
+    System.out.println("File size: " + imageBytes.length + " bytes");
+    
+    // Verify the file was created and has content
+    assertTrue(Files.exists(outputPath), "Generated image file should exist");
+    assertTrue(Files.size(outputPath) > 0, "Generated image file should have content");
+    
+    // Note: The generated image file can be opened with any image viewer
+    // This approach provides more control over image data compared to URL-based responses
+}
+```
+
 **Important Notes for Lab 8:**
 - Uses DALL_E_3 model constant which provides the latest DALL-E capabilities
+- The new "gpt-image-1" model uses OpenAI's Responses API and returns base64-encoded images instead of URLs
 - Image generation can be expensive - consider costs when running multiple tests
 - DALL-E may revise prompts for safety and quality - check the `revisedPrompt()` field
-- Generated images are returned as URLs that expire after a certain time
+- DALL-E generated images are returned as URLs that expire after a certain time
+- Base64 images from gpt-image-1 provide more control and don't expire like URLs
 - Different quality settings ("standard" vs "hd") affect both cost and generation time
 - Style settings ("vivid" vs "natural") affect the artistic interpretation
+- Use Java's `Base64.getDecoder()` for decoding base64 image data to files
 
 [↑ Back to table of contents](#table-of-contents)
 
