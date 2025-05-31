@@ -778,105 +778,303 @@ void useMultipleTools() {
 
 ## Lab 7: Vision Capabilities
 
+Vision capabilities allow AI models to analyze and understand images. This lab demonstrates how to use GPT-4 with vision to analyze both local and remote images using LangChain4j.
+
+**Prerequisites:** 
+- An image file `bowl_of_fruit.jpg` in `src/main/resources/`
+- OpenAI API key with access to GPT-4 vision models
+
 ### 7.1 Local Image Analysis
 
-First, make sure you have a test image in `src/main/resources/bowl_of_fruit.png`.
-
-Create a test that analyzes a local image:
+Create a test that analyzes a local image file:
 
 ```java
 @Test
 void localImageAnalysis() throws IOException {
+    // Create GPT-4 model with vision capabilities
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_VISION_PREVIEW)
+            .modelName(GPT_4_1_MINI)
             .build();
 
-    // Load image from resources
-    byte[] imageBytes = getClass().getClassLoader()
-            .getResourceAsStream("bowl_of_fruit.png")
-            .readAllBytes();
+    // Load image from resources with null check
+    byte[] imageBytes;
+    try (var inputStream = getClass().getClassLoader()
+            .getResourceAsStream("bowl_of_fruit.jpg")) {
+        if (inputStream == null) {
+            throw new RuntimeException("Could not find bowl_of_fruit.jpg in resources");
+        }
+        imageBytes = inputStream.readAllBytes();
+    }
 
-    ImageContent imageContent = ImageContent.from(imageBytes, "image/png");
-    TextContent textContent = TextContent.from("What do you see in this image?");
+    String imageString = Base64.getEncoder().encodeToString(imageBytes);
+
+    // Create image and text content for the message
+    ImageContent imageContent = ImageContent.from(imageString, "image/jpeg");
+    TextContent textContent = TextContent.from("What do you see in this image? Describe it in detail.");
     
     UserMessage userMessage = UserMessage.from(textContent, imageContent);
     
+    System.out.println("=== Local Image Analysis Test ===");
     String response = model.chat(userMessage).aiMessage().text();
+    System.out.println("Analysis: " + response);
+    System.out.println("=".repeat(50));
     
-    System.out.println(response);
-    assertNotNull(response);
-    assertFalse(response.isEmpty());
+    // Verify response quality
+    assertAll("Local image analysis validation",
+        () -> assertNotNull(response, "Response should not be null"),
+        () -> assertFalse(response.trim().isEmpty(), "Response should not be empty"),
+        () -> assertTrue(response.length() > 20, "Response should be descriptive")
+    );
+
+    // Verify the response contains image-related content
+    assertThat(response.toLowerCase())
+            .as("Image analysis response")
+            .containsAnyOf("image", "see", "picture", "fruit", "bowl", "color");
 }
 ```
 
 ### 7.2 Remote Image Analysis
 
-Create a test that analyzes a remote image:
+Create a test that analyzes an image from a remote URL:
 
 ```java
 @Test
 void remoteImageAnalysis() {
+    // Create GPT-4 Vision model
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_VISION_PREVIEW)
+            .modelName(GPT_4_1_MINI)
             .build();
 
-    String imageUrl = "https://upload.wikimedia.org/wikipedia/commons/9/9a/Deelerwoud%2C_09-05-2024_%28actm.%29_04.jpg";
+    // Use a publicly available image URL
+    String imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg";
     
+    // Create image and text content for the message
     ImageContent imageContent = ImageContent.from(imageUrl);
-    TextContent textContent = TextContent.from("Describe this natural landscape in detail.");
+    TextContent textContent = TextContent.from("Describe this natural landscape in detail. What can you see?");
     
     UserMessage userMessage = UserMessage.from(textContent, imageContent);
     
+    System.out.println("=== Remote Image Analysis Test ===");
     String response = model.chat(userMessage).aiMessage().text();
+    System.out.println("URL: " + imageUrl);
+    System.out.println("Analysis: " + response);
+    System.out.println("=".repeat(50));
     
-    System.out.println(response);
-    assertNotNull(response);
+    // Verify response quality
+    assertAll("Remote image analysis validation",
+        () -> assertNotNull(response, "Response should not be null"),
+        () -> assertFalse(response.trim().isEmpty(), "Response should not be empty"),
+        () -> assertTrue(response.length() > 30, "Response should be comprehensive")
+    );
+
+    // Verify the response contains landscape-related content
+    assertThat(response.toLowerCase())
+            .as("Landscape analysis response")
+            .containsAnyOf("nature", "landscape", "boardwalk", "path", "grass", "sky", "outdoor");
 }
 ```
 
 ### 7.3 Vision with AiServices
 
-You can also use vision capabilities with `AiServices`:
+Demonstrate how to use vision capabilities with `AiServices` for structured image analysis:
 
 ```java
+/**
+ * VisionAnalyst interface for structured image analysis using AiServices.
+ */
 interface VisionAnalyst {
     @UserMessage("Analyze this image and describe what you see: {{image}}")
-    String analyzeImage(@V("image") Image image);
+    String analyzeImage(@V("image") ImageContent image);
     
     @UserMessage("What objects can you identify in this image: {{image}}")
-    List<String> identifyObjects(@V("image") Image image);
+    List<String> identifyObjects(@V("image") ImageContent image);
+    
+    @UserMessage("What colors are dominant in this image: {{image}}")
+    List<String> identifyColors(@V("image") ImageContent image);
+    
+    @UserMessage("Is there any text visible in this image: {{image}}? If so, what does it say?")
+    String extractText(@V("image") ImageContent image);
 }
 
 @Test
-void visionWithAiServices() throws IOException {
+void visionWithAiServices() throws Exception {
+    // Create GPT-4 Vision model
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_VISION_PREVIEW)
+            .modelName(GPT_4_1_MINI)
             .build();
 
+    // Create VisionAnalyst service
     VisionAnalyst analyst = AiServices.builder(VisionAnalyst.class)
             .chatModel(model)
             .build();
 
-    // Load image
-    byte[] imageBytes = getClass().getClassLoader()
-            .getResourceAsStream("bowl_of_fruit.png")
-            .readAllBytes();
+    // Load image from resources
+    byte[] imageBytes;
+    try (var inputStream = getClass().getClassLoader().getResourceAsStream("bowl_of_fruit.jpg")) {
+        if (inputStream == null) {
+            throw new RuntimeException("Could not find bowl_of_fruit.jpg in resources");
+        }
+        imageBytes = inputStream.readAllBytes();
+    }
 
-    Image image = Image.from(imageBytes, "image/png");
+    String imageString = Base64.getEncoder().encodeToString(imageBytes);
+    ImageContent image = ImageContent.from(imageString, "image/jpeg");
     
+    System.out.println("=== Vision with AiServices Test ===");
+    
+    // Test different types of image analysis with delays to avoid rate limits
     String analysis = analyst.analyzeImage(image);
-    System.out.println("Analysis: " + analysis);
+    System.out.println("General Analysis: " + analysis);
+    
+    Thread.sleep(3000); // Add delay to avoid rate limits
     
     List<String> objects = analyst.identifyObjects(image);
     System.out.println("Objects: " + objects);
     
-    assertNotNull(analysis);
-    assertNotNull(objects);
+    Thread.sleep(3000); // Add delay to avoid rate limits
+    
+    List<String> colors = analyst.identifyColors(image);
+    System.out.println("Colors: " + colors);
+    
+    Thread.sleep(3000); // Add delay to avoid rate limits
+    
+    String text = analyst.extractText(image);
+    System.out.println("Text: " + text);
+    
+    System.out.println("=".repeat(50));
+    
+    // Verify all analysis results
+    assertAll("AiServices vision analysis validation",
+        () -> assertNotNull(analysis, "General analysis should not be null"),
+        () -> assertNotNull(objects, "Objects list should not be null"),
+        () -> assertNotNull(colors, "Colors list should not be null"),
+        () -> assertNotNull(text, "Text extraction should not be null"),
+        () -> assertFalse(analysis.trim().isEmpty(), "Analysis should not be empty"),
+        () -> assertFalse(objects.isEmpty(), "Should identify some objects"),
+        () -> assertFalse(colors.isEmpty(), "Should identify some colors")
+    );
+
+    // Verify content quality using AssertJ
+    assertThat(analysis.toLowerCase())
+            .as("General image analysis")
+            .hasSizeGreaterThan(20);
+            
+    assertThat(objects)
+            .as("Identified objects")
+            .hasSizeGreaterThan(0)
+            .allSatisfy(object -> assertThat(object).isNotBlank());
+            
+    assertThat(colors)
+            .as("Identified colors")
+            .hasSizeGreaterThan(0)
+            .allSatisfy(color -> assertThat(color).isNotBlank());
 }
 ```
+
+### 7.4 Structured Image Analysis
+
+Demonstrate extracting structured data from image analysis results:
+
+```java
+/**
+ * DetailedAnalyst interface for comprehensive image analysis.
+ */
+interface DetailedAnalyst {
+    @UserMessage("Provide a comprehensive analysis of this image including: objects, colors, composition, mood, and any text. Image: {{image}}")
+    ImageAnalysisResult analyzeComprehensively(@V("image") ImageContent image);
+}
+
+/**
+ * Record to hold comprehensive image analysis results.
+ */
+record ImageAnalysisResult(
+    String description,
+    List<String> objects,
+    List<String> colors,
+    String composition,
+    String mood,
+    String textContent
+) {}
+
+@Test
+void structuredImageAnalysis() throws IOException {
+    // Create GPT-4 Vision model
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_MINI)
+            .build();
+
+    // Create detailed analyst service
+    DetailedAnalyst analyst = AiServices.builder(DetailedAnalyst.class)
+            .chatModel(model)
+            .build();
+
+    // Load image from resources
+    byte[] imageBytes;
+    try (var inputStream = getClass().getClassLoader().getResourceAsStream("bowl_of_fruit.jpg")) {
+        if (inputStream == null) {
+            throw new RuntimeException("Could not find bowl_of_fruit.jpg in resources");
+        }
+        imageBytes = inputStream.readAllBytes();
+    }
+    String imageString = Base64.getEncoder().encodeToString(imageBytes);
+    ImageContent image = ImageContent.from(imageString, "image/jpeg");
+
+    System.out.println("=== Structured Image Analysis Test ===");
+    
+    // Get comprehensive structured analysis
+    ImageAnalysisResult result = analyst.analyzeComprehensively(image);
+    
+    System.out.println("Description: " + result.description());
+    System.out.println("Objects: " + result.objects());
+    System.out.println("Colors: " + result.colors());
+    System.out.println("Composition: " + result.composition());
+    System.out.println("Mood: " + result.mood());
+    System.out.println("Text Content: " + result.textContent());
+    
+    System.out.println("=".repeat(50));
+
+    // Verify structured analysis
+    assertAll("Structured image analysis validation",
+        () -> assertNotNull(result, "Analysis result should not be null"),
+        () -> assertNotNull(result.description(), "Description should not be null"),
+        () -> assertNotNull(result.objects(), "Objects should not be null"),
+        () -> assertNotNull(result.colors(), "Colors should not be null"),
+        () -> assertNotNull(result.composition(), "Composition should not be null"),
+        () -> assertNotNull(result.mood(), "Mood should not be null"),
+        () -> assertNotNull(result.textContent(), "Text content should not be null")
+    );
+
+    // Verify content quality using AssertJ
+    assertThat(result.description())
+            .as("Image description")
+            .isNotBlank()
+            .hasSizeGreaterThan(20);
+            
+    if (!result.objects().isEmpty()) {
+        assertThat(result.objects())
+                .as("Identified objects")
+                .allSatisfy(object -> assertThat(object).isNotBlank());
+    }
+    
+    if (!result.colors().isEmpty()) {
+        assertThat(result.colors())
+                .as("Identified colors")
+                .allSatisfy(color -> assertThat(color).isNotBlank());
+    }
+}
+```
+
+**Important Notes for Lab 7:**
+- Uses GPT-4-1-Mini model which supports vision capabilities
+- Includes proper null checks for resource loading to avoid NullPointerException
+- Uses Base64 encoding for local images and direct URLs for remote images
+- Includes delays between API calls to avoid rate limits
+- Demonstrates both simple string responses and structured data extraction
+- Uses AssertJ and JUnit 5 assertAll() for comprehensive testing
 
 [↑ Back to table of contents](#table-of-contents)
 
