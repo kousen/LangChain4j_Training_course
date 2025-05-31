@@ -15,9 +15,8 @@ This series of labs will guide you through building LangChain4j applications tha
 - [Lab 6: AI Tools](#lab-6-ai-tools)
 - [Lab 7: Vision Capabilities](#lab-7-vision-capabilities)
 - [Lab 8: Image Generation](#lab-8-image-generation)
-- [Lab 9: Audio Capabilities](#lab-9-audio-capabilities)
-- [Lab 10: Retrieval-Augmented Generation (RAG)](#lab-10-retrieval-augmented-generation-rag)
-- [Lab 11: Redis Vector Store for RAG](#lab-11-redis-vector-store-for-rag)
+- [Lab 9: Retrieval-Augmented Generation (RAG)](#lab-9-retrieval-augmented-generation-rag)
+- [Lab 10: Redis Vector Store for RAG](#lab-10-redis-vector-store-for-rag)
 - [Conclusion](#conclusion)
 
 ## Setup
@@ -1257,99 +1256,9 @@ void base64ImageGeneration() throws IOException {
 
 [↑ Back to table of contents](#table-of-contents)
 
-## Lab 9: Audio Capabilities
+## Lab 9: Retrieval-Augmented Generation (RAG)
 
-### 9.1 Text-to-Speech
-
-Note: LangChain4j 1.0 may not include direct audio models. This section demonstrates the pattern for when audio support is available:
-
-```java
-@Test
-void textToSpeech() {
-    // This would typically use an external service like OpenAI's TTS API
-    // or integrate with Java sound libraries
-    
-    String text = "Welcome to LangChain4j, a powerful framework for building AI applications in Java.";
-    
-    // Example implementation would go here
-    // For now, we'll simulate the functionality
-    System.out.println("Text to convert to speech: " + text);
-    
-    // In a real implementation:
-    // 1. Call TTS service
-    // 2. Receive audio bytes
-    // 3. Save to file or play directly
-    
-    assertTrue(text.length() > 0);
-}
-```
-
-### 9.2 Speech-to-Text
-
-```java
-@Test
-void speechToText() {
-    // This would typically use an external service like OpenAI's Whisper API
-    // or integrate with Java speech recognition libraries
-    
-    // Simulate loading an audio file
-    String audioFileName = "test_audio.wav";
-    
-    // Example implementation would go here
-    System.out.println("Processing audio file: " + audioFileName);
-    
-    // In a real implementation:
-    // 1. Load audio file
-    // 2. Send to transcription service
-    // 3. Receive transcribed text
-    
-    String transcription = "This is a sample transcription";
-    System.out.println("Transcription: " + transcription);
-    
-    assertNotNull(transcription);
-}
-```
-
-### 9.3 Audio with External Services
-
-For production audio capabilities, you would integrate with external services:
-
-```java
-interface AudioService {
-    @UserMessage("Transcribe this audio and summarize the main points")
-    String transcribeAndSummarize(byte[] audioData);
-}
-
-@Test
-void audioServiceIntegration() {
-    // This demonstrates the pattern for audio integration
-    // In practice, you'd implement actual audio processing
-    
-    ChatModel model = OpenAiChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
-            .build();
-
-    // Simulate audio data
-    byte[] audioData = "simulated audio data".getBytes();
-    
-    // In a real implementation, you would:
-    // 1. Use a transcription service to convert audio to text
-    // 2. Pass the transcribed text to LangChain4j for processing
-    
-    String simulatedTranscription = "This is a meeting about quarterly sales figures and growth projections.";
-    String summary = model.chat("Summarize the main points: " + simulatedTranscription);
-    
-    System.out.println("Audio summary: " + summary);
-    assertNotNull(summary);
-}
-```
-
-[↑ Back to table of contents](#table-of-contents)
-
-## Lab 10: Retrieval-Augmented Generation (RAG)
-
-### 10.1 Basic Document Loading and Embedding
+### 9.1 Basic Document Loading and Embedding
 
 Create a test that demonstrates document loading and embedding:
 
@@ -1395,7 +1304,7 @@ void basicDocumentEmbedding() {
 }
 ```
 
-### 10.2 RAG with ContentRetriever
+### 9.2 RAG with ContentRetriever
 
 Create a more sophisticated RAG implementation:
 
@@ -1455,7 +1364,7 @@ void ragWithContentRetriever() {
 }
 ```
 
-### 10.3 RAG with File Documents
+### 9.3 RAG with File Documents
 
 Create a test that loads documents from files:
 
@@ -1526,7 +1435,7 @@ void ragWithFileDocuments() throws IOException {
 }
 ```
 
-### 10.4 Advanced RAG with Metadata Filtering
+### 9.4 Advanced RAG with Metadata Filtering
 
 Create a more advanced RAG system that uses metadata for filtering:
 
@@ -1594,9 +1503,9 @@ void ragWithMetadataFiltering() {
 
 [↑ Back to table of contents](#table-of-contents)
 
-## Lab 11: Redis Vector Store for RAG
+## Lab 10: Redis Vector Store for RAG
 
-### 11.1 Prerequisites
+### 10.1 Prerequisites
 
 To use Redis as a vector store, you need a running Redis instance with vector search capabilities:
 
@@ -1604,7 +1513,7 @@ To use Redis as a vector store, you need a running Redis instance with vector se
 docker run -p 6379:6379 redis/redis-stack:latest
 ```
 
-### 11.2 Basic Redis Vector Store Setup
+### 10.2 Basic Redis Vector Store Setup
 
 Create a test that demonstrates Redis vector store usage:
 
@@ -1664,7 +1573,7 @@ private boolean isRedisAvailable() {
 }
 ```
 
-### 11.3 RAG with Redis Persistence
+### 10.3 RAG with Redis Persistence
 
 Create a comprehensive RAG system using Redis:
 
@@ -1739,7 +1648,7 @@ void ragWithRedisPersistence() {
 }
 ```
 
-### 11.4 Data Persistence and Cleanup
+### 10.4 Data Persistence and Cleanup
 
 Create utilities for managing the Redis vector store:
 
@@ -1774,7 +1683,7 @@ void redisDataManagement() {
 }
 ```
 
-### 11.5 Production RAG Configuration
+### 10.5 Production RAG Configuration
 
 Create a more production-ready RAG configuration:
 
