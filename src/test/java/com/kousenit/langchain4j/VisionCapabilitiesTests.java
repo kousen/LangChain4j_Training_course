@@ -24,8 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * You'll learn how to:
  * - Analyze local images using GPT-4
  * - Analyze remote images from URLs
- * - Use vision capabilities with AiServices for structured responses
- * - Extract specific information from images (objects, text, descriptions)
+ * - Extract structured data from image analysis results
  */
 class VisionCapabilitiesTests {
 
@@ -88,56 +87,6 @@ class VisionCapabilitiesTests {
     }
 
     /**
-     * VisionAnalyst interface for structured image analysis using AiServices.
-     * 
-     * TODO: Complete the interface methods with proper annotations:
-     * 1. analyzeImage - General image analysis
-     * 2. identifyObjects - List of objects in the image
-     * 3. identifyColors - List of dominant colors
-     * 4. extractText - Extract any visible text
-     */
-    interface VisionAnalyst {
-        // TODO: Add @UserMessage annotation and method for analyzing image
-        String analyzeImage(@V("image") ImageContent image);
-        
-        // TODO: Add @UserMessage annotation and method for identifying objects
-        List<String> identifyObjects(@V("image") ImageContent image);
-        
-        // TODO: Add @UserMessage annotation and method for identifying colors
-        List<String> identifyColors(@V("image") ImageContent image);
-        
-        // TODO: Add @UserMessage annotation and method for extracting text
-        String extractText(@V("image") ImageContent image);
-    }
-
-    /**
-     * Test 7.3: Vision with AiServices
-     * <p>
-     * Demonstrates how to use vision capabilities with AiServices for structured image analysis.
-     * 
-     * TODO: Implement this test method:
-     * 1. Create GPT-4 model and VisionAnalyst service
-     * 2. Load image from resources with proper null checking
-     * 3. Test all four VisionAnalyst methods (with delays to avoid rate limits)
-     * 4. Add comprehensive assertions for all responses
-     */
-    @Test
-    void visionWithAiServices() throws Exception {
-        // TODO: Create GPT-4 model
-        
-        // TODO: Create VisionAnalyst service using AiServices.builder()
-        
-        // TODO: Load image from resources with null check
-        
-        // TODO: Call all four analyst methods with delays between calls
-        // Remember to add Thread.sleep(3000) between API calls to avoid rate limits
-        
-        // TODO: Add comprehensive assertions for all responses
-        
-        fail("TODO: Implement visionWithAiServices test");
-    }
-
-    /**
      * DetailedAnalyst interface for comprehensive image analysis.
      * 
      * TODO: Complete the interface method with proper annotation for comprehensive analysis
@@ -162,7 +111,7 @@ class VisionCapabilitiesTests {
     ) {}
 
     /**
-     * Test 7.4: Structured Image Analysis
+     * Test 7.3: Structured Image Analysis
      * <p>
      * Demonstrates extracting structured data from image analysis results.
      * 
