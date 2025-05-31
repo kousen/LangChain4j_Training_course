@@ -1,5 +1,6 @@
 package com.kousenit.langchain4j;
 
+import dev.langchain4j.data.message.AudioContent;
 import dev.langchain4j.data.message.ImageContent;
 import dev.langchain4j.data.message.TextContent;
 import dev.langchain4j.data.message.UserMessage;
@@ -18,15 +19,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Lab 7: Vision Capabilities
+ * Lab 7: Multimedia Capabilities
  * <p>
- * This lab demonstrates how to use LangChain4j with vision-enabled AI models for image analysis.
+ * This lab demonstrates how to use LangChain4j with multimodal AI models for both image and audio analysis.
  * You'll learn how to:
  * - Analyze local images using GPT-4
  * - Analyze remote images from URLs
- * - Extract structured data from image analysis results
+ * - Process audio content with AudioContent
+ * - Extract structured data from multimedia analysis results
  */
-class VisionCapabilitiesTests {
+class MultimediaCapabilitiesTests {
 
     /**
      * Test 7.1: Local Image Analysis
@@ -87,6 +89,74 @@ class VisionCapabilitiesTests {
     }
 
     /**
+     * Test 7.3: Audio Transcription and Analysis
+     * <p>
+     * Demonstrates audio processing using AudioContent with ChatModel.
+     * 
+     * TODO: Implement this test method:
+     * 1. Create a GPT-4 model for audio processing
+     * 2. Create simulated audio data for demonstration purposes
+     * 3. Create AudioContent and TextContent for the message
+     * 4. Send the message to the model with graceful error handling
+     * 5. Verify AudioContent was created successfully
+     * 6. Handle cases where audio processing may not be supported yet
+     */
+    @Test
+    void audioTranscriptionAnalysis() throws IOException {
+        // TODO: Create GPT-4 model for audio processing
+        // ChatModel model = OpenAiChatModel.builder()
+        //         .apiKey(System.getenv("OPENAI_API_KEY"))
+        //         .modelName(GPT_4_1_MINI)
+        //         .build();
+
+        // TODO: Create simulated audio data for demonstration
+        // byte[] audioData = createSimpleAudioData();
+        
+        // TODO: Create AudioContent and TextContent for the message
+        // AudioContent audioContent = AudioContent.from(audioData, "audio/wav");
+        // TextContent textContent = TextContent.from("Please transcribe and analyze the content of this audio file.");
+        
+        // UserMessage userMessage = UserMessage.from(textContent, audioContent);
+        
+        // TODO: Send message with graceful error handling
+        // System.out.println("=== Audio Transcription and Analysis Test ===");
+        // System.out.println("Audio data size: " + audioData.length + " bytes");
+        
+        // try {
+        //     String response = model.chat(userMessage).aiMessage().text();
+        //     System.out.println("Transcription/Analysis: " + response);
+        //     
+        //     // Verify response quality
+        //     assertNotNull(response, "Response should not be null");
+        //     assertFalse(response.trim().isEmpty(), "Response should not be empty");
+        //     
+        // } catch (Exception e) {
+        //     // Handle gracefully if audio processing is not supported yet
+        //     System.out.println("Audio processing not yet supported by this model: " + e.getMessage());
+        //     System.out.println("AudioContent class exists and is ready for future audio-enabled models");
+        //     
+        //     // Verify AudioContent was created successfully
+        //     assertNotNull(audioContent, "AudioContent should be created successfully");
+        //     assertNotNull(audioContent.data(), "Audio data should not be null");
+        // }
+        
+        fail("TODO: Implement audioTranscriptionAnalysis test");
+    }
+
+    /**
+     * Creates simple audio data for demonstration purposes.
+     * In a real application, you would load actual audio files.
+     * 
+     * TODO: This helper method is provided for the audio test.
+     * You can uncomment it when implementing the audio test.
+     */
+    // private byte[] createSimpleAudioData() {
+    //     // Create a simple byte array representing audio data
+    //     // This is just for demonstration - in practice you'd load real audio files
+    //     return "AUDIO_PLACEHOLDER_DATA".getBytes();
+    // }
+
+    /**
      * DetailedAnalyst interface for comprehensive image analysis.
      * 
      * TODO: Complete the interface method with proper annotation for comprehensive analysis
@@ -111,7 +181,7 @@ class VisionCapabilitiesTests {
     ) {}
 
     /**
-     * Test 7.3: Structured Image Analysis
+     * Test 7.4: Structured Image Analysis
      * <p>
      * Demonstrates extracting structured data from image analysis results.
      * 
