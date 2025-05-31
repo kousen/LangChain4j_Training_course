@@ -304,14 +304,87 @@ The course follows a structured progression documented in `labs.md`:
 1. **Basic chat interactions** - Simple AI conversations
 2. **Streaming responses** - Real-time AI communication
 3. **Structured data extraction** - AI-powered data parsing
-4. **Prompt engineering** - Template-based prompts
-5. **Memory management** - Conversation context
-6. **Vision and audio capabilities** - Multimodal AI
-7. **RAG implementation** - Knowledge-augmented AI
-8. **Vector store optimization** - Production-ready RAG with Redis
+4. **AI Services interface** - High-level AI integration patterns
+5. **Chat memory** - Conversation context and multi-user memory isolation
+6. **AI Tools** - Function calling with @Tool annotation (IMPLEMENTED)
+7. **Vision capabilities** - Image analysis with GPT-4 Vision
+8. **Image generation** - AI-created images with DALL-E
+9. **Audio capabilities** - Speech processing patterns
+10. **RAG implementation** - Knowledge-augmented AI
+11. **Vector store optimization** - Production-ready RAG with Redis
+
+**Note**: Lab ordering was optimized for pedagogical flow - tools before vision/image generation.
 
 ### Code Structure for Students
 - **Test classes**: Contain TODO comments guiding implementation
 - **Service classes**: Skeleton code with clear instructions
 - **Working examples**: DateTimeTools, ActorFilms (students use these)
 - **Reference implementations**: Available in solutions branch
+
+## Implementation Best Practices (Lessons Learned)
+
+### Tool Classes Architecture
+**IMPORTANT**: Tool classes should be standalone classes in `src/main/java`, NOT static inner classes in test files.
+
+**Correct Structure:**
+```
+src/main/java/com/kousenit/langchain4j/
+├── DateTimeTool.java      # @Tool methods for date/time operations
+├── WeatherTool.java       # @Tool methods for weather simulation
+├── CalculatorTool.java    # @Tool methods for math operations
+└── ActorFilms.java        # Data classes for structured extraction
+```
+
+**Benefits:**
+- **Reusability** across multiple test classes
+- **Proper separation of concerns** (tools vs tests)
+- **Professional code organization** 
+- **Students can study tool implementation patterns**
+
+### Testing Strategy: Hybrid JUnit 5 + AssertJ
+Use JUnit 5 `assertAll()` for grouping related assertions and AssertJ for complex string/object validation:
+
+```java
+// Group related assertions
+assertAll("Basic tool usage validation",
+    () -> assertNotNull(response1, "Response should not be null"),
+    () -> assertFalse(response1.trim().isEmpty(), "Response should not be empty")
+);
+
+// Complex content validation with AssertJ
+assertThat(response2.toLowerCase())
+    .as("Location-specific response")
+    .containsAnyOf("new york", "york");
+```
+
+**Key Lessons:**
+- **Avoid case sensitivity issues** with `.toLowerCase()` + `containsAnyOf()`
+- **Don't test exact AI response wording** - test for essential keywords
+- **Use proper AssertJ methods** - no `containsAnyOfIgnoringCase()` (doesn't exist)
+
+### Lab Documentation Synchronization
+**CRITICAL**: `labs.md` on solutions branch is the authoritative version.
+
+**Process:**
+1. Update `labs.md` on solutions branch first
+2. Copy to main branch: `git checkout solutions -- labs.md`
+3. Verify both branches have identical content: `git diff main solutions -- labs.md`
+
+### Memory Pattern Examples
+Lab 5 includes the crucial **multi-user memory pattern** with `@MemoryId`:
+
+```java
+interface MultiUserAssistant {
+    String chat(@MemoryId int memoryId, @UserMessage String userMessage);
+}
+
+// Separate memory per user
+.chatMemoryProvider(memoryId -> MessageWindowChatMemory.withMaxMessages(10))
+```
+
+This pattern is **essential for production conversational AI applications**.
+
+### Future Considerations
+- **MCP Integration**: LangChain4j provides MCP client support (not server) - potential Lab 6.5
+- **Vision capabilities**: Next priority - Lab 7 implementation needed
+- **Error handling patterns**: Include division by zero, invalid inputs in tool examples
