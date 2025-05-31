@@ -6,6 +6,11 @@ import dev.langchain4j.model.openai.OpenAiImageModel;
 import dev.langchain4j.model.output.Response;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Base64;
+
 import static dev.langchain4j.model.openai.OpenAiImageModelName.DALL_E_3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -225,5 +230,86 @@ class ImageGenerationTests {
 
         System.out.println("All variations generated successfully!");
         System.out.println("=" + "=".repeat(50));
+    }
+
+    /**
+     * Test 8.5: Base64 Image Generation with GPT-Image-1 Model
+     * <p>
+     * Demonstrates using the new "gpt-image-1" model which returns base64-encoded images
+     * instead of URLs, and saves the decoded image to a file.
+     */
+    @Test
+    void base64ImageGeneration() throws IOException {
+        // Create OpenAI ImageModel using the new gpt-image-1 model
+        // Note: No constant available yet for this new model
+        ImageModel model = OpenAiImageModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName("gpt-image-1")
+                .build();
+
+        // Define a creative prompt
+        String prompt = """
+            A warrior cat rides a dragon into battle""";
+        
+        System.out.println("=== Base64 Image Generation Test ===");
+        System.out.println("Prompt: " + prompt);
+        System.out.println("Model: gpt-image-1 (returns base64-encoded images)");
+        
+        // Generate the image
+        Response<Image> response = model.generate(prompt);
+        Image image = response.content();
+        
+        // Verify the response
+        assertNotNull(response, "Response should not be null");
+        assertNotNull(image, "Image should not be null");
+        
+        // The gpt-image-1 model returns base64-encoded images instead of URLs
+        // Check if we have base64 data instead of a URL
+        String base64Data = null;
+        if (image.base64Data() != null) {
+            base64Data = image.base64Data();
+        } else if (image.url() != null && image.url().toString().startsWith("data:")) {
+            // Some implementations might return data URLs
+            base64Data = image.url().toString().split(",")[1];
+        }
+        
+        assertNotNull(base64Data, "Base64 image data should not be null");
+        assertThat(base64Data)
+                .as("Base64 image data")
+                .isNotBlank()
+                .hasSizeGreaterThan(100); // Should be substantial data
+        
+        System.out.println("Base64 data length: " + base64Data.length() + " characters");
+        
+        // Decode the base64 to bytes
+        byte[] imageBytes = Base64.getDecoder().decode(base64Data);
+        
+        // Create output directory if it doesn't exist
+        Path outputDir = Path.of("src/main/resources");
+        if (!Files.exists(outputDir)) {
+            Files.createDirectories(outputDir);
+        }
+        
+        // Write to file (PNG format)
+        Path outputPath = outputDir.resolve("generated_image_base64.png");
+        Files.write(outputPath, imageBytes);
+        
+        System.out.println("Image saved as: " + outputPath);
+        System.out.println("File size: " + imageBytes.length + " bytes");
+        
+        // Verify the file was created and has content
+        assertThat(Files.exists(outputPath))
+                .as("Generated image file should exist")
+                .isTrue();
+                
+        assertThat(Files.size(outputPath))
+                .as("Generated image file should have content")
+                .isGreaterThan(0);
+        
+        System.out.println("=" + "=".repeat(50));
+        
+        // Note: The generated image file can be opened with any image viewer
+        // or used in web applications. The gpt-image-1 model provides more 
+        // control over the image data compared to URL-based responses.
     }
 }
