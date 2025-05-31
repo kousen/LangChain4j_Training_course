@@ -291,7 +291,7 @@ class ImageGenerationTests {
         }
         
         // Write to file (PNG format)
-        Path outputPath = outputDir.resolve("generated_image_base64.png");
+        Path outputPath = outputDir.resolve("generated_image.png");
         Files.write(outputPath, imageBytes);
         
         System.out.println("Image saved as: " + outputPath);
