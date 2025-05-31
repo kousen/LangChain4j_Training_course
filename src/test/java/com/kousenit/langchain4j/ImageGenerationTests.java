@@ -252,7 +252,7 @@ class ImageGenerationTests {
         //     Files.createDirectories(resourcesDir);
         // }
         // 
-        // Path outputPath = resourcesDir.resolve("generated_image_base64.png");
+        // Path outputPath = resourcesDir.resolve("generated_image.png");
         // Files.write(outputPath, imageBytes);
         
         // TODO: Verify file creation and display results
