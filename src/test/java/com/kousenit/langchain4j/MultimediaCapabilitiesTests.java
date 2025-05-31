@@ -95,11 +95,11 @@ class MultimediaCapabilitiesTests {
      * 
      * TODO: Implement this test method:
      * 1. Create a GPT-4 model for audio processing
-     * 2. Load audio data from the tftjs.mp3 file in resources
-     * 3. Create AudioContent with "audio/mpeg" MIME type and TextContent for the message
+     * 2. Load audio data from tftjs.mp3 file and Base64 encode it
+     * 3. Create AudioContent with "audio/mp3" MIME type and TextContent for the message
      * 4. Send the message to the model with graceful error handling
      * 5. Verify AudioContent was created successfully
-     * 6. Handle cases where audio processing may not be supported yet
+     * 6. Handle cases where audio processing may not be supported yet (expected behavior)
      */
     @Test
     void audioTranscriptionAnalysis() throws IOException {
@@ -109,18 +109,18 @@ class MultimediaCapabilitiesTests {
         //         .modelName(GPT_4_1_MINI)
         //         .build();
 
-        // TODO: Load audio data from tftjs.mp3 file
-        // byte[] audioData = createSimpleAudioData();
+        // TODO: Load audio data from tftjs.mp3 file and Base64 encode it
+        // String audioData = createSimpleAudioData();
         
         // TODO: Create AudioContent and TextContent for the message
-        // AudioContent audioContent = AudioContent.from(audioData, "audio/mpeg");
+        // AudioContent audioContent = AudioContent.from(audioData, "audio/mp3");
         // TextContent textContent = TextContent.from("Please transcribe and analyze the content of this audio file.");
         
         // UserMessage userMessage = UserMessage.from(textContent, audioContent);
         
         // TODO: Send message with graceful error handling
         // System.out.println("=== Audio Transcription and Analysis Test ===");
-        // System.out.println("Audio data size: " + audioData.length + " bytes");
+        // System.out.println("Audio data size: " + audioData.length() + " characters (Base64)");
         
         // try {
         //     String response = model.chat(userMessage).aiMessage().text();
@@ -144,18 +144,18 @@ class MultimediaCapabilitiesTests {
     }
 
     /**
-     * Loads audio data from the tftjs.mp3 file in resources.
+     * Loads audio data from the tftjs.mp3 file in resources and Base64 encodes it.
      * 
      * TODO: This helper method is provided for the audio test.
      * You can uncomment it when implementing the audio test.
      */
-    // private byte[] createSimpleAudioData() throws IOException {
-    //     // Load actual audio file from resources  
+    // private String createSimpleAudioData() throws IOException {
+    //     // Load actual audio file from resources and Base64 encode it
     //     try (var inputStream = getClass().getClassLoader().getResourceAsStream("tftjs.mp3")) {
     //         if (inputStream == null) {
     //             throw new RuntimeException("Could not find tftjs.mp3 in resources");
     //         }
-    //         return inputStream.readAllBytes();
+    //         return Base64.getEncoder().encodeToString(inputStream.readAllBytes());
     //     }
     // }
 
