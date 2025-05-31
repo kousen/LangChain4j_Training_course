@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
 
+import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1;
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_MINI;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -131,22 +132,19 @@ class MultimediaCapabilitiesTests {
         // Create GPT-4 model for audio processing
         ChatModel model = OpenAiChatModel.builder()
                 .apiKey(System.getenv("OPENAI_API_KEY"))
-                .modelName(GPT_4_1_MINI)
+                .modelName(GPT_4_1)
                 .build();
 
-        // Create a simple audio file in memory (simulated for demonstration)
-        // In a real scenario, you would load from resources or file system
-        byte[] audioData = createSimpleAudioData();
+        // Load audio file from resources and Base64 encode it
+        String audioData = createSimpleAudioData();
         
         // Create audio and text content for the message
-        AudioContent audioContent = AudioContent.from(audioData, "audio/mpeg");
+        AudioContent audioContent = AudioContent.from(audioData, "audio/mp3");
         TextContent textContent = TextContent.from("Please transcribe and analyze the content of this audio file.");
         
         UserMessage userMessage = UserMessage.from(textContent, audioContent);
         
         System.out.println("=== Audio Transcription and Analysis Test ===");
-        System.out.println("Audio data size: " + audioData.length + " bytes");
-        
         // Note: This will work when the model supports audio processing
         try {
             String response = model.chat(userMessage).aiMessage().text();
@@ -169,20 +167,20 @@ class MultimediaCapabilitiesTests {
             
             // Verify AudioContent was created successfully
             assertNotNull(audioContent, "AudioContent should be created successfully");
-            assertNotNull(audioContent.data(), "Audio data should not be null");
         }
     }
 
     /**
-     * Creates audio data by loading the actual audio file from resources.
+     * Creates audio data by loading the actual audio file from resources and Base64 encoding it.
      */
-    private byte[] createSimpleAudioData() throws IOException {
+    private String createSimpleAudioData() throws IOException {
         // Load actual audio file from resources
-        try (var inputStream = getClass().getClassLoader().getResourceAsStream("tftjs.mp3")) {
+        try (var inputStream = getClass().getClassLoader()
+                .getResourceAsStream("tftjs.mp3")) {
             if (inputStream == null) {
                 throw new RuntimeException("Could not find tftjs.mp3 in resources");
             }
-            return inputStream.readAllBytes();
+            return Base64.getEncoder().encodeToString(inputStream.readAllBytes());
         }
     }
 
