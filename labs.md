@@ -784,6 +784,12 @@ Vision capabilities allow AI models to analyze and understand images. This lab d
 - An image file `bowl_of_fruit.jpg` in `src/main/resources/`
 - OpenAI API key with access to GPT-4 vision models
 
+**Lab Structure:**
+This lab includes 3 progressive vision tests:
+1. **Local Image Analysis** - Analyze images from local resources
+2. **Remote Image Analysis** - Analyze images from URLs  
+3. **Structured Image Analysis** - Extract structured data from images
+
 ### 7.1 Local Image Analysis
 
 Create a test that analyzes a local image file:
@@ -876,105 +882,7 @@ void remoteImageAnalysis() {
 }
 ```
 
-### 7.3 Vision with AiServices
-
-Demonstrate how to use vision capabilities with `AiServices` for structured image analysis:
-
-```java
-/**
- * VisionAnalyst interface for structured image analysis using AiServices.
- */
-interface VisionAnalyst {
-    @UserMessage("Analyze this image and describe what you see: {{image}}")
-    String analyzeImage(@V("image") ImageContent image);
-    
-    @UserMessage("What objects can you identify in this image: {{image}}")
-    List<String> identifyObjects(@V("image") ImageContent image);
-    
-    @UserMessage("What colors are dominant in this image: {{image}}")
-    List<String> identifyColors(@V("image") ImageContent image);
-    
-    @UserMessage("Is there any text visible in this image: {{image}}? If so, what does it say?")
-    String extractText(@V("image") ImageContent image);
-}
-
-@Test
-void visionWithAiServices() throws Exception {
-    // Create GPT-4 Vision model
-    ChatModel model = OpenAiChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_MINI)
-            .build();
-
-    // Create VisionAnalyst service
-    VisionAnalyst analyst = AiServices.builder(VisionAnalyst.class)
-            .chatModel(model)
-            .build();
-
-    // Load image from resources
-    byte[] imageBytes;
-    try (var inputStream = getClass().getClassLoader().getResourceAsStream("bowl_of_fruit.jpg")) {
-        if (inputStream == null) {
-            throw new RuntimeException("Could not find bowl_of_fruit.jpg in resources");
-        }
-        imageBytes = inputStream.readAllBytes();
-    }
-
-    String imageString = Base64.getEncoder().encodeToString(imageBytes);
-    ImageContent image = ImageContent.from(imageString, "image/jpeg");
-    
-    System.out.println("=== Vision with AiServices Test ===");
-    
-    // Test different types of image analysis with delays to avoid rate limits
-    String analysis = analyst.analyzeImage(image);
-    System.out.println("General Analysis: " + analysis);
-    
-    Thread.sleep(3000); // Add delay to avoid rate limits
-    
-    List<String> objects = analyst.identifyObjects(image);
-    System.out.println("Objects: " + objects);
-    
-    Thread.sleep(3000); // Add delay to avoid rate limits
-    
-    List<String> colors = analyst.identifyColors(image);
-    System.out.println("Colors: " + colors);
-    
-    Thread.sleep(3000); // Add delay to avoid rate limits
-    
-    String text = analyst.extractText(image);
-    System.out.println("Text: " + text);
-    
-    System.out.println("=".repeat(50));
-    
-    // Verify all analysis results
-    assertAll("AiServices vision analysis validation",
-        () -> assertNotNull(analysis, "General analysis should not be null"),
-        () -> assertNotNull(objects, "Objects list should not be null"),
-        () -> assertNotNull(colors, "Colors list should not be null"),
-        () -> assertNotNull(text, "Text extraction should not be null"),
-        () -> assertFalse(analysis.trim().isEmpty(), "Analysis should not be empty"),
-        () -> assertFalse(objects.isEmpty(), "Should identify some objects"),
-        () -> assertFalse(colors.isEmpty(), "Should identify some colors")
-    );
-
-    // Verify content quality using AssertJ
-    assertThat(analysis.toLowerCase())
-            .as("General image analysis")
-            .hasSizeGreaterThan(20);
-            
-    assertThat(objects)
-            .as("Identified objects")
-            .hasSizeGreaterThan(0)
-            .allSatisfy(object -> assertThat(object).isNotBlank());
-            
-    assertThat(colors)
-            .as("Identified colors")
-            .hasSizeGreaterThan(0)
-            .allSatisfy(color -> assertThat(color).isNotBlank());
-}
-```
-
-### 7.4 Structured Image Analysis
+### 7.3 Structured Image Analysis
 
 Demonstrate extracting structured data from image analysis results:
 
@@ -1071,10 +979,10 @@ void structuredImageAnalysis() throws IOException {
 **Important Notes for Lab 7:**
 - Uses GPT-4-1-Mini model which supports vision capabilities
 - Includes proper null checks for resource loading to avoid NullPointerException
-- Uses Base64 encoding for local images and direct URLs for remote images
-- Includes delays between API calls to avoid rate limits
+- Uses Base64 encoding for local images and direct URLs for remote images  
 - Demonstrates both simple string responses and structured data extraction
 - Uses AssertJ and JUnit 5 assertAll() for comprehensive testing
+- Rate limiting: Consider adding delays between API calls if running multiple vision tests
 
 [↑ Back to table of contents](#table-of-contents)
 
