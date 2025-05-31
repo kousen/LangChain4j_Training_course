@@ -988,28 +988,55 @@ void structuredImageAnalysis() throws IOException {
 
 ## Lab 8: Image Generation
 
+Image generation capabilities allow AI models to create images from text prompts. This lab demonstrates how to use OpenAI's DALL-E with LangChain4j for generating high-quality images.
+
+**Prerequisites:**
+- OpenAI API key with access to DALL-E models
+- Understanding of prompt engineering for image generation
+
+**Lab Structure:**
+This lab includes 4 progressive image generation tests:
+1. **Basic Image Generation** - Simple image creation with DALL-E
+2. **Image Generation with Options** - Configuration options for quality and style  
+3. **Advanced Image Generation** - Different artistic and technical styles
+4. **Creative Image Variations** - Multiple images with varied prompts
+
 ### 8.1 Basic Image Generation
 
 Create a test that generates an image using OpenAI's DALL-E:
 
 ```java
 @Test
-void generateImage() {
+void basicImageGeneration() {
+    // Create OpenAI ImageModel
     ImageModel model = OpenAiImageModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName("dall-e-3")
+            .modelName(DALL_E_3)
             .build();
 
-    String prompt = "A warrior cat rides a dragon into battle, digital art style";
+    // Define a creative prompt for image generation
+    String prompt = "A majestic dragon soaring over a crystal castle at sunset, fantasy art style";
     
+    System.out.println("=== Basic Image Generation Test ===");
+    System.out.println("Prompt: " + prompt);
+    
+    // Generate the image
     Response<Image> response = model.generate(prompt);
     
-    assertNotNull(response);
-    assertNotNull(response.content());
+    // Extract and verify the generated image
+    assertNotNull(response, "Response should not be null");
+    assertNotNull(response.content(), "Response content should not be null");
     
     Image image = response.content();
     System.out.println("Generated image URL: " + image.url());
     System.out.println("Revised prompt: " + image.revisedPrompt());
+    
+    // Verify the image was generated successfully
+    assertNotNull(image.url(), "Image URL should not be null");
+    assertThat(image.url().toString())
+            .as("Generated image URL")
+            .isNotBlank()
+            .startsWith("https://");
 }
 ```
 
@@ -1019,59 +1046,148 @@ Create a test with more specific generation options:
 
 ```java
 @Test
-void generateImageWithOptions() throws IOException {
+void imageGenerationWithOptions() throws IOException {
+    // Create OpenAI ImageModel with specific options
     ImageModel model = OpenAiImageModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName("dall-e-3")
+            .modelName(DALL_E_3)
             .size("1024x1024")
             .quality("hd")
             .style("vivid")
             .build();
 
-    String prompt = "A futuristic cityscape at sunset with flying cars, cyberpunk style";
+    // Define a detailed prompt for high-quality generation
+    String prompt = "A futuristic cityscape at dawn with flying vehicles, neon lights reflecting on wet streets, cyberpunk aesthetic";
     
+    System.out.println("=== Image Generation with Options Test ===");
+    System.out.println("Prompt: " + prompt);
+    System.out.println("Configuration: 1024x1024, HD quality, vivid style");
+    
+    // Generate the image with enhanced settings
     Response<Image> response = model.generate(prompt);
     Image image = response.content();
     
-    System.out.println("Generated image URL: " + image.url());
+    // Display results and verify
+    System.out.println("High-quality generated image URL: " + image.url());
+    System.out.println("Revised prompt: " + image.revisedPrompt());
     
-    // Optionally download and save the image
     if (image.url() != null) {
-        // You could use Java's HTTP client to download the image
-        System.out.println("Image generated successfully!");
+        System.out.println("Image generated successfully with HD quality!");
     }
     
-    assertNotNull(image.url());
+    // Verify the image generation
+    assertNotNull(image.url(), "HD image URL should not be null");
+    assertThat(image.url().toString())
+            .as("HD generated image URL")
+            .isNotBlank()
+            .startsWith("https://");
 }
 ```
 
-### 8.3 Image Generation with AiServices
+### 8.3 Advanced Image Generation Configuration
 
-You can also use image generation with `AiServices`:
+Demonstrate generating images with different artistic styles and detailed prompts:
 
 ```java
-interface ImageGenerator {
-    @UserMessage("Generate an image: {{prompt}}")
-    Image createImage(@V("prompt") String prompt);
-}
-
 @Test
-void imageGenerationWithAiServices() {
+void advancedImageGeneration() {
+    // Create OpenAI ImageModel with production settings
     ImageModel model = OpenAiImageModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName("dall-e-3")
+            .modelName(DALL_E_3)
+            .size("1024x1024")
+            .quality("standard")
             .build();
 
-    ImageGenerator generator = AiServices.builder(ImageGenerator.class)
-            .imageModel(model)
-            .build();
-
-    Image image = generator.createImage("A peaceful mountain lake at sunrise");
+    System.out.println("=== Advanced Image Generation Test ===");
     
-    System.out.println("Generated image: " + image.url());
-    assertNotNull(image.url());
+    // Test artistic style variation
+    String artisticPrompt = "A serene Japanese garden with cherry blossoms, traditional architecture, and a koi pond, watercolor painting style";
+    Response<Image> artisticResponse = model.generate(artisticPrompt);
+    Image artisticImage = artisticResponse.content();
+    
+    System.out.println("Artistic prompt: " + artisticPrompt);
+    System.out.println("Generated artistic image: " + artisticImage.url());
+    
+    // Test technical/detailed prompt
+    String technicalPrompt = "A detailed cross-section of a mechanical watch showing gears, springs, and intricate components, technical illustration style";
+    Response<Image> technicalResponse = model.generate(technicalPrompt);
+    Image technicalImage = technicalResponse.content();
+    
+    System.out.println("Technical prompt: " + technicalPrompt);
+    System.out.println("Generated technical image: " + technicalImage.url());
+    
+    // Verify both images were generated successfully
+    assertNotNull(artisticImage.url(), "Artistic image URL should not be null");
+    assertNotNull(technicalImage.url(), "Technical image URL should not be null");
+    
+    assertThat(artisticImage.url().toString())
+            .as("Artistic image URL")
+            .isNotBlank()
+            .startsWith("https://");
+            
+    assertThat(technicalImage.url().toString())
+            .as("Technical image URL")
+            .isNotBlank()
+            .startsWith("https://");
 }
 ```
+
+### 8.4 Creative Image Generation Variations
+
+Generate multiple variations of images with different prompts:
+
+```java
+@Test
+void creativeImageVariations() {
+    // Create OpenAI ImageModel
+    ImageModel model = OpenAiImageModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(DALL_E_3)
+            .size("1024x1024")
+            .build();
+
+    // Define different artistic prompts
+    String[] prompts = {
+        "A steampunk robot playing chess, detailed mechanical parts, brass and copper tones",
+        "A minimalist abstract representation of music, flowing lines and geometric shapes",
+        "A cozy library in a treehouse, warm lighting, books floating magically"
+    };
+    
+    System.out.println("=== Creative Image Variations Test ===");
+    
+    // Generate and display multiple image variations
+    for (int i = 0; i < prompts.length; i++) {
+        Response<Image> response = model.generate(prompts[i]);
+        Image image = response.content();
+        
+        System.out.println("=== Variation " + (i + 1) + " ===");
+        System.out.println("Original prompt: " + prompts[i]);
+        System.out.println("Generated image URL: " + image.url());
+        
+        if (image.revisedPrompt() != null) {
+            System.out.println("Revised prompt: " + image.revisedPrompt());
+        }
+        
+        // Verify each image generation
+        assertNotNull(image.url(), "Image " + (i + 1) + " URL should not be null");
+        assertThat(image.url().toString())
+                .as("Variation " + (i + 1) + " image URL")
+                .isNotBlank()
+                .startsWith("https://");
+    }
+    
+    System.out.println("All variations generated successfully!");
+}
+```
+
+**Important Notes for Lab 8:**
+- Uses DALL_E_3 model constant which provides the latest DALL-E capabilities
+- Image generation can be expensive - consider costs when running multiple tests
+- DALL-E may revise prompts for safety and quality - check the `revisedPrompt()` field
+- Generated images are returned as URLs that expire after a certain time
+- Different quality settings ("standard" vs "hd") affect both cost and generation time
+- Style settings ("vivid" vs "natural") affect the artistic interpretation
 
 [↑ Back to table of contents](#table-of-contents)
 
