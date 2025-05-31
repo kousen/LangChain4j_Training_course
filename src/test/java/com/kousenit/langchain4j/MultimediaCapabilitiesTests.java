@@ -139,7 +139,7 @@ class MultimediaCapabilitiesTests {
         byte[] audioData = createSimpleAudioData();
         
         // Create audio and text content for the message
-        AudioContent audioContent = AudioContent.from(audioData, "audio/wav");
+        AudioContent audioContent = AudioContent.from(audioData, "audio/mpeg");
         TextContent textContent = TextContent.from("Please transcribe and analyze the content of this audio file.");
         
         UserMessage userMessage = UserMessage.from(textContent, audioContent);
@@ -174,13 +174,16 @@ class MultimediaCapabilitiesTests {
     }
 
     /**
-     * Creates simple audio data for demonstration purposes.
-     * In a real application, you would load actual audio files.
+     * Creates audio data by loading the actual audio file from resources.
      */
-    private byte[] createSimpleAudioData() {
-        // Create a simple byte array representing audio data
-        // This is just for demonstration - in practice you'd load real audio files
-        return "AUDIO_PLACEHOLDER_DATA".getBytes();
+    private byte[] createSimpleAudioData() throws IOException {
+        // Load actual audio file from resources
+        try (var inputStream = getClass().getClassLoader().getResourceAsStream("tftjs.mp3")) {
+            if (inputStream == null) {
+                throw new RuntimeException("Could not find tftjs.mp3 in resources");
+            }
+            return inputStream.readAllBytes();
+        }
     }
 
     /**
