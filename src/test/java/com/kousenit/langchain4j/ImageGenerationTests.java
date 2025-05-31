@@ -4,15 +4,11 @@ import dev.langchain4j.data.image.Image;
 import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.openai.OpenAiImageModel;
 import dev.langchain4j.model.output.Response;
-import dev.langchain4j.service.AiServices;
-import dev.langchain4j.service.V;
 import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
 
 import static dev.langchain4j.model.openai.OpenAiImageModelName.DALL_E_3;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Lab 8: Image Generation
@@ -78,7 +74,7 @@ class ImageGenerationTests {
      * Demonstrates how to generate images with specific configuration options.
      */
     @Test
-    void imageGenerationWithOptions() throws IOException {
+    void imageGenerationWithOptions() {
         // Create OpenAI ImageModel with specific options
         ImageModel model = OpenAiImageModel.builder()
                 .apiKey(System.getenv("OPENAI_API_KEY"))
@@ -89,7 +85,9 @@ class ImageGenerationTests {
                 .build();
 
         // Define a detailed prompt for high-quality generation
-        String prompt = "A futuristic cityscape at dawn with flying vehicles, neon lights reflecting on wet streets, cyberpunk aesthetic";
+        String prompt = """
+            A futuristic cityscape at dawn with flying vehicles,
+            neon lights reflecting on wet streets, cyberpunk aesthetic""";
         
         System.out.println("=== Image Generation with Options Test ===");
         System.out.println("Prompt: " + prompt);
@@ -136,7 +134,10 @@ class ImageGenerationTests {
         System.out.println("=== Advanced Image Generation Test ===");
         
         // Test artistic style variation
-        String artisticPrompt = "A serene Japanese garden with cherry blossoms, traditional architecture, and a koi pond, watercolor painting style";
+        String artisticPrompt = """
+            A serene Japanese garden with cherry blossoms,
+            traditional architecture, and a koi pond,
+            watercolor painting style""";
         Response<Image> artisticResponse = model.generate(artisticPrompt);
         Image artisticImage = artisticResponse.content();
         
@@ -148,7 +149,10 @@ class ImageGenerationTests {
         System.out.println();
         
         // Test technical/detailed prompt
-        String technicalPrompt = "A detailed cross-section of a mechanical watch showing gears, springs, and intricate components, technical illustration style";
+        String technicalPrompt = """
+            A detailed cross-section of a mechanical watch
+            showing gears, springs, and intricate components,
+            technical illustration style""";
         Response<Image> technicalResponse = model.generate(technicalPrompt);
         Image technicalImage = technicalResponse.content();
         
@@ -201,11 +205,11 @@ class ImageGenerationTests {
         for (int i = 0; i < prompts.length; i++) {
             Response<Image> response = model.generate(prompts[i]);
             Image image = response.content();
-            
+
             System.out.println("=== Variation " + (i + 1) + " ===");
             System.out.println("Original prompt: " + prompts[i]);
             System.out.println("Generated image URL: " + image.url());
-            
+
             if (image.revisedPrompt() != null) {
                 System.out.println("Revised prompt: " + image.revisedPrompt());
             }
@@ -218,7 +222,7 @@ class ImageGenerationTests {
                     .isNotBlank()
                     .startsWith("https://");
         }
-        
+
         System.out.println("All variations generated successfully!");
         System.out.println("=" + "=".repeat(50));
     }
