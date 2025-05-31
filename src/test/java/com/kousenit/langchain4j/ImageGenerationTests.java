@@ -1,15 +1,14 @@
 package com.kousenit.langchain4j;
 
+import dev.langchain4j.data.image.Image;
 import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.openai.OpenAiImageModel;
-import dev.langchain4j.data.image.Image;
 import dev.langchain4j.model.output.Response;
-import dev.langchain4j.service.AiServices;
-import dev.langchain4j.service.V;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
+import static dev.langchain4j.model.openai.OpenAiImageModelName.DALL_E_3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -43,7 +42,7 @@ class ImageGenerationTests {
         // TODO: Create OpenAI ImageModel
         // ImageModel model = OpenAiImageModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName("dall-e-3")
+        //         .modelName(DALL_E_3)
         //         .build();
 
         // TODO: Define a creative prompt for image generation
@@ -83,7 +82,7 @@ class ImageGenerationTests {
         // TODO: Create OpenAI ImageModel with specific options
         // ImageModel model = OpenAiImageModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName("dall-e-3")
+        //         .modelName(DALL_E_3)
         //         .size("1024x1024")
         //         .quality("hd")
         //         .style("vivid")
@@ -111,54 +110,48 @@ class ImageGenerationTests {
     }
 
     /**
-     * ImageGenerator interface for structured image generation using AiServices.
-     */
-    interface ImageGenerator {
-        @dev.langchain4j.service.UserMessage("Generate an image: {{prompt}}")
-        Image createImage(@V("prompt") String prompt);
-        
-        @dev.langchain4j.service.UserMessage("Create a {{style}} style image of: {{subject}}")
-        Image createStyledImage(@V("style") String style, @V("subject") String subject);
-    }
-
-    /**
-     * Test 8.3: Image Generation with AiServices
+     * Test 8.3: Advanced Image Generation Configuration
      * <p>
-     * TODO: Demonstrates using image generation through the AiServices interface.
+     * TODO: Demonstrates generating images with different artistic styles and detailed prompts.
      * 
      * Instructions:
-     * 1. Create an OpenAI ImageModel for AiServices
-     * 2. Build an ImageGenerator service using AiServices
-     * 3. Use the service to generate images with different methods
-     * 4. Test both simple and styled image generation
-     * 5. Verify the generated images
+     * 1. Create an OpenAI ImageModel with production settings
+     * 2. Generate images with different artistic styles
+     * 3. Test both artistic and technical prompt styles
+     * 4. Verify both images are generated successfully
+     * 5. Compare the revised prompts with the original prompts
      */
     @Test
-    void imageGenerationWithAiServices() {
-        // TODO: Create OpenAI ImageModel for AiServices
+    void advancedImageGeneration() {
+        // TODO: Create OpenAI ImageModel with production settings
         // ImageModel model = OpenAiImageModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName("dall-e-3")
+        //         .modelName(DALL_E_3)
+        //         .size("1024x1024")
+        //         .quality("standard")
         //         .build();
 
-        // TODO: Create ImageGenerator service using AiServices
-        // ImageGenerator generator = AiServices.builder(ImageGenerator.class)
-        //         .imageModel(model)
-        //         .build();
-
-        // TODO: Test simple image generation
-        // Image simpleImage = generator.createImage("A peaceful mountain lake surrounded by pine trees");
-        // System.out.println("Simple generated image: " + simpleImage.url());
+        // TODO: Test artistic style variation
+        // String artisticPrompt = "A serene Japanese garden with cherry blossoms, traditional architecture, and a koi pond, watercolor painting style";
+        // Response<Image> artisticResponse = model.generate(artisticPrompt);
+        // Image artisticImage = artisticResponse.content();
         
-        // TODO: Test styled image generation
-        // Image styledImage = generator.createStyledImage("impressionist painting", "a garden with blooming flowers");
-        // System.out.println("Styled generated image: " + styledImage.url());
+        // System.out.println("Artistic prompt: " + artisticPrompt);
+        // System.out.println("Generated artistic image: " + artisticImage.url());
+        
+        // TODO: Test technical/detailed prompt
+        // String technicalPrompt = "A detailed cross-section of a mechanical watch showing gears, springs, and intricate components, technical illustration style";
+        // Response<Image> technicalResponse = model.generate(technicalPrompt);
+        // Image technicalImage = technicalResponse.content();
+        
+        // System.out.println("Technical prompt: " + technicalPrompt);
+        // System.out.println("Generated technical image: " + technicalImage.url());
         
         // TODO: Verify both images were generated successfully
-        // assertNotNull(simpleImage.url());
-        // assertNotNull(styledImage.url());
+        // assertNotNull(artisticImage.url());
+        // assertNotNull(technicalImage.url());
         
-        fail("TODO: Implement image generation with AiServices test");
+        fail("TODO: Implement advanced image generation test");
     }
 
     /**
@@ -177,7 +170,7 @@ class ImageGenerationTests {
         // TODO: Create OpenAI ImageModel
         // ImageModel model = OpenAiImageModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName("dall-e-3")
+        //         .modelName(DALL_E_3)
         //         .size("1024x1024")
         //         .build();
 
