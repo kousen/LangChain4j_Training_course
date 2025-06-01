@@ -8,6 +8,7 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.V;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -128,6 +129,9 @@ class MultimediaCapabilitiesTests {
      * Demonstrates how to process audio files using AudioContent with ChatModel.
      */
     @Test
+    @Disabled("""
+            Audio processing is not yet supported by the current model.
+            This test is ready for future audio-enabled models.""")
     void audioTranscriptionAnalysis() throws IOException {
         // Create GPT-4 model for audio processing
         ChatModel model = OpenAiChatModel.builder()
@@ -188,7 +192,10 @@ class MultimediaCapabilitiesTests {
      * DetailedAnalyst interface for comprehensive image analysis.
      */
     interface DetailedAnalyst {
-        @dev.langchain4j.service.UserMessage("Provide a comprehensive analysis of this image including: objects, colors, composition, mood, and any text. Image: {{image}}")
+        @dev.langchain4j.service.UserMessage("""
+            Provide a comprehensive analysis of this image
+            including: objects, colors, composition, mood,
+            and any text. Image: {{image}}""")
         ImageAnalysisResult analyzeComprehensively(@V("image") ImageContent image);
     }
 
