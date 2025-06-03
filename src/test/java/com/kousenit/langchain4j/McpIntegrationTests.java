@@ -4,7 +4,6 @@ import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
 import dev.langchain4j.mcp.client.transport.McpTransport;
 import dev.langchain4j.mcp.client.transport.stdio.StdioMcpTransport;
-import dev.langchain4j.mcp.toolprovider.McpToolProvider;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
