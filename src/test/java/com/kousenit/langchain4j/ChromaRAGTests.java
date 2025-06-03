@@ -61,16 +61,16 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 class ChromaRAGTests {
 
     /**
-     * Test 10.1: Basic Chroma Vector Store Setup
+     * Test 10.1: Basic Chroma Vector Store Operations
      * <p>
-     * Demonstrates Chroma vector store fundamentals:
+     * Demonstrates fundamental vector store capabilities:
      * - Creating a Chroma embedding store
-     * - Connecting to local Chroma instance
-     * - Basic vector operations with Chroma
-     * - Testing Chroma availability
+     * - Storing and searching document embeddings
+     * - Basic vector similarity search
+     * - Data persistence verification
      */
     @Test
-    void chromaVectorStoreBasic() {
+    void chromaVectorStoreOperations() {
         // TODO: Check if Chroma is available, skip test if not
         // assumeTrue(isChromaAvailable(), "Chroma is not available");
 
@@ -90,7 +90,8 @@ class ChromaRAGTests {
         //     Document.from("Python is a high-level programming language known for its simplicity and readability."),
         //     Document.from("Java is a popular object-oriented programming language that runs on the JVM."),
         //     Document.from("JavaScript is the language of the web, used for both frontend and backend development."),
-        //     Document.from("Rust is a systems programming language focused on safety and performance.")
+        //     Document.from("Rust is a systems programming language focused on safety and performance."),
+        //     Document.from("Go is a statically typed, compiled programming language designed for building scalable systems.")
         // );
 
         // TODO: Split and embed documents
@@ -104,72 +105,136 @@ class ChromaRAGTests {
         // 
         // System.out.println("Added " + segments.size() + " segments to Chroma");
 
-        // TODO: Test search
-        // String query = "What language is good for web development?";
-        // Embedding queryEmbedding = embeddingModel.embed(query).content();
-        // 
-        // List<EmbeddingMatch<TextSegment>> matches = embeddingStore.search(
-        //     EmbeddingSearchRequest.builder()
-        //             .queryEmbedding(queryEmbedding)
-        //             .maxResults(2)
-        //             .build()
-        // ).matches();
-        // 
-        // System.out.println("Search results for: " + query);
-        // matches.forEach(match -> 
-        //     System.out.println("- " + match.embedded().text() + " (score: " + match.score() + ")")
+        // TODO: Test multiple searches to verify functionality
+        // String[] queries = {
+        //     "What language is good for web development?",
+        //     "Which language is designed for system programming?",
+        //     "What language runs on the JVM?"
+        // };
+        //
+        // for (String query : queries) {
+        //     Embedding queryEmbedding = embeddingModel.embed(query).content();
+        //     
+        //     List<EmbeddingMatch<TextSegment>> matches = embeddingStore.search(
+        //         EmbeddingSearchRequest.builder()
+        //                 .queryEmbedding(queryEmbedding)
+        //                 .maxResults(2)
+        //                 .build()
+        //     ).matches();
+        //     
+        //     System.out.println("\nSearch: " + query);
+        //     matches.forEach(match -> 
+        //         System.out.printf("- %.3f: %s%n", match.score(), match.embedded().text())
+        //     );
+        //
+        //     // Verify search results
+        //     assertFalse(matches.isEmpty(), "Should find matches for: " + query);
+        //     assertTrue(matches.get(0).score() > 0.5, "Top match should have decent similarity");
+        // }
+        
+        System.out.println("TODO: Implement Chroma vector store operations");
+    }
+
+    /**
+     * Test 10.2: Production RAG System with Chroma
+     * <p>
+     * Demonstrates a complete production-ready RAG implementation:
+     * - Comprehensive knowledge base with metadata
+     * - Optimized retrieval configuration
+     * - AI-powered question answering
+     * - Production model settings and error handling
+     */
+    @Test
+    void productionRagSystem() {
+        // TODO: Check Chroma availability
+        // assumeTrue(isChromaAvailable(), "Chroma is not available");
+
+        // TODO: Configure models with production settings
+        // ChatModel chatModel = OpenAiChatModel.builder()
+        //         .apiKey(System.getenv("OPENAI_API_KEY"))
+        //         .modelName(GPT_4_1_NANO)
+        //         .temperature(0.1) // Lower temperature for consistent responses
+        //         .maxTokens(500)
+        //         .build();
+
+        // TODO: Create embedding model and Chroma store
+        // EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
+        // EmbeddingStore<TextSegment> embeddingStore = ChromaEmbeddingStore.builder()
+        //         .baseUrl("http://localhost:8000")
+        //         .collectionName(randomUUID())
+        //         .build();
+
+        // TODO: Create comprehensive knowledge base about LangChain4j
+        // List<Document> documents = Arrays.asList(
+        //     Document.from("LangChain4j 1.0 introduced the ChatModel interface as the primary way to interact with language models."),
+        //     Document.from("The AiServices interface in LangChain4j allows you to create type-safe AI-powered services using annotations."),
+        //     Document.from("LangChain4j supports multiple embedding models including OpenAI embeddings and local models like AllMiniLM."),
+        //     Document.from("ContentRetriever in LangChain4j is used to retrieve relevant content for RAG applications."),
+        //     Document.from("LangChain4j provides built-in support for Chroma as a vector store for production RAG systems."),
+        //     Document.from("The @Tool annotation enables AI models to call Java methods during conversations."),
+        //     Document.from("RAG (Retrieval-Augmented Generation) allows AI to access external knowledge sources for better answers."),
+        //     Document.from("LangChain4j uses builder patterns throughout the library for configuring AI services and models.")
         // );
 
-        // TODO: Verify results
-        // assertFalse(matches.isEmpty());
+        // TODO: Process documents with metadata for production use cases
+        // DocumentSplitter splitter = DocumentSplitters.recursive(150, 30);
+        // List<TextSegment> segments = splitter.splitAll(documents);
+        // 
+        // for (int i = 0; i < segments.size(); i++) {
+        //     TextSegment segment = segments.get(i);
+        //     segment.metadata().put("chunk_id", String.valueOf(i));
+        //     segment.metadata().put("source", "langchain4j_docs");
+        //     segment.metadata().put("created_at", LocalDateTime.now().toString());
+        // }
+        // 
+        // List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
+        // embeddingStore.addAll(embeddings, segments);
+        // System.out.println("Stored " + segments.size() + " knowledge segments in Chroma");
+
+        // TODO: Configure retriever and create AI assistant interface
+        // ContentRetriever retriever = EmbeddingStoreContentRetriever.builder()
+        //         .embeddingStore(embeddingStore)
+        //         .embeddingModel(embeddingModel)
+        //         .maxResults(3)
+        //         .minScore(0.6)
+        //         .build();
+        //
+        // interface LangChain4jAssistant {
+        //     @SystemMessage("You are an expert assistant for LangChain4j documentation. " +
+        //                   "Provide accurate, helpful answers based on the provided context. " +
+        //                   "If the context doesn't contain enough information, clearly state that.")
+        //     String answer(String question);
+        // }
+        //
+        // LangChain4jAssistant assistant = AiServices.builder(LangChain4jAssistant.class)
+        //         .chatModel(chatModel)
+        //         .contentRetriever(retriever)
+        //         .build();
+
+        // TODO: Test with comprehensive questions and verify response quality
+        // String[] questions = {
+        //     "What is the primary interface for chat in LangChain4j 1.0?",
+        //     "How does LangChain4j support type-safe AI services?",
+        //     "What is RAG and how does it help AI applications?",
+        //     "How do I use tools with LangChain4j?",
+        //     "What vector stores does LangChain4j support?"
+        // };
+        //
+        // System.out.println("\n=== RAG System Q&A Test ===");
+        // for (String question : questions) {
+        //     String answer = assistant.answer(question);
+        //     System.out.println("\nQ: " + question);
+        //     System.out.println("A: " + answer);
+        //     
+        //     assertNotNull(answer, "Answer should not be null");
+        //     assertFalse(answer.trim().isEmpty(), "Answer should not be empty");
+        //     assertTrue(answer.length() > 20, "Answer should be substantive");
+        // }
+        // 
+        // System.out.println("\n" + "=".repeat(50));
+        // System.out.println("Production RAG system test completed successfully!");
         
-        System.out.println("TODO: Implement Chroma vector store setup");
-    }
-
-    /**
-     * Test 10.2: RAG with Chroma Persistence
-     * <p>
-     * Demonstrates a comprehensive RAG system using Chroma:
-     * - Persistent vector storage between sessions
-     * - Knowledge base management with Chroma
-     * - Production RAG configuration
-     * - ContentRetriever with Chroma backend
-     */
-    @Test
-    void ragWithChromaPersistence() {
-        // TODO: Implement RAG with Chroma persistence
-        System.out.println("TODO: Implement RAG with Chroma persistence");
-    }
-
-    /**
-     * Test 10.3: Chroma Data Management
-     * <p>
-     * Demonstrates Chroma vector store data management:
-     * - Adding and retrieving vectors
-     * - Managing vector data lifecycle
-     * - Testing data persistence
-     * - Basic cleanup operations
-     */
-    @Test
-    void chromaDataManagement() {
-        // TODO: Implement Chroma data management
-        System.out.println("TODO: Implement Chroma data management");
-    }
-
-    /**
-     * Test 10.4: Production RAG Configuration
-     * <p>
-     * Demonstrates production-ready RAG setup:
-     * - Optimized Chroma configuration
-     * - Production model settings
-     * - Comprehensive knowledge base
-     * - Advanced retrieval settings
-     * - Metadata and indexing strategies
-     */
-    @Test
-    void productionRagConfiguration() {
-        // TODO: Implement production RAG configuration
-        System.out.println("TODO: Implement production RAG configuration");
+        System.out.println("TODO: Implement production RAG system with Chroma");
     }
 
     /**
