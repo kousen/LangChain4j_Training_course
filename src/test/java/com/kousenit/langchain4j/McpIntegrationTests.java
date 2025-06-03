@@ -28,8 +28,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * <p>
  * Prerequisites:
  * - Understanding of @Tool annotation from Lab 6
- * - Docker installed and running
- * - MCP "everything" server accessed via: docker run -i @modelcontextprotocol/server-everything@0.6.2
+ * - Node.js and npm installed for running the MCP "everything" server
+ * - MCP "everything" server accessed via: npx -y @modelcontextprotocol/server-everything
  * <p>
  * Key Concepts:
  * - MCP allows AI applications to access tools from external services
@@ -55,9 +55,9 @@ class McpIntegrationTests {
     void basicMcpClientSetup() {
         // TODO: Implement basic MCP client setup test
         
-        // TODO: Create stdio transport for MCP "everything" server via Docker
+        // TODO: Create stdio transport for MCP "everything" server via npx
         // McpTransport transport = new StdioMcpTransport.Builder()
-        //         .command(List.of("docker", "run", "-i", "@modelcontextprotocol/server-everything@0.6.2"))
+        //         .command(List.of("npx", "-y", "@modelcontextprotocol/server-everything"))
         //         .logEvents(true)
         //         .build();
 
@@ -105,7 +105,7 @@ class McpIntegrationTests {
 
         // TODO: Create stdio transport for MCP "everything" server
         // McpTransport transport = new StdioMcpTransport.Builder()
-        //         .command(List.of("docker", "run", "-i", "@modelcontextprotocol/server-everything@0.6.2"))
+        //         .command(List.of("npx", "-y", "@modelcontextprotocol/server-everything"))
         //         .build();
 
         // TODO: Create MCP client with unique key
@@ -165,7 +165,7 @@ class McpIntegrationTests {
 
         // TODO: Create stdio transport for MCP "everything" server
         // McpTransport transport = new StdioMcpTransport.Builder()
-        //         .command(List.of("docker", "run", "-i", "@modelcontextprotocol/server-everything@0.6.2"))
+        //         .command(List.of("npx", "-y", "@modelcontextprotocol/server-everything"))
         //         .build();
 
         // TODO: Create MCP client with unique key
@@ -227,7 +227,7 @@ class McpIntegrationTests {
 
         // TODO: Create stdio transport for MCP "everything" server
         // McpTransport transport = new StdioMcpTransport.Builder()
-        //         .command(List.of("docker", "run", "-i", "@modelcontextprotocol/server-everything@0.6.2"))
+        //         .command(List.of("npx", "-y", "@modelcontextprotocol/server-everything"))
         //         .build();
 
         // TODO: Create MCP client with unique key

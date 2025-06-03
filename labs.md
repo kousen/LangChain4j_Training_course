@@ -782,8 +782,8 @@ Model Context Protocol (MCP) allows AI applications to access tools and resource
 
 **Prerequisites:**
 - Understanding of @Tool annotation from Lab 6
-- Docker installed and running
-- MCP "everything" server accessed via: `docker run -i @modelcontextprotocol/server-everything@0.6.2`
+- Node.js and npm installed for running the MCP "everything" server
+- MCP "everything" server accessed via: `npx -y @modelcontextprotocol/server-everything`
 
 **Lab Structure:**
 This lab includes 4 progressive MCP integration tests:
@@ -797,11 +797,11 @@ This lab includes 4 progressive MCP integration tests:
 Create a new test class `McpIntegrationTests.java` and implement the following exercises:
 
 **Exercise 6.5.1:** Create `basicMcpClientSetup()` test method
-- Create `StdioMcpTransport` with Docker command for "everything" server
+- Create `StdioMcpTransport` with npx command for "everything" server
 - Build `DefaultMcpClient` with unique key and the transport
 - Create `McpToolProvider` using the MCP client
 - Verify both client and tool provider are created successfully
-- No need for server availability checks - Docker handles this
+- No need for server availability checks - npx handles this
 
 **Exercise 6.5.2:** Create `mcpToolsWithAiServices()` test method  
 - Set up ChatModel with OpenAI GPT-4-1-Nano
@@ -823,11 +823,11 @@ Create a new test class `McpIntegrationTests.java` and implement the following e
 - Test the tool provider functionality and verify responses
 
 **Important Notes:**
-- Use `StdioMcpTransport` with Docker commands - no HTTP endpoints needed
+- Use `StdioMcpTransport` with npx commands - no HTTP endpoints needed
 - Use `DefaultMcpClient.Builder().key().transport().build()` pattern
 - Use `McpToolProvider.builder().mcpClients().build()` for tool providers
 - MCP enables access to external tools beyond local @Tool methods
-- The "everything" server provides various demo tools via Docker stdio
+- The "everything" server provides various demo tools via npx stdio
 
 [↑ Back to table of contents](#table-of-contents)
 
