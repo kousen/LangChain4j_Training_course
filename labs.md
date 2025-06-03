@@ -1328,6 +1328,17 @@ void base64ImageGeneration() throws IOException {
 
 ## Lab 9: Retrieval-Augmented Generation (RAG)
 
+**Prerequisites**: Ensure your `build.gradle.kts` includes the Google Gemini dependency (added in Lab 7.3 for audio processing):
+
+```kotlin
+// LangChain4j model integrations
+implementation("dev.langchain4j:langchain4j-open-ai")
+implementation("dev.langchain4j:langchain4j-anthropic")
+implementation("dev.langchain4j:langchain4j-google-ai-gemini")
+```
+
+If this dependency is missing, add it and run `./gradlew build` to refresh dependencies.
+
 ### 9.1 Basic Document Loading and Embedding
 
 Create a test that demonstrates document loading and embedding:
@@ -1336,7 +1347,7 @@ Create a test that demonstrates document loading and embedding:
 @Test
 void basicDocumentEmbedding() {
     // Create embedding model
-    EmbeddingModel embeddingModel = AllMiniLmL6V2EmbeddingModel.builder().build();
+    EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
     
     // Create in-memory embedding store
     EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
@@ -1363,7 +1374,7 @@ void basicDocumentEmbedding() {
     String query = "What is LangChain4j?";
     Embedding queryEmbedding = embeddingModel.embed(query).content();
     
-    List<EmbeddingMatch<TextSegment>> matches = embeddingStore.findRelevant(queryEmbedding, 2);
+    List<EmbeddingMatch<TextSegment>> matches = embeddingStore.search(EmbeddingSearchRequest.builder().queryEmbedding(queryEmbedding).maxResults(2).build()).matches();
     
     System.out.println("Found " + matches.size() + " relevant segments:");
     matches.forEach(match -> 
@@ -1387,7 +1398,7 @@ void ragWithContentRetriever() {
             .modelName(GPT_4_1_NANO)
             .build();
 
-    EmbeddingModel embeddingModel = AllMiniLmL6V2EmbeddingModel.builder().build();
+    EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
     EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
 
     // Load and process documents
