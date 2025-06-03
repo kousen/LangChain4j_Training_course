@@ -1584,34 +1584,46 @@ void ragWithMetadataFiltering() {
 
 [↑ Back to table of contents](#table-of-contents)
 
-## Lab 10: Redis Vector Store for RAG
+## Lab 10: Chroma Vector Store for RAG
+
+> **Note**: Lab 10 has been updated to use Chroma instead of Redis for better compatibility and stability. 
+> The complete working implementation is available in `ChromaRAGTests.java` on the solutions branch.
 
 ### 10.1 Prerequisites
 
-To use Redis as a vector store, you need a running Redis instance with vector search capabilities:
+To use Chroma as a vector store, you need a running Chroma instance:
 
 ```bash
-docker run -p 6379:6379 redis/redis-stack:latest
+docker run -p 8000:8000 chromadb/chroma:0.5.4
 ```
 
-### 10.2 Basic Redis Vector Store Setup
+**Important**: Use Chroma version 0.5.4 for compatibility with LangChain4j 1.0.1. This version provides stable API endpoints that work reliably with the current LangChain4j integration.
 
-Create a test that demonstrates Redis vector store usage:
+### 10.2 Key Differences from Redis Implementation
+
+- **Dependency**: Use `dev.langchain4j:langchain4j-chroma` instead of Redis
+- **Connection**: Connect to `http://localhost:8000` instead of Redis ports
+- **Collection Names**: Use `randomUUID()` for unique collection names
+- **API**: Chroma uses HTTP REST API instead of Redis protocols
+
+### 10.3 Basic Chroma Vector Store Setup
+
+Create a test that demonstrates Chroma vector store usage:
 
 ```java
 @Test
-void redisVectorStoreBasic() {
-    // Skip test if Redis is not available
-    assumeTrue(isRedisAvailable(), "Redis is not available");
+void chromaVectorStoreBasic() {
+    // Skip test if Chroma is not available
+    assumeTrue(isChromaAvailable(), "Chroma is not available");
 
-    EmbeddingModel embeddingModel = AllMiniLmL6V2EmbeddingModel.builder().build();
+    EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
     
-    // Create Redis embedding store
-    EmbeddingStore<TextSegment> embeddingStore = RedisEmbeddingStore.builder()
-            .host("localhost")
-            .port(6379)
-            .dimension(384) // AllMiniLM dimension size
-            .indexName("langchain4j-test")
+    // Create Chroma embedding store with unique collection name
+    EmbeddingStore<TextSegment> embeddingStore = ChromaEmbeddingStore.builder()
+            .baseUrl("http://localhost:8000")
+            .collectionName(randomUUID())
+            .logRequests(true)
+            .logResponses(true)
             .build();
 
     // Sample documents about programming languages
@@ -1628,7 +1640,7 @@ void redisVectorStoreBasic() {
     List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
     embeddingStore.addAll(embeddings, segments);
 
-    System.out.println("Added " + segments.size() + " segments to Redis");
+    System.out.println("Added " + segments.size() + " segments to Chroma");
 
     // Test search
     String query = "What language is good for web development?";
@@ -1644,19 +1656,28 @@ void redisVectorStoreBasic() {
     assertFalse(matches.isEmpty());
 }
 
-private boolean isRedisAvailable() {
-    try (Jedis jedis = new Jedis("localhost", 6379)) {
-        jedis.ping();
-        return true;
+private boolean isChromaAvailable() {
+    try {
+        // Simple HTTP check to Chroma heartbeat endpoint
+        var client = HttpClient.newHttpClient();
+        var request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8000/api/v1/heartbeat"))
+                .build();
+        
+        HttpResponse<String> response = client.send(request,
+                HttpResponse.BodyHandlers.ofString());
+        
+        return response.statusCode() == 200;
     } catch (Exception e) {
+        System.out.println("Chroma not available: " + e.getMessage());
         return false;
     }
 }
 ```
 
-### 10.3 RAG with Redis Persistence
+### 10.3 RAG with Chroma Persistence
 
-Create a comprehensive RAG system using Redis:
+Create a comprehensive RAG system using Chroma:
 
 ```java
 @Test
