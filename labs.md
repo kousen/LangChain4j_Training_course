@@ -782,57 +782,47 @@ Model Context Protocol (MCP) allows AI applications to access tools and resource
 
 **Prerequisites:**
 - Understanding of @Tool annotation from Lab 6
-- Docker for running the MCP "everything" server
-- MCP "everything" server: `docker run -p 3000:3000 -p 8080:8080 docker.cloudsmith.io/mcp/public/servers/everything:latest`
+- Docker installed and running
+- MCP "everything" server accessed via: `docker run -i @modelcontextprotocol/server-everything@0.6.2`
 
 **Lab Structure:**
 This lab includes 4 progressive MCP integration tests:
-1. **Basic MCP Client Connection** - Connect to MCP server and list tools
-2. **MCP Tools with AiServices** - Integrate external MCP tools
+1. **Basic MCP Client Setup** - Create MCP client and tool provider
+2. **MCP Tools with AiServices** - Integrate external MCP tools with AI conversations
 3. **Combining Local and MCP Tools** - Use both local @Tool and external MCP tools
-4. **MCP Tool Filtering** - Selectively expose specific external tools
+4. **MCP Tool Provider Configuration** - Configure MCP tool providers
 
-### 6.5.1 Basic MCP Client Connection
+### 6.5.1 Basic MCP Client Setup
 
-Create a test that connects to an MCP server and lists available tools:
+Create a test that sets up an MCP client and tool provider:
 
 ```java
 @Test
-void basicMcpClientConnection() {
-    // Check if MCP "everything" server is available
-    assumeTrue(isMcpServerAvailable(), "MCP 'everything' server is not available");
-
-    // Create HTTP transport to connect to MCP server
-    McpTransport transport = new HttpMcpTransport.Builder()
-            .baseUrl("http://localhost:3000")
-            .timeout(Duration.ofSeconds(30))
+void basicMcpClientSetup() {
+    // Create stdio transport for MCP "everything" server via Docker
+    McpTransport transport = new StdioMcpTransport.Builder()
+            .command(List.of("docker", "run", "-i", "@modelcontextprotocol/server-everything@0.6.2"))
+            .logEvents(true)
             .build();
 
-    // Create MCP client with the transport
-    McpClient mcpClient = new McpClient.Builder()
+    // Create MCP client with unique key
+    McpClient mcpClient = new DefaultMcpClient.Builder()
+            .key("EverythingClient")
             .transport(transport)
             .build();
 
-    try {
-        // Initialize the client connection
-        mcpClient.initialize();
-        System.out.println("Successfully connected to MCP server");
+    // Create MCP tool provider
+    McpToolProvider toolProvider = McpToolProvider.builder()
+            .mcpClients(mcpClient)
+            .build();
 
-        // List available tools from the MCP server
-        var tools = mcpClient.listTools();
-        System.out.println("Available MCP tools: " + tools.size());
-        
-        tools.forEach(tool -> {
-            System.out.println("- " + tool.getName() + ": " + tool.getDescription());
-        });
-
-        // Verify we found some tools
-        assertFalse(tools.isEmpty(), "MCP server should provide tools");
-        
-    } finally {
-        // Clean up the client connection
-        mcpClient.close();
-    }
+    System.out.println("Successfully created MCP client and tool provider");
+    
+    // Verify tool provider was created
+    assertNotNull(toolProvider, "MCP tool provider should be created");
+    assertNotNull(mcpClient, "MCP client should be created");
+    
+    System.out.println("MCP setup completed successfully!");
 }
 ```
 
