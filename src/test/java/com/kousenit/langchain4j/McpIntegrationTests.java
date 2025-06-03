@@ -40,14 +40,14 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class McpIntegrationTests {
 
-    // Shared MCP client across all tests for efficiency
-    private static McpTransport sharedTransport;
     private static McpClient sharedMcpClient;
 
     @BeforeAll
     static void setupSharedMcpClient() {
         // Create single stdio transport for MCP "everything" server via npx
-        sharedTransport = new StdioMcpTransport.Builder()
+        // Reduce noise across multiple tests
+        // Shared MCP client across all tests for efficiency
+        McpTransport sharedTransport = new StdioMcpTransport.Builder()
                 .command(List.of("npx", "-y", "@modelcontextprotocol/server-everything"))
                 .logEvents(false) // Reduce noise across multiple tests
                 .build();
