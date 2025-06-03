@@ -19,6 +19,8 @@ The course demonstrates integration of Large Language Models (LLMs) with Java ap
 - Structured data extraction  
 - Prompt engineering with templates
 - Chat memory for maintaining conversation context
+- Function calling with local @Tool methods
+- External tool integration via Model Context Protocol (MCP)
 - Vision capabilities for image understanding and generation
 - Audio processing (text-to-speech and speech-to-text)
 - Retrieval-Augmented Generation (RAG) with PDF and web content
@@ -307,6 +309,7 @@ The course follows a structured progression documented in `labs.md`:
 4. **AI Services interface** - High-level AI integration patterns
 5. **Chat memory** - Conversation context and multi-user memory isolation
 6. **AI Tools** - Function calling with @Tool annotation (IMPLEMENTED)
+6.5. **MCP Integration** - External tool integration via Model Context Protocol (IMPLEMENTED)
 7. **Multimodal capabilities** - Image analysis with GPT-4 Vision, audio with Google Gemini
 8. **Image generation** - AI-created images with DALL-E
 9. **RAG implementation** - Knowledge-augmented AI
@@ -383,7 +386,22 @@ interface MultiUserAssistant {
 
 This pattern is **essential for production conversational AI applications**.
 
-### Future Considerations
-- **MCP Integration**: LangChain4j provides MCP client support (not server) - potential Lab 6.5
-- **Multimodal capabilities**: ✅ Lab 7 complete - includes local/remote image analysis and structured data extraction
+### Lab 6.5: MCP Integration (IMPLEMENTED)
+- **MCP Integration**: ✅ Lab 6.5 complete - LangChain4j provides MCP client support (not server)
+  - Uses npx command: `npx -y @modelcontextprotocol/server-everything`
+  - Shared MCP client pattern for optimal test performance
+  - Tool name conflict resolution (avoid CalculatorTool with MCP servers)
+  - Prerequisites: Node.js/npm (not Docker)
+
+### Future Considerations  
+- **Multimodal capabilities**: ✅ Lab 7 complete - includes:
+  - Image analysis with GPT-4 Vision (local/remote images, structured data extraction)
+  - Audio processing with Google Gemini 2.5 Flash Preview model
 - **Error handling patterns**: Include division by zero, invalid inputs in tool examples
+
+### Audio Processing Update (Lab 7.3)
+- **Model**: Google Gemini 2.5 Flash Preview (`gemini-2.5-flash-preview-05-20`)
+- **API Key**: Requires `GOOGLEAI_API_KEY` environment variable
+- **Audio Format**: MP3 files, Base64 encoded
+- **Test Annotation**: Uses `@EnabledIfEnvironmentVariable` for conditional execution
+- **Method Update**: `readSimpleAudioData()` loads and encodes audio from resources
