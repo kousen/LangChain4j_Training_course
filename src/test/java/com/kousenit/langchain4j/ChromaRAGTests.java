@@ -16,9 +16,8 @@ import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingStore;
-import dev.langchain4j.store.embedding.redis.RedisEmbeddingStore;
+import dev.langchain4j.store.embedding.chroma.ChromaEmbeddingStore;
 import org.junit.jupiter.api.Test;
-import redis.clients.jedis.Jedis;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -29,51 +28,52 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * Lab 10: Redis Vector Store for RAG
+ * Lab 10: Chroma Vector Store for RAG
  * <p>
- * This lab demonstrates how to use Redis as a persistent vector store for production RAG systems.
+ * This lab demonstrates how to use Chroma as a persistent vector store for production RAG systems.
  * You'll learn how to:
- * - Set up Redis as a vector database for embeddings
- * - Create persistent RAG systems with Redis
+ * - Set up Chroma as a vector database for embeddings
+ * - Create persistent RAG systems with Chroma
  * - Implement production-ready RAG configurations
- * - Manage vector data with Redis
+ * - Manage vector data with Chroma
  * - Scale RAG applications with persistent storage
  * <p>
  * Prerequisites:
- * - Docker with Redis Stack running: docker run -p 6379:6379 redis/redis-stack:latest
+ * - Docker with Chroma running: docker run -p 8000:8000 chromadb/chroma
  * - Understanding of RAG concepts from Lab 9
- * - Redis will persist data between test runs
+ * - Chroma will persist data between test runs
+ * - Access to Chroma web UI at http://localhost:8000
  * <p>
- * NOTE: This lab currently demonstrates Redis integration concepts but may have
- * version compatibility issues between LangChain4j 1.0.1 BOM and Redis alpha support.
- * For production Redis usage, consider using a LangChain4j version that includes
- * stable Redis support, or use these patterns as a reference for your own implementation.
+ * Benefits of Chroma:
+ * - Simple setup with single Docker command
+ * - Built-in web UI for exploring collections and embeddings
+ * - Excellent LangChain4j integration
+ * - Production-ready persistence
+ * - Open-source with active community
  */
-class RedisRAGTests {
+class ChromaRAGTests {
 
     /**
-     * Test 10.1: Basic Redis Vector Store Setup
+     * Test 10.1: Basic Chroma Vector Store Setup
      * <p>
-     * Demonstrates Redis vector store fundamentals:
-     * - Creating a Redis embedding store
-     * - Connecting to local Redis instance
-     * - Basic vector operations with Redis
-     * - Testing Redis availability
+     * Demonstrates Chroma vector store fundamentals:
+     * - Creating a Chroma embedding store
+     * - Connecting to local Chroma instance
+     * - Basic vector operations with Chroma
+     * - Testing Chroma availability
      */
     @Test
-    void redisVectorStoreBasic() {
-        // Check if Redis is available, skip test if not
-        assumeTrue(isRedisAvailable(), "Redis is not available");
+    void chromaVectorStoreBasic() {
+        // Check if Chroma is available, skip test if not
+        assumeTrue(isChromaAvailable(), "Chroma is not available");
 
         // Create embedding model
         EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
         
-        // Create Redis embedding store
-        EmbeddingStore<TextSegment> embeddingStore = RedisEmbeddingStore.builder()
-                .host("localhost")
-                .port(6379)
-                .dimension(384) // AllMiniLM dimension size
-                .indexName("langchain4j-test")
+        // Create Chroma embedding store
+        EmbeddingStore<TextSegment> embeddingStore = ChromaEmbeddingStore.builder()
+                .baseUrl("http://localhost:8000")
+                .collectionName("langchain4j-test")
                 .build();
 
         // Sample documents about programming languages
@@ -95,7 +95,7 @@ class RedisRAGTests {
             embeddingStore.add(embeddings.get(i), segments.get(i));
         }
 
-        System.out.println("Added " + segments.size() + " segments to Redis");
+        System.out.println("Added " + segments.size() + " segments to Chroma");
 
         // Test search
         String query = "What language is good for web development?";
@@ -118,18 +118,18 @@ class RedisRAGTests {
     }
 
     /**
-     * Test 10.2: RAG with Redis Persistence
+     * Test 10.2: RAG with Chroma Persistence
      * <p>
-     * Demonstrates a comprehensive RAG system using Redis:
+     * Demonstrates a comprehensive RAG system using Chroma:
      * - Persistent vector storage between sessions
-     * - Knowledge base management with Redis
+     * - Knowledge base management with Chroma
      * - Production RAG configuration
-     * - ContentRetriever with Redis backend
+     * - ContentRetriever with Chroma backend
      */
     @Test
-    void ragWithRedisPersistence() {
-        // Check Redis availability
-        assumeTrue(isRedisAvailable(), "Redis is not available");
+    void ragWithChromaPersistence() {
+        // Check Chroma availability
+        assumeTrue(isChromaAvailable(), "Chroma is not available");
 
         // Set up models
         ChatModel chatModel = OpenAiChatModel.builder()
@@ -139,12 +139,10 @@ class RedisRAGTests {
 
         EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
         
-        // Create Redis embedding store with unique index
-        EmbeddingStore<TextSegment> embeddingStore = RedisEmbeddingStore.builder()
-                .host("localhost")
-                .port(6379)
-                .dimension(384)
-                .indexName("rag-knowledge-base")
+        // Create Chroma embedding store with unique collection
+        EmbeddingStore<TextSegment> embeddingStore = ChromaEmbeddingStore.builder()
+                .baseUrl("http://localhost:8000")
+                .collectionName("rag-knowledge-base")
                 .build();
 
         // Knowledge base about LangChain4j
@@ -209,25 +207,23 @@ class RedisRAGTests {
     }
 
     /**
-     * Test 10.3: Redis Data Management
+     * Test 10.3: Chroma Data Management
      * <p>
-     * Demonstrates Redis vector store data management:
+     * Demonstrates Chroma vector store data management:
      * - Adding and retrieving vectors
      * - Managing vector data lifecycle
      * - Testing data persistence
      * - Basic cleanup operations
      */
     @Test
-    void redisDataManagement() {
-        // Check Redis availability
-        assumeTrue(isRedisAvailable(), "Redis is not available");
+    void chromaDataManagement() {
+        // Check Chroma availability
+        assumeTrue(isChromaAvailable(), "Chroma is not available");
 
-        // Create Redis store with test index
-        EmbeddingStore<TextSegment> embeddingStore = RedisEmbeddingStore.builder()
-                .host("localhost")
-                .port(6379)
-                .dimension(384)
-                .indexName("test-cleanup")
+        // Create Chroma store with test collection
+        EmbeddingStore<TextSegment> embeddingStore = ChromaEmbeddingStore.builder()
+                .baseUrl("http://localhost:8000")
+                .collectionName("test-cleanup")
                 .build();
 
         EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
@@ -254,7 +250,7 @@ class RedisRAGTests {
      * Test 10.4: Production RAG Configuration
      * <p>
      * Demonstrates production-ready RAG setup:
-     * - Optimized Redis configuration
+     * - Optimized Chroma configuration
      * - Production model settings
      * - Comprehensive knowledge base
      * - Advanced retrieval settings
@@ -262,8 +258,8 @@ class RedisRAGTests {
      */
     @Test
     void productionRagConfiguration() {
-        // Check Redis availability
-        assumeTrue(isRedisAvailable(), "Redis is not available");
+        // Check Chroma availability
+        assumeTrue(isChromaAvailable(), "Chroma is not available");
 
         // Configure models with production settings
         ChatModel chatModel = OpenAiChatModel.builder()
@@ -275,13 +271,10 @@ class RedisRAGTests {
 
         EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
         
-        // Configure Redis with production settings
-        EmbeddingStore<TextSegment> embeddingStore = RedisEmbeddingStore.builder()
-                .host("localhost")
-                .port(6379)
-                .dimension(384)
-                .indexName("production-rag")
-                .prefix("prod:")
+        // Configure Chroma with production settings
+        EmbeddingStore<TextSegment> embeddingStore = ChromaEmbeddingStore.builder()
+                .baseUrl("http://localhost:8000")
+                .collectionName("production-rag")
                 .build();
 
         // Load comprehensive knowledge base
@@ -357,12 +350,16 @@ class RedisRAGTests {
     }
 
     /**
-     * Helper method to check if Redis is available.
-     * Attempts to connect to Redis on localhost:6379.
+     * Helper method to check if Chroma is available.
+     * Attempts to connect to Chroma on localhost:8000.
      */
-    private boolean isRedisAvailable() {
-        try (Jedis jedis = new Jedis("localhost", 6379)) {
-            jedis.ping();
+    private boolean isChromaAvailable() {
+        try {
+            // Try to create a simple embedding store connection to test availability
+            ChromaEmbeddingStore.builder()
+                    .baseUrl("http://localhost:8000")
+                    .collectionName("test-connection")
+                    .build();
             return true;
         } catch (Exception e) {
             return false;

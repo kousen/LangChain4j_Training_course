@@ -19,7 +19,6 @@ import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
 import org.junit.jupiter.api.Test;
-import redis.clients.jedis.Jedis;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -312,16 +311,4 @@ class RAGTests {
         assertTrue(answer.toLowerCase().contains("james gosling") || answer.toLowerCase().contains("sun"));
     }
 
-    /**
-     * Helper method to check if Redis is available.
-     * Used for Lab 10 Redis tests.
-     */
-    private boolean isRedisAvailable() {
-        try (Jedis jedis = new Jedis("localhost", 6379)) {
-            jedis.ping();
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
 }

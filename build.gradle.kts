@@ -32,8 +32,7 @@ dependencies {
     implementation("dev.langchain4j:langchain4j-easy-rag")
     
     // Vector stores  
-    implementation("dev.langchain4j:langchain4j-redis:1.0.0-alpha1")
-    implementation("redis.clients:jedis:5.1.0")
+    implementation("dev.langchain4j:langchain4j-chroma")
     
     // Security fix: override vulnerable transitive dependency
     implementation("org.apache.poi:poi-ooxml:5.4.0")
