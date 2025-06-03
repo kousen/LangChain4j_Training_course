@@ -19,16 +19,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Lab 7: Multimedia Capabilities
+ * Lab 7: Multimodal Capabilities
  * <p>
  * This lab demonstrates how to use LangChain4j with multimodal AI models for both image and audio analysis.
  * You'll learn how to:
  * - Analyze local images using GPT-4
  * - Analyze remote images from URLs
  * - Process audio content with AudioContent
- * - Extract structured data from multimedia analysis results
+ * - Extract structured data from multimodal analysis results
  */
-class MultimediaCapabilitiesTests {
+class MultimodalCapabilitiesTests {
 
     /**
      * Test 7.1: Local Image Analysis

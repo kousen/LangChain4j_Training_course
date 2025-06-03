@@ -13,7 +13,7 @@ This series of labs will guide you through building LangChain4j applications tha
 - [Lab 4: AI Services Interface](#lab-4-ai-services-interface)
 - [Lab 5: Chat Memory](#lab-5-chat-memory)
 - [Lab 6: AI Tools](#lab-6-ai-tools)
-- [Lab 7: Multimedia Capabilities](#lab-7-multimedia-capabilities)
+- [Lab 7: Multimodal Capabilities](#lab-7-multimodal-capabilities)
 - [Lab 8: Image Generation](#lab-8-image-generation)
 - [Lab 9: Retrieval-Augmented Generation (RAG)](#lab-9-retrieval-augmented-generation-rag)
 - [Lab 10: Redis Vector Store for RAG](#lab-10-redis-vector-store-for-rag)
@@ -775,9 +775,9 @@ void useMultipleTools() {
 
 [↑ Back to table of contents](#table-of-contents)
 
-## Lab 7: Multimedia Capabilities
+## Lab 7: Multimodal Capabilities
 
-Multimedia capabilities allow AI models to analyze and understand both images and audio. This lab demonstrates how to use GPT-4 with multimodal content to process images and audio files using LangChain4j.
+Multimodal capabilities allow AI models to analyze and understand both images and audio. This lab demonstrates how to use GPT-4 with multimodal content to process images and audio files using LangChain4j.
 
 **Prerequisites:** 
 - An image file `bowl_of_fruit.jpg` in `src/main/resources/`
@@ -786,7 +786,7 @@ Multimedia capabilities allow AI models to analyze and understand both images an
 - Google AI API key for audio processing with Gemini models
 
 **Lab Structure:**
-This lab includes 4 progressive multimedia tests:
+This lab includes 4 progressive multimodal tests:
 1. **Local Image Analysis** - Analyze images from local resources
 2. **Remote Image Analysis** - Analyze images from URLs  
 3. **Audio Transcription** - Process audio content with AudioContent
@@ -1051,7 +1051,7 @@ void structuredImageAnalysis() throws IOException {
 - Audio test uses `@EnabledIfEnvironmentVariable` to run only when GOOGLEAI_API_KEY is set
 - Demonstrates both simple string responses and structured data extraction
 - Uses AssertJ and JUnit 5 assertAll() for comprehensive testing
-- Rate limiting: Consider adding delays between API calls if running multiple multimedia tests
+- Rate limiting: Consider adding delays between API calls if running multiple multimodal tests
 
 [↑ Back to table of contents](#table-of-contents)
 
