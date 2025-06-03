@@ -372,7 +372,7 @@ class ChromaRAGTests {
             // Simple HTTP check to Chroma heartbeat endpoint
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8000/api/v2/heartbeat"))
+                    .uri(java.net.URI.create("http://localhost:8000/api/v1/heartbeat"))
                     .build();
             
             java.net.http.HttpResponse<String> response = client.send(request, 
