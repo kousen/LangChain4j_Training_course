@@ -13,6 +13,7 @@ This series of labs will guide you through building LangChain4j applications tha
 - [Lab 4: AI Services Interface](#lab-4-ai-services-interface)
 - [Lab 5: Chat Memory](#lab-5-chat-memory)
 - [Lab 6: AI Tools](#lab-6-ai-tools)
+- [Lab 6.5: MCP Integration](#lab-65-mcp-integration)
 - [Lab 7: Multimodal Capabilities](#lab-7-multimodal-capabilities)
 - [Lab 8: Image Generation](#lab-8-image-generation)
 - [Lab 9: Retrieval-Augmented Generation (RAG)](#lab-9-retrieval-augmented-generation-rag)
@@ -772,6 +773,290 @@ void useMultipleTools() {
     assertTrue(response.contains("120") || response.contains("calculation"));
 }
 ```
+
+[↑ Back to table of contents](#table-of-contents)
+
+## Lab 6.5: MCP Integration
+
+Model Context Protocol (MCP) allows AI applications to access tools and resources from external services. This lab demonstrates how to use LangChain4j's MCP client to connect to external MCP servers and integrate their tools with your AI applications.
+
+**Prerequisites:**
+- Understanding of @Tool annotation from Lab 6
+- Docker for running the MCP "everything" server
+- MCP "everything" server: `docker run -p 3000:3000 -p 8080:8080 docker.cloudsmith.io/mcp/public/servers/everything:latest`
+
+**Lab Structure:**
+This lab includes 4 progressive MCP integration tests:
+1. **Basic MCP Client Connection** - Connect to MCP server and list tools
+2. **MCP Tools with AiServices** - Integrate external MCP tools
+3. **Combining Local and MCP Tools** - Use both local @Tool and external MCP tools
+4. **MCP Tool Filtering** - Selectively expose specific external tools
+
+### 6.5.1 Basic MCP Client Connection
+
+Create a test that connects to an MCP server and lists available tools:
+
+```java
+@Test
+void basicMcpClientConnection() {
+    // Check if MCP "everything" server is available
+    assumeTrue(isMcpServerAvailable(), "MCP 'everything' server is not available");
+
+    // Create HTTP transport to connect to MCP server
+    McpTransport transport = new HttpMcpTransport.Builder()
+            .baseUrl("http://localhost:3000")
+            .timeout(Duration.ofSeconds(30))
+            .build();
+
+    // Create MCP client with the transport
+    McpClient mcpClient = new McpClient.Builder()
+            .transport(transport)
+            .build();
+
+    try {
+        // Initialize the client connection
+        mcpClient.initialize();
+        System.out.println("Successfully connected to MCP server");
+
+        // List available tools from the MCP server
+        var tools = mcpClient.listTools();
+        System.out.println("Available MCP tools: " + tools.size());
+        
+        tools.forEach(tool -> {
+            System.out.println("- " + tool.getName() + ": " + tool.getDescription());
+        });
+
+        // Verify we found some tools
+        assertFalse(tools.isEmpty(), "MCP server should provide tools");
+        
+    } finally {
+        // Clean up the client connection
+        mcpClient.close();
+    }
+}
+```
+
+### 6.5.2 MCP Tools with AiServices
+
+Integrate MCP tools with LangChain4j AiServices:
+
+```java
+@Test
+void mcpToolsWithAiServices() {
+    // Check if MCP server is available
+    assumeTrue(isMcpServerAvailable(), "MCP 'everything' server is not available");
+
+    // Configure chat model
+    ChatModel chatModel = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .temperature(0.3)
+            .build();
+
+    // Create MCP transport and client
+    McpTransport transport = new HttpMcpTransport.Builder()
+            .baseUrl("http://localhost:3000")
+            .timeout(Duration.ofSeconds(30))
+            .build();
+
+    McpClient mcpClient = new McpClient.Builder()
+            .transport(transport)
+            .build();
+
+    try {
+        // Initialize MCP client
+        mcpClient.initialize();
+        System.out.println("Connected to MCP server");
+
+        // Create tool provider from MCP client
+        ToolProvider mcpToolProvider = ToolProvider.from(mcpClient);
+        
+        // Define AI assistant interface
+        interface McpAssistant {
+            String chat(String message);
+        }
+
+        // Build AI service with MCP tools
+        McpAssistant assistant = AiServices.builder(McpAssistant.class)
+                .chatModel(chatModel)
+                .toolProviders(mcpToolProvider)
+                .build();
+
+        // Test using MCP tools through the assistant
+        String response1 = assistant.chat("What tools are available to you from the MCP server?");
+        System.out.println("Available tools response: " + response1);
+        
+        String response2 = assistant.chat("Can you use any filesystem or utility tools to help me?");
+        System.out.println("Tool capabilities response: " + response2);
+
+        // Verify responses
+        assertNotNull(response1, "Response about available tools should not be null");
+        assertNotNull(response2, "Response about tool capabilities should not be null");
+        
+    } finally {
+        mcpClient.close();
+    }
+}
+```
+
+### 6.5.3 Combining Local Tools and MCP Tools
+
+Use both local @Tool methods and external MCP tools together:
+
+```java
+@Test
+void combiningLocalAndMcpTools() {
+    // Check if MCP server is available
+    assumeTrue(isMcpServerAvailable(), "MCP 'everything' server is not available");
+
+    // Configure chat model
+    ChatModel chatModel = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .temperature(0.2)
+            .build();
+
+    // Create MCP client
+    McpTransport transport = new HttpMcpTransport.Builder()
+            .baseUrl("http://localhost:3000")
+            .timeout(Duration.ofSeconds(30))
+            .build();
+
+    McpClient mcpClient = new McpClient.Builder()
+            .transport(transport)
+            .build();
+
+    try {
+        // Initialize MCP client
+        mcpClient.initialize();
+        
+        // Create tool provider from MCP client
+        ToolProvider mcpToolProvider = ToolProvider.from(mcpClient);
+
+        // Define AI assistant interface
+        interface HybridAssistant {
+            String chat(String message);
+        }
+
+        // Build AI service with both local tools and MCP tools
+        HybridAssistant assistant = AiServices.builder(HybridAssistant.class)
+                .chatModel(chatModel)
+                .tools(new DateTimeTool(), new CalculatorTool()) // Local tools
+                .toolProviders(mcpToolProvider) // External MCP tools
+                .build();
+
+        // Test combining local and external tools
+        String response1 = assistant.chat("What's the current date and time, and what tools do you have available?");
+        System.out.println("Hybrid tools response: " + response1);
+        
+        String response2 = assistant.chat("Calculate 15 * 23, and also tell me what MCP tools you can access");
+        System.out.println("Mixed tool usage response: " + response2);
+
+        // Verify responses demonstrate both tool types
+        assertNotNull(response1, "Hybrid response should not be null");
+        assertNotNull(response2, "Mixed tool response should not be null");
+        
+    } finally {
+        mcpClient.close();
+    }
+}
+```
+
+### 6.5.4 MCP Tool Filtering and Selection
+
+Filter and select specific tools from an MCP server:
+
+```java
+@Test
+void mcpToolFilteringAndSelection() {
+    // Check if MCP server is available
+    assumeTrue(isMcpServerAvailable(), "MCP 'everything' server is not available");
+
+    // Configure chat model
+    ChatModel chatModel = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .temperature(0.3)
+            .build();
+
+    // Create MCP client
+    McpTransport transport = new HttpMcpTransport.Builder()
+            .baseUrl("http://localhost:3000")
+            .timeout(Duration.ofSeconds(30))
+            .build();
+
+    McpClient mcpClient = new McpClient.Builder()
+            .transport(transport)
+            .build();
+
+    try {
+        // Initialize MCP client
+        mcpClient.initialize();
+        
+        // List all available tools first
+        var allTools = mcpClient.listTools();
+        System.out.println("All available MCP tools (" + allTools.size() + "):");
+        allTools.forEach(tool -> System.out.println("- " + tool.getName()));
+
+        // Create filtered tool provider (example: only filesystem-related tools)
+        ToolProvider filteredToolProvider = ToolProvider.from(mcpClient)
+                .filter(tool -> {
+                    String name = tool.getName().toLowerCase();
+                    return name.contains("file") || name.contains("dir") || name.contains("read");
+                });
+
+        // Define AI assistant interface
+        interface FilteredAssistant {
+            String chat(String message);
+        }
+
+        // Build AI service with filtered MCP tools
+        FilteredAssistant assistant = AiServices.builder(FilteredAssistant.class)
+                .chatModel(chatModel)
+                .toolProviders(filteredToolProvider)
+                .build();
+
+        String response = assistant.chat("What filesystem or file-related tools do you have available?");
+        System.out.println("Filtered tools response: " + response);
+
+        // Verify response
+        assertNotNull(response, "Filtered response should not be null");
+        
+    } finally {
+        mcpClient.close();
+    }
+}
+
+// Helper method to check if MCP server is available
+private boolean isMcpServerAvailable() {
+    try {
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:3000"))
+                .timeout(Duration.ofSeconds(5))
+                .build();
+        
+        HttpResponse<String> response = client.send(request, 
+                HttpResponse.BodyHandlers.ofString());
+        
+        return response.statusCode() < 500;
+        
+    } catch (Exception e) {
+        System.out.println("MCP server not available: " + e.getMessage());
+        System.out.println("Start with: docker run -p 3000:3000 -p 8080:8080 docker.cloudsmith.io/mcp/public/servers/everything:latest");
+        return false;
+    }
+}
+```
+
+**Important Notes for Lab 6.5:**
+- LangChain4j provides MCP **client** support (connects to external MCP servers)
+- The "everything" server is a demo MCP server showcasing various tool types
+- MCP tools integrate seamlessly with local @Tool methods via `toolProviders()`
+- Tool filtering allows selective exposure of external capabilities
+- Always use `assumeTrue()` to skip tests when MCP server is unavailable
+- Remember to close MCP clients to clean up connections
+- MCP enables distributed tool ecosystems beyond single-application boundaries
 
 [↑ Back to table of contents](#table-of-contents)
 

@@ -34,6 +34,9 @@ dependencies {
     // Vector stores  
     implementation("dev.langchain4j:langchain4j-chroma")
     
+    // MCP (Model Context Protocol) support
+    implementation("dev.langchain4j:langchain4j-mcp")
+    
     // Security fix: override vulnerable transitive dependency
     implementation("org.apache.poi:poi-ooxml:5.4.0")
     
