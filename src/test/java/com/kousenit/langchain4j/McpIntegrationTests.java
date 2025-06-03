@@ -168,9 +168,10 @@ class McpIntegrationTests {
         }
 
         // Build AI service with both local tools and MCP tools
+        // Note: Using only DateTimeTool to avoid conflicts with MCP server tools (e.g., "add" function)
         HybridAssistant assistant = AiServices.builder(HybridAssistant.class)
                 .chatModel(chatModel)
-                .tools(new DateTimeTool(), new CalculatorTool()) // Local tools
+                .tools(new DateTimeTool()) // Local tools - avoiding CalculatorTool due to potential conflicts
                 .toolProvider(mcpToolProvider) // External MCP tools
                 .build();
 
@@ -180,7 +181,7 @@ class McpIntegrationTests {
         String response1 = assistant.chat("What's the current date and time, and what tools do you have available?");
         System.out.println("Hybrid tools response: " + response1);
         
-        String response2 = assistant.chat("Calculate 15 * 23, and also tell me what MCP tools you can access");
+        String response2 = assistant.chat("What's the current date, and can you also tell me what MCP tools you can access?");
         System.out.println("Mixed tool usage response: " + response2);
 
         // Verify responses demonstrate both tool types
