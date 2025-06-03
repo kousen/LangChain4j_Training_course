@@ -91,67 +91,72 @@ class MultimediaCapabilitiesTests {
     /**
      * Test 7.3: Audio Transcription and Analysis
      * <p>
-     * Demonstrates audio processing using AudioContent with ChatModel.
+     * Demonstrates audio processing using AudioContent with Google's Gemini model.
      * 
      * TODO: Implement this test method:
-     * 1. Create a GPT-4 model for audio processing
-     * 2. Load audio data from tftjs.mp3 file and Base64 encode it
-     * 3. Create AudioContent with "audio/mp3" MIME type and TextContent for the message
-     * 4. Send the message to the model with graceful error handling
-     * 5. Verify AudioContent was created successfully
-     * 6. Handle cases where audio processing may not be supported yet (expected behavior)
+     * 1. Add @EnabledIfEnvironmentVariable annotation to check for GOOGLEAI_API_KEY
+     * 2. Create a Google Gemini model using GoogleAiGeminiChatModel.builder()
+     * 3. Use model name "gemini-2.5-flash-preview-05-20" which supports audio
+     * 4. Load audio data from tftjs.mp3 file and Base64 encode it using readSimpleAudioData()
+     * 5. Create AudioContent with "audio/mp3" MIME type and TextContent for the message
+     * 6. Send the message to the model with proper error handling
+     * 7. Verify the audio transcription response
      */
     @Test
+    // TODO: Add @EnabledIfEnvironmentVariable(named = "GOOGLEAI_API_KEY", matches = ".*")
     void audioTranscriptionAnalysis() throws IOException {
-        // TODO: Create GPT-4 model for audio processing
-        // ChatModel model = OpenAiChatModel.builder()
-        //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_1_MINI)
+        // TODO: Create Google Gemini model for audio processing
+        // Hint: Import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel
+        // ChatModel model = GoogleAiGeminiChatModel.builder()
+        //         .apiKey(System.getenv("GOOGLEAI_API_KEY"))
+        //         .modelName("gemini-2.5-flash-preview-05-20")
         //         .build();
 
-        // TODO: Load audio data from tftjs.mp3 file and Base64 encode it
-        // String audioData = createSimpleAudioData();
-        
-        // TODO: Create AudioContent and TextContent for the message
-        // AudioContent audioContent = AudioContent.from(audioData, "audio/mp3");
+        // TODO: Create audio and text content for the message
         // TextContent textContent = TextContent.from("Please transcribe and analyze the content of this audio file.");
+        // AudioContent audioContent = AudioContent.from(readSimpleAudioData(), "audio/mp3");
         
         // UserMessage userMessage = UserMessage.from(textContent, audioContent);
         
-        // TODO: Send message with graceful error handling
+        // TODO: Process the audio with Gemini
         // System.out.println("=== Audio Transcription and Analysis Test ===");
-        // System.out.println("Audio data size: " + audioData.length() + " characters (Base64)");
         
         // try {
         //     String response = model.chat(userMessage).aiMessage().text();
         //     System.out.println("Transcription/Analysis: " + response);
         //     
         //     // Verify response quality
-        //     assertNotNull(response, "Response should not be null");
-        //     assertFalse(response.trim().isEmpty(), "Response should not be empty");
+        //     assertAll("Audio analysis validation",
+        //         () -> assertNotNull(response, "Response should not be null"),
+        //         () -> assertFalse(response.trim().isEmpty(), "Response should not be empty"),
+        //         () -> assertTrue(response.length() > 10, "Response should contain content")
+        //     );
+        //
+        //     System.out.println("=" + "=".repeat(50));
         //     
         // } catch (Exception e) {
-        //     // Handle gracefully if audio processing is not supported yet
-        //     System.out.println("Audio processing not yet supported by this model: " + e.getMessage());
-        //     System.out.println("AudioContent class exists and is ready for future audio-enabled models");
+        //     // Handle gracefully if audio processing is not supported
+        //     System.out.println("Audio processing issue: " + e.getMessage());
+        //     e.printStackTrace();
+        //     System.out.println("=" + "=".repeat(50));
         //     
         //     // Verify AudioContent was created successfully
         //     assertNotNull(audioContent, "AudioContent should be created successfully");
-        //     assertNotNull(audioContent.data(), "Audio data should not be null");
         // }
         
-        fail("TODO: Implement audioTranscriptionAnalysis test");
+        fail("TODO: Implement audioTranscriptionAnalysis test with Google Gemini");
     }
 
     /**
-     * Loads audio data from the tftjs.mp3 file in resources and Base64 encodes it.
+     * Load an audio file from resources and Base64 encode it.
      * 
      * TODO: This helper method is provided for the audio test.
      * You can uncomment it when implementing the audio test.
      */
-    // private String createSimpleAudioData() throws IOException {
-    //     // Load actual audio file from resources and Base64 encode it
-    //     try (var inputStream = getClass().getClassLoader().getResourceAsStream("tftjs.mp3")) {
+    // private String readSimpleAudioData() throws IOException {
+    //     // Load actual audio file from resources
+    //     try (var inputStream = getClass().getClassLoader()
+    //             .getResourceAsStream("tftjs.mp3")) {
     //         if (inputStream == null) {
     //             throw new RuntimeException("Could not find tftjs.mp3 in resources");
     //         }
