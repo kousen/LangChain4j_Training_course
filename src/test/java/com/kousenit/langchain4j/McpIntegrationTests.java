@@ -1,21 +1,19 @@
 package com.kousenit.langchain4j;
 
+import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
 import dev.langchain4j.mcp.client.transport.McpTransport;
 import dev.langchain4j.mcp.client.transport.stdio.StdioMcpTransport;
-import dev.langchain4j.mcp.toolprovider.McpToolProvider;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
 import org.junit.jupiter.api.Test;
 
-import java.time.Duration;
 import java.util.List;
 
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * Lab 6.5: MCP (Model Context Protocol) Integration
@@ -29,8 +27,8 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  * <p>
  * Prerequisites:
  * - Understanding of @Tool annotation from Lab 6
- * - Docker for running the MCP "everything" server
- * - MCP "everything" server running: docker run -p 3000:3000 -p 8080:8080 docker.cloudsmith.io/mcp/public/servers/everything:latest
+ * - Node.js and npm installed for running the MCP "everything" server
+ * - MCP "everything" server accessed via: npx -y @modelcontextprotocol/server-everything
  * <p>
  * Key Concepts:
  * - MCP allows AI applications to access tools from external services
@@ -44,13 +42,13 @@ class McpIntegrationTests {
      * Test 6.5.1: Basic MCP Client and Tool Provider Setup
      * <p>
      * Demonstrates creating an MCP client and tool provider for the "everything" server.
-     * This test shows the fundamental MCP setup process using Docker stdio transport.
+     * This test shows the fundamental MCP setup process using npx stdio transport.
      */
     @Test
     void basicMcpClientSetup() {
-        // Create stdio transport for MCP "everything" server via Docker
+        // Create stdio transport for MCP "everything" server via npx
         McpTransport transport = new StdioMcpTransport.Builder()
-                .command(List.of("docker", "run", "-i", "@modelcontextprotocol/server-everything@0.6.2"))
+                .command(List.of("npx", "-y", "@modelcontextprotocol/server-everything"))
                 .logEvents(true)
                 .build();
 
@@ -89,9 +87,9 @@ class McpIntegrationTests {
                 .temperature(0.3)
                 .build();
 
-        // Create stdio transport for MCP "everything" server
+        // Create stdio transport for MCP "everything" server via npx
         McpTransport transport = new StdioMcpTransport.Builder()
-                .command(List.of("docker", "run", "-i", "@modelcontextprotocol/server-everything@0.6.2"))
+                .command(List.of("npx", "-y", "@modelcontextprotocol/server-everything"))
                 .build();
 
         // Create MCP client with unique key
@@ -148,9 +146,9 @@ class McpIntegrationTests {
                 .temperature(0.2)
                 .build();
 
-        // Create stdio transport for MCP "everything" server
+        // Create stdio transport for MCP "everything" server via npx
         McpTransport transport = new StdioMcpTransport.Builder()
-                .command(List.of("docker", "run", "-i", "@modelcontextprotocol/server-everything@0.6.2"))
+                .command(List.of("npx", "-y", "@modelcontextprotocol/server-everything"))
                 .build();
 
         // Create MCP client with unique key
@@ -209,9 +207,9 @@ class McpIntegrationTests {
                 .temperature(0.3)
                 .build();
 
-        // Create stdio transport for MCP "everything" server
+        // Create stdio transport for MCP "everything" server via npx
         McpTransport transport = new StdioMcpTransport.Builder()
-                .command(List.of("docker", "run", "-i", "@modelcontextprotocol/server-everything@0.6.2"))
+                .command(List.of("npx", "-y", "@modelcontextprotocol/server-everything"))
                 .build();
 
         // Create MCP client with unique key
