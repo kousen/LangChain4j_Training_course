@@ -782,56 +782,52 @@ Model Context Protocol (MCP) allows AI applications to access tools and resource
 
 **Prerequisites:**
 - Understanding of @Tool annotation from Lab 6
-- Docker for running the MCP "everything" server
-- MCP "everything" server: `docker run -p 3000:3000 -p 8080:8080 docker.cloudsmith.io/mcp/public/servers/everything:latest`
+- Docker installed and running
+- MCP "everything" server accessed via: `docker run -i @modelcontextprotocol/server-everything@0.6.2`
 
 **Lab Structure:**
 This lab includes 4 progressive MCP integration tests:
-1. **Basic MCP Client Connection** - Connect to MCP server and list tools
-2. **MCP Tools with AiServices** - Integrate external MCP tools
+1. **Basic MCP Client Setup** - Create MCP client and tool provider
+2. **MCP Tools with AiServices** - Integrate external MCP tools with AI conversations
 3. **Combining Local and MCP Tools** - Use both local @Tool and external MCP tools
-4. **MCP Tool Filtering** - Selectively expose specific external tools
+4. **MCP Tool Provider Configuration** - Configure MCP tool providers
 
 ### TODO Exercises for Lab 6.5
 
 Create a new test class `McpIntegrationTests.java` and implement the following exercises:
 
-**Exercise 6.5.1:** Create `basicMcpClientConnection()` test method
-- Use `assumeTrue()` to check if MCP server is available with helper method
-- Create `HttpMcpTransport` with localhost:3000 and 30-second timeout
-- Build `McpClient` with the transport
-- Initialize the client, list available tools, and verify tools are found
-- Remember to close the client in a finally block
+**Exercise 6.5.1:** Create `basicMcpClientSetup()` test method
+- Create `StdioMcpTransport` with Docker command for "everything" server
+- Build `DefaultMcpClient` with unique key and the transport
+- Create `McpToolProvider` using the MCP client
+- Verify both client and tool provider are created successfully
+- No need for server availability checks - Docker handles this
 
 **Exercise 6.5.2:** Create `mcpToolsWithAiServices()` test method  
 - Set up ChatModel with OpenAI GPT-4-1-Nano
-- Create MCP client and initialize it
-- Build `ToolProvider` from the MCP client using `ToolProvider.from()`
-- Create AI assistant interface and build service with `toolProviders()`
+- Create MCP client using stdio transport approach
+- Build `McpToolProvider` from the MCP client
+- Create AI assistant interface and build service with `.toolProvider()`
 - Test asking about available tools and verify responses
 
 **Exercise 6.5.3:** Create `combiningLocalAndMcpTools()` test method
-- Configure ChatModel and MCP client as before
-- Build AI service with both `.tools()` (DateTimeTool, CalculatorTool) and `.toolProviders()` 
+- Configure ChatModel and create MCP client with stdio transport
+- Build AI service with both `.tools()` (DateTimeTool, CalculatorTool) and `.toolProvider()` 
 - Test questions that use both local tools (time, calculation) and MCP tools
 - Verify responses demonstrate both tool types working together
 
-**Exercise 6.5.4:** Create `mcpToolFilteringAndSelection()` test method
-- Set up MCP client and list all available tools
-- Create filtered ToolProvider using `.filter()` with a predicate (e.g., filesystem tools)
-- Build AI service with filtered tool provider
-- Test asking about filtered tools and verify only selected tools are available
-
-**Helper Method:** Create `isMcpServerAvailable()` method
-- Use `HttpClient` to send GET request to localhost:3000
-- Return true if status code < 500, false on any exception
-- Include helpful error message about starting the MCP server
+**Exercise 6.5.4:** Create `mcpToolProviderConfiguration()` test method
+- Set up ChatModel and MCP client using stdio approach
+- Create `McpToolProvider` with configuration options
+- Build AI service with the configured tool provider
+- Test the tool provider functionality and verify responses
 
 **Important Notes:**
-- Always use `assumeTrue()` to skip tests when MCP server unavailable
-- Use try-finally blocks to ensure MCP clients are properly closed
+- Use `StdioMcpTransport` with Docker commands - no HTTP endpoints needed
+- Use `DefaultMcpClient.Builder().key().transport().build()` pattern
+- Use `McpToolProvider.builder().mcpClients().build()` for tool providers
 - MCP enables access to external tools beyond local @Tool methods
-- The "everything" server provides various demo tools for testing
+- The "everything" server provides various demo tools via Docker stdio
 
 [↑ Back to table of contents](#table-of-contents)
 
