@@ -243,13 +243,14 @@ class ChromaRAGTests {
     }
 
     /**
-     * Test 10.3: RAG with Document Parsing
+     * Test 10.3: RAG with PDF Document Parsing
      * <p>
-     * Demonstrates realistic document processing with file loading and parsing:
-     * - Loading documents from the filesystem
-     * - Parsing documents using Apache Tika
-     * - Processing real document content through the RAG pipeline
-     * - Querying parsed document content with AI
+     * Demonstrates realistic document processing with PDF parsing:
+     * - Loading PDF documents from the filesystem
+     * - Parsing PDF content using Apache Tika (automatic format detection)
+     * - Processing extracted text through the complete RAG pipeline
+     * - Adding metadata to track document source and format
+     * - Querying parsed PDF content with AI-powered Q&A
      */
     @Test
     void ragWithDocumentParsing() {
@@ -272,11 +273,11 @@ class ChromaRAGTests {
                 .collectionName(randomUUID())
                 .build();
 
-        // Load document from resources (Apache Tika will auto-detect format)
-        Path documentPath = Paths.get("src/test/resources/langchain4j-modern-features.txt");
+        // Load PDF document from resources (Apache Tika will parse the PDF)
+        Path documentPath = Paths.get("src/test/resources/LangChain4j-Modern-Features.pdf");
         Document document = FileSystemDocumentLoader.loadDocument(documentPath);
         
-        System.out.println("Loaded document with " + document.text().length() + " characters");
+        System.out.println("Loaded PDF document with " + document.text().length() + " characters");
 
         // Split document into segments with appropriate chunk sizes for technical content
         DocumentSplitter splitter = DocumentSplitters.recursive(300, 50);
@@ -286,8 +287,9 @@ class ChromaRAGTests {
         for (int i = 0; i < segments.size(); i++) {
             TextSegment segment = segments.get(i);
             segment.metadata().put("chunk_id", String.valueOf(i));
-            segment.metadata().put("source_file", "langchain4j-modern-features.txt");
-            segment.metadata().put("document_type", "technical_documentation");
+            segment.metadata().put("source_file", "LangChain4j-Modern-Features.pdf");
+            segment.metadata().put("document_type", "pdf_documentation");
+            segment.metadata().put("format", "PDF");
             segment.metadata().put("processed_at", LocalDateTime.now().toString());
         }
         
