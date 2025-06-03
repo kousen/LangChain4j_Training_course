@@ -7,7 +7,7 @@ import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
-import dev.langchain4j.model.embedding.onnx.allminilml6v2q.AllMiniLmL6V2QuantizedEmbeddingModel;
+import dev.langchain4j.model.embedding.onnx.allminilml6v2.AllMiniLmL6V2EmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
@@ -43,6 +43,11 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  * - Docker with Redis Stack running: docker run -p 6379:6379 redis/redis-stack:latest
  * - Understanding of RAG concepts from Lab 9
  * - Redis will persist data between test runs
+ * <p>
+ * NOTE: This lab currently demonstrates Redis integration concepts but may have
+ * version compatibility issues between LangChain4j 1.0.1 BOM and Redis alpha support.
+ * For production Redis usage, consider using a LangChain4j version that includes
+ * stable Redis support, or use these patterns as a reference for your own implementation.
  */
 class RedisRAGTests {
 
@@ -61,7 +66,7 @@ class RedisRAGTests {
         assumeTrue(isRedisAvailable(), "Redis is not available");
 
         // Create embedding model
-        EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
+        EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
         
         // Create Redis embedding store
         EmbeddingStore<TextSegment> embeddingStore = RedisEmbeddingStore.builder()
@@ -84,7 +89,11 @@ class RedisRAGTests {
         List<TextSegment> segments = splitter.splitAll(documents);
         
         List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
-        embeddingStore.addAll(embeddings, segments);
+        
+        // Add embeddings one by one (matches working example API)
+        for (int i = 0; i < embeddings.size(); i++) {
+            embeddingStore.add(embeddings.get(i), segments.get(i));
+        }
 
         System.out.println("Added " + segments.size() + " segments to Redis");
 
@@ -93,7 +102,10 @@ class RedisRAGTests {
         Embedding queryEmbedding = embeddingModel.embed(query).content();
         
         List<EmbeddingMatch<TextSegment>> matches = embeddingStore.search(
-            EmbeddingSearchRequest.builder().queryEmbedding(queryEmbedding).maxResults(2).build()
+            EmbeddingSearchRequest.builder()
+                    .queryEmbedding(queryEmbedding)
+                    .maxResults(2)
+                    .build()
         ).matches();
         
         System.out.println("Search results for: " + query);
@@ -125,7 +137,7 @@ class RedisRAGTests {
                 .modelName(GPT_4_1_NANO)
                 .build();
 
-        EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
+        EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
         
         // Create Redis embedding store with unique index
         EmbeddingStore<TextSegment> embeddingStore = RedisEmbeddingStore.builder()
@@ -149,7 +161,13 @@ class RedisRAGTests {
         List<TextSegment> segments = splitter.splitAll(knowledgeBase);
         
         List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
-        embeddingStore.addAll(embeddings, segments);
+        
+        // Add embeddings one by one with simple text segments to avoid metadata API issues
+        for (int i = 0; i < embeddings.size(); i++) {
+            // Create simple TextSegment without metadata to avoid alpha version compatibility issues
+            TextSegment simpleSegment = TextSegment.from(segments.get(i).text());
+            embeddingStore.add(embeddings.get(i), simpleSegment);
+        }
 
         // Create content retriever
         ContentRetriever retriever = EmbeddingStoreContentRetriever.builder()
@@ -212,7 +230,7 @@ class RedisRAGTests {
                 .indexName("test-cleanup")
                 .build();
 
-        EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
+        EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
 
         // Add some test data
         TextSegment segment = TextSegment.from("This is test data for cleanup demonstration.");
@@ -255,7 +273,7 @@ class RedisRAGTests {
                 .maxTokens(500)
                 .build();
 
-        EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
+        EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
         
         // Configure Redis with production settings
         EmbeddingStore<TextSegment> embeddingStore = RedisEmbeddingStore.builder()
@@ -291,7 +309,11 @@ class RedisRAGTests {
         }
         
         List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
-        embeddingStore.addAll(embeddings, segments);
+        
+        // Add embeddings one by one to avoid API compatibility issues
+        for (int i = 0; i < embeddings.size(); i++) {
+            embeddingStore.add(embeddings.get(i), segments.get(i));
+        }
 
         // Configure retriever with optimized settings
         ContentRetriever retriever = EmbeddingStoreContentRetriever.builder()

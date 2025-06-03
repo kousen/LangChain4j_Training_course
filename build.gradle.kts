@@ -28,9 +28,10 @@ dependencies {
     // Document processing and RAG
     implementation("dev.langchain4j:langchain4j-document-parser-apache-tika")
     implementation("dev.langchain4j:langchain4j-embeddings-all-minilm-l6-v2-q")
+    implementation("dev.langchain4j:langchain4j-embeddings-all-minilm-l6-v2:1.0.1-beta6")
     implementation("dev.langchain4j:langchain4j-easy-rag")
     
-    // Vector stores
+    // Vector stores  
     implementation("dev.langchain4j:langchain4j-redis:1.0.0-alpha1")
     implementation("redis.clients:jedis:5.1.0")
     
