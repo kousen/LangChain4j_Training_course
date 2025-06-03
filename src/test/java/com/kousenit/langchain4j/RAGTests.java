@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
@@ -66,7 +65,7 @@ class RAGTests {
         EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
 
         // Create some sample documents
-        List<Document> documents = Arrays.asList(
+        List<Document> documents = List.of(
             Document.from("LangChain4j is a Java library for building AI applications."),
             Document.from("It provides integration with various language models like OpenAI and Anthropic."),
             Document.from("LangChain4j supports RAG, tools, memory, and streaming responses."),
@@ -122,7 +121,7 @@ class RAGTests {
         EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
 
         // Load and process documents
-        List<Document> documents = Arrays.asList(
+        List<Document> documents = List.of(
             Document.from("""
                 Java is a programming language and computing platform
                 first released by Sun Microsystems in 1995."""),
@@ -266,12 +265,12 @@ class RAGTests {
         EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
 
         // Create documents with metadata
-        List<Document> javaDocs = Arrays.asList(
+        List<Document> javaDocs = List.of(
             Document.from("Java was created by James Gosling at Sun Microsystems."),
             Document.from("Java uses automatic memory management with garbage collection.")
         );
 
-        List<Document> pythonDocs = Arrays.asList(
+        List<Document> pythonDocs = List.of(
             Document.from("Python was created by Guido van Rossum in 1991."),
             Document.from("Python uses reference counting for memory management.")
         );

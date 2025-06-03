@@ -2,6 +2,7 @@ package com.kousenit.langchain4j;
 
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentSplitter;
+import dev.langchain4j.data.document.loader.FileSystemDocumentLoader;
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
@@ -23,8 +24,9 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 
 import static dev.langchain4j.internal.Utils.randomUUID;
@@ -86,7 +88,7 @@ class ChromaRAGTests {
         //         .build();
 
         // TODO: Sample documents about programming languages
-        // List<Document> documents = Arrays.asList(
+        // List<Document> documents = List.of(
         //     Document.from("Python is a high-level programming language known for its simplicity and readability."),
         //     Document.from("Java is a popular object-oriented programming language that runs on the JVM."),
         //     Document.from("JavaScript is the language of the web, used for both frontend and backend development."),
@@ -165,7 +167,7 @@ class ChromaRAGTests {
         //         .build();
 
         // TODO: Create comprehensive knowledge base about LangChain4j
-        // List<Document> documents = Arrays.asList(
+        // List<Document> documents = List.of(
         //     Document.from("LangChain4j 1.0 introduced the ChatModel interface as the primary way to interact with language models."),
         //     Document.from("The AiServices interface in LangChain4j allows you to create type-safe AI-powered services using annotations."),
         //     Document.from("LangChain4j supports multiple embedding models including OpenAI embeddings and local models like AllMiniLM."),
@@ -235,6 +237,110 @@ class ChromaRAGTests {
         // System.out.println("Production RAG system test completed successfully!");
         
         System.out.println("TODO: Implement production RAG system with Chroma");
+    }
+
+    /**
+     * Test 10.3: RAG with Document Parsing
+     * <p>
+     * Demonstrates realistic document processing with file loading and parsing:
+     * - Loading documents from the filesystem
+     * - Parsing documents using Apache Tika
+     * - Processing real document content through the RAG pipeline
+     * - Querying parsed document content with AI
+     */
+    @Test
+    void ragWithDocumentParsing() {
+        // TODO: Check Chroma availability
+        // assumeTrue(isChromaAvailable(), "Chroma is not available");
+
+        // TODO: Configure models for document processing
+        // ChatModel chatModel = OpenAiChatModel.builder()
+        //         .apiKey(System.getenv("OPENAI_API_KEY"))
+        //         .modelName(GPT_4_1_NANO)
+        //         .temperature(0.2) // Slightly higher for more natural responses
+        //         .maxTokens(600)
+        //         .build();
+
+        // TODO: Create embedding model and Chroma store
+        // EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
+        // EmbeddingStore<TextSegment> embeddingStore = ChromaEmbeddingStore.builder()
+        //         .baseUrl("http://localhost:8000")
+        //         .collectionName(randomUUID())
+        //         .build();
+
+        // TODO: Load document from resources using FileSystemDocumentLoader
+        // Path documentPath = Paths.get("src/test/resources/langchain4j-modern-features.txt");
+        // Document document = FileSystemDocumentLoader.loadDocument(documentPath);
+        // System.out.println("Loaded document with " + document.text().length() + " characters");
+
+        // TODO: Split document with appropriate chunk sizes for technical content
+        // DocumentSplitter splitter = DocumentSplitters.recursive(300, 50);
+        // List<TextSegment> segments = splitter.split(document);
+        // 
+        // // Add metadata to track document source
+        // for (int i = 0; i < segments.size(); i++) {
+        //     TextSegment segment = segments.get(i);
+        //     segment.metadata().put("chunk_id", String.valueOf(i));
+        //     segment.metadata().put("source_file", "langchain4j-modern-features.txt");
+        //     segment.metadata().put("document_type", "technical_documentation");
+        //     segment.metadata().put("processed_at", LocalDateTime.now().toString());
+        // }
+
+        // TODO: Generate embeddings and store in Chroma
+        // List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
+        // embeddingStore.addAll(embeddings, segments);
+        // System.out.println("Processed and stored " + segments.size() + " document segments");
+
+        // TODO: Configure content retriever for document-based queries
+        // ContentRetriever retriever = EmbeddingStoreContentRetriever.builder()
+        //         .embeddingStore(embeddingStore)
+        //         .embeddingModel(embeddingModel)
+        //         .maxResults(4) // More results for technical queries
+        //         .minScore(0.5) // Lower threshold for broader relevant content
+        //         .build();
+
+        // TODO: Create specialized assistant interface for document questions
+        // interface DocumentAssistant {
+        //     @SystemMessage("You are an expert assistant that answers questions based on technical documentation. " +
+        //                   "Provide accurate, detailed answers based on the provided context from the document. " +
+        //                   "If the document doesn't contain enough information to fully answer the question, " +
+        //                   "clearly state what information is available and what is missing.")
+        //     String answer(String question);
+        // }
+
+        // TODO: Build the document-based RAG system and test with questions
+        // DocumentAssistant assistant = AiServices.builder(DocumentAssistant.class)
+        //         .chatModel(chatModel)
+        //         .contentRetriever(retriever)
+        //         .build();
+        //
+        // String[] documentQuestions = {
+        //     "What are the key API changes introduced in LangChain4j 1.0?",
+        //     "How does the new ChatModel interface differ from previous versions?",
+        //     "What vector stores are supported for production deployments?",
+        //     "What are the recommended best practices for testing LangChain4j applications?",
+        //     "How does the @Tool annotation system work in version 1.0?"
+        // };
+        //
+        // System.out.println("\n=== Document-Based RAG Q&A Test ===");
+        // for (String question : documentQuestions) {
+        //     String answer = assistant.answer(question);
+        //     System.out.println("\nQ: " + question);
+        //     System.out.println("A: " + answer);
+        //     
+        //     // Verify response quality for document-based content
+        //     assertNotNull(answer, "Answer should not be null");
+        //     assertFalse(answer.trim().isEmpty(), "Answer should not be empty");
+        //     assertTrue(answer.length() > 30, "Answer should be detailed for technical content");
+        // }
+        // 
+        // System.out.println("\n" + "=".repeat(60));
+        // System.out.println("Document parsing and RAG integration test completed successfully!");
+        // System.out.println("Document segments processed: " + segments.size());
+        // System.out.println("Total characters indexed: " + 
+        //     segments.stream().mapToInt(s -> s.text().length()).sum());
+        
+        System.out.println("TODO: Implement document parsing and RAG integration");
     }
 
     /**
