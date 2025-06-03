@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -41,7 +41,7 @@ class PromptTemplateTests {
         // TODO: Create OpenAI chat model
         // ChatModel model = OpenAiChatModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_O_MINI)
+        //         .modelName(GPT_4_1_NANO)
         //         .build();
 
         // TODO: Create prompt template with variables
@@ -77,7 +77,7 @@ class PromptTemplateTests {
         // TODO: Create OpenAI chat model
         // ChatModel model = OpenAiChatModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_O_MINI)
+        //         .modelName(GPT_4_1_NANO)
         //         .build();
 
         // TODO: Load template from resource file
@@ -131,7 +131,7 @@ class PromptTemplateTests {
         // TODO: Create OpenAI chat model
         // ChatModel model = OpenAiChatModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_O_MINI)
+        //         .modelName(GPT_4_1_NANO)
         //         .build();
 
         // TODO: Create MovieService using AiServices
@@ -184,7 +184,7 @@ class PromptTemplateTests {
         // TODO: Create OpenAI chat model
         // ChatModel model = OpenAiChatModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_O_MINI)
+        //         .modelName(GPT_4_1_NANO)
         //         .build();
 
         // TODO: Create RestaurantService using AiServices

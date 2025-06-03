@@ -8,6 +8,7 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.junit.jupiter.api.Test;
 
 import static dev.langchain4j.model.openai.OpenAiChatModelName.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -57,18 +58,11 @@ class OpenAiChatTests {
      */
     @Test
     void simpleQueryWithSystemMessage() {
-        // Create OpenAI chat model
-        ChatModel model = OpenAiChatModel.builder()
-                .apiKey(System.getenv("OPENAI_API_KEY"))
-                .modelName(GPT_4_1_NANO)
-                .build();
-
-        // Create system and user messages
-        SystemMessage systemMessage = SystemMessage.from("You are a helpful assistant that responds like a pirate.");
-        UserMessage userMessage = UserMessage.from("Why is the sky blue?");
-
-        // Generate response with both messages
-        ChatResponse response = model.chat(systemMessage, userMessage);
+        // TODO: Create OpenAI chat model
+        // ChatModel model = OpenAiChatModel.builder()
+        //         .apiKey(System.getenv("OPENAI_API_KEY"))
+        //         .modelName(GPT_4_1_NANO)
+        //         .build();
 
         // TODO: Create system and user messages
         // SystemMessage systemMessage = SystemMessage.from("You are a helpful assistant that responds like a pirate.");

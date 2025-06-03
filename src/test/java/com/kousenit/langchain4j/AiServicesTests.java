@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -51,12 +51,12 @@ class AiServicesTests {
         // TODO: Create OpenAI chat model
         // ChatModel model = OpenAiChatModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_O_MINI)
+        //         .modelName(GPT_4_1_NANO)
         //         .build();
 
         // TODO: Create FilmographyService using AiServices
         // FilmographyService service = AiServices.builder(FilmographyService.class)
-        //         .chatLanguageModel(model)
+        //         .chatModel(model)
         //         .build();
 
         // TODO: Test simple movie list
@@ -96,7 +96,7 @@ class AiServicesTests {
         // TODO: Create OpenAI chat model
         // ChatModel model = OpenAiChatModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_O_MINI)
+        //         .modelName(GPT_4_1_NANO)
         //         .build();
 
         // TODO: Create chat memory
@@ -104,7 +104,7 @@ class AiServicesTests {
 
         // TODO: Create PersonalAssistant with memory and tools
         // PersonalAssistant assistant = AiServices.builder(PersonalAssistant.class)
-        //         .chatLanguageModel(model)
+        //         .chatModel(model)
         //         .chatMemory(memory)
         //         .tools(new DateTimeTool())
         //         .build();
@@ -153,13 +153,13 @@ class AiServicesTests {
         // TODO: Create OpenAI chat model with custom configuration
         // ChatModel model = OpenAiChatModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_O_MINI)
+        //         .modelName(GPT_4_1_NANO)
         //         .temperature(0.3)  // Lower temperature for more consistent analysis
         //         .build();
 
         // TODO: Create DocumentAnalyzer using AiServices
         // DocumentAnalyzer analyzer = AiServices.builder(DocumentAnalyzer.class)
-        //         .chatLanguageModel(model)
+        //         .chatModel(model)
         //         .build();
 
         // TODO: Prepare sample content for analysis
@@ -217,12 +217,12 @@ class AiServicesTests {
         // TODO: Create OpenAI chat model
         // ChatModel model = OpenAiChatModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_O_MINI)
+        //         .modelName(GPT_4_1_NANO)
         //         .build();
 
         // TODO: Create CreativeWritingService
         // CreativeWritingService service = AiServices.builder(CreativeWritingService.class)
-        //         .chatLanguageModel(model)
+        //         .chatModel(model)
         //         .build();
 
         // TODO: Test story generation

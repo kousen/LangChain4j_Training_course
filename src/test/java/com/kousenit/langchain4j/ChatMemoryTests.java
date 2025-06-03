@@ -11,7 +11,7 @@ import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.MemoryId;
 import org.junit.jupiter.api.Test;
 
-import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
+import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -41,7 +41,7 @@ class ChatMemoryTests {
         // TODO: Create OpenAI chat model
         // ChatModel model = OpenAiChatModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_O_MINI)
+        //         .modelName(GPT_4_1_NANO)
         //         .build();
 
         // TODO: First interaction - introduce yourself
@@ -83,7 +83,7 @@ class ChatMemoryTests {
         // TODO: Create OpenAI chat model
         // ChatModel model = OpenAiChatModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_O_MINI)
+        //         .modelName(GPT_4_1_NANO)
         //         .build();
 
         // TODO: Create chat memory with a window of 10 messages
@@ -141,7 +141,7 @@ class ChatMemoryTests {
         // TODO: Create OpenAI chat model
         // ChatModel model = OpenAiChatModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_O_MINI)
+        //         .modelName(GPT_4_1_NANO)
         //         .build();
 
         // TODO: Create memory instances with different sizes
@@ -213,7 +213,7 @@ class ChatMemoryTests {
         // TODO: Create OpenAI chat model
         // ChatModel model = OpenAiChatModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_O_MINI)
+        //         .modelName(GPT_4_1_NANO)
         //         .build();
 
         // TODO: Create chat memory
@@ -272,7 +272,7 @@ class ChatMemoryTests {
         // TODO: Create model and small memory for testing eviction
         // ChatModel model = OpenAiChatModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_O_MINI)
+        //         .modelName(GPT_4_1_NANO)
         //         .build();
 
         // ChatMemory memory = MessageWindowChatMemory.withMaxMessages(4); // Small window for testing
@@ -333,7 +333,7 @@ class ChatMemoryTests {
         // TODO: Create OpenAI chat model
         // ChatModel model = OpenAiChatModel.builder()
         //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_O_MINI)
+        //         .modelName(GPT_4_1_NANO)
         //         .build();
 
         // TODO: Define multi-user assistant interface
