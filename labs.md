@@ -16,7 +16,7 @@ This series of labs will guide you through building LangChain4j applications tha
 - [Lab 7: Multimodal Capabilities](#lab-7-multimodal-capabilities)
 - [Lab 8: Image Generation](#lab-8-image-generation)
 - [Lab 9: Retrieval-Augmented Generation (RAG)](#lab-9-retrieval-augmented-generation-rag)
-- [Lab 10: Redis Vector Store for RAG](#lab-10-redis-vector-store-for-rag)
+- [Lab 10: Chroma Vector Store for RAG](#lab-10-chroma-vector-store-for-rag)
 - [Conclusion](#conclusion)
 
 ## Setup
@@ -1589,7 +1589,7 @@ void ragWithMetadataFiltering() {
 > **Note**: Lab 10 has been updated to use Chroma instead of Redis for better compatibility and stability. 
 > The complete working implementation is available in `ChromaRAGTests.java` on the solutions branch.
 
-### 10.1 Prerequisites
+### Prerequisites
 
 To use Chroma as a vector store, you need a running Chroma instance:
 
@@ -1599,20 +1599,20 @@ docker run -p 8000:8000 chromadb/chroma:0.5.4
 
 **Important**: Use Chroma version 0.5.4 for compatibility with LangChain4j 1.0.1. This version provides stable API endpoints that work reliably with the current LangChain4j integration.
 
-### 10.2 Key Differences from Redis Implementation
+### Key Differences from Redis Implementation
 
 - **Dependency**: Use `dev.langchain4j:langchain4j-chroma` instead of Redis
 - **Connection**: Connect to `http://localhost:8000` instead of Redis ports
 - **Collection Names**: Use `randomUUID()` for unique collection names
 - **API**: Chroma uses HTTP REST API instead of Redis protocols
 
-### 10.3 Basic Chroma Vector Store Setup
+### 10.1 Basic Chroma Vector Store Operations
 
-Create a test that demonstrates Chroma vector store usage:
+Create a test that demonstrates fundamental vector store capabilities:
 
 ```java
 @Test
-void chromaVectorStoreBasic() {
+void chromaVectorStoreOperations() {
     // Skip test if Chroma is not available
     assumeTrue(isChromaAvailable(), "Chroma is not available");
 
@@ -1631,7 +1631,8 @@ void chromaVectorStoreBasic() {
         Document.from("Python is a high-level programming language known for its simplicity and readability."),
         Document.from("Java is a popular object-oriented programming language that runs on the JVM."),
         Document.from("JavaScript is the language of the web, used for both frontend and backend development."),
-        Document.from("Rust is a systems programming language focused on safety and performance.")
+        Document.from("Rust is a systems programming language focused on safety and performance."),
+        Document.from("Go is a statically typed, compiled programming language designed for building scalable systems.")
     );
 
     DocumentSplitter splitter = DocumentSplitters.recursive(100, 20);
@@ -1642,18 +1643,32 @@ void chromaVectorStoreBasic() {
 
     System.out.println("Added " + segments.size() + " segments to Chroma");
 
-    // Test search
-    String query = "What language is good for web development?";
-    Embedding queryEmbedding = embeddingModel.embed(query).content();
-    
-    List<EmbeddingMatch<TextSegment>> matches = embeddingStore.findRelevant(queryEmbedding, 2);
-    
-    System.out.println("Search results for: " + query);
-    matches.forEach(match -> 
-        System.out.println("- " + match.embedded().text() + " (score: " + match.score() + ")")
-    );
+    // Test multiple searches to verify functionality
+    String[] queries = {
+        "What language is good for web development?",
+        "Which language is designed for system programming?",
+        "What language runs on the JVM?"
+    };
 
-    assertFalse(matches.isEmpty());
+    for (String query : queries) {
+        Embedding queryEmbedding = embeddingModel.embed(query).content();
+        
+        List<EmbeddingMatch<TextSegment>> matches = embeddingStore.search(
+            EmbeddingSearchRequest.builder()
+                    .queryEmbedding(queryEmbedding)
+                    .maxResults(2)
+                    .build()
+        ).matches();
+        
+        System.out.println("\nSearch: " + query);
+        matches.forEach(match -> 
+            System.out.printf("- %.3f: %s%n", match.score(), match.embedded().text())
+        );
+
+        // Verify search results
+        assertFalse(matches.isEmpty(), "Should find matches for: " + query);
+        assertTrue(matches.get(0).score() > 0.5, "Top match should have decent similarity");
+    }
 }
 
 private boolean isChromaAvailable() {
@@ -1675,160 +1690,49 @@ private boolean isChromaAvailable() {
 }
 ```
 
-### 10.3 RAG with Chroma Persistence
+### 10.2 Production RAG System with Chroma
 
-Create a comprehensive RAG system using Chroma:
-
-```java
-@Test
-void ragWithRedisPersistence() {
-    assumeTrue(isRedisAvailable(), "Redis is not available");
-
-    ChatModel chatModel = OpenAiChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
-            .build();
-
-    EmbeddingModel embeddingModel = AllMiniLmL6V2EmbeddingModel.builder().build();
-    
-    EmbeddingStore<TextSegment> embeddingStore = RedisEmbeddingStore.builder()
-            .host("localhost")
-            .port(6379)
-            .dimension(384)
-            .indexName("rag-knowledge-base")
-            .build();
-
-    // Knowledge base about LangChain4j
-    List<Document> knowledgeBase = Arrays.asList(
-        Document.from("LangChain4j 1.0 introduced the ChatModel interface as the primary way to interact with language models."),
-        Document.from("The AiServices interface in LangChain4j allows you to create type-safe AI-powered services using annotations."),
-        Document.from("LangChain4j supports multiple embedding models including OpenAI embeddings and local models like AllMiniLM."),
-        Document.from("ContentRetriever in LangChain4j is used to retrieve relevant content for RAG applications."),
-        Document.from("LangChain4j provides built-in support for Redis as a vector store for production RAG systems.")
-    );
-
-    DocumentSplitter splitter = DocumentSplitters.recursive(200, 50);
-    List<TextSegment> segments = splitter.splitAll(knowledgeBase);
-    
-    List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
-    embeddingStore.addAll(embeddings, segments);
-
-    ContentRetriever retriever = EmbeddingStoreContentRetriever.builder()
-            .embeddingStore(embeddingStore)
-            .embeddingModel(embeddingModel)
-            .maxResults(3)
-            .minScore(0.6)
-            .build();
-
-    interface KnowledgeAssistant {
-        @SystemMessage("You are a helpful assistant that answers questions about LangChain4j based on the provided context. " +
-                      "If the context doesn't contain enough information to answer the question, say so.")
-        String answer(String question);
-    }
-
-    KnowledgeAssistant assistant = AiServices.builder(KnowledgeAssistant.class)
-            .chatModel(chatModel)
-            .contentRetriever(retriever)
-            .build();
-
-    // Test the RAG system
-    String[] questions = {
-        "What is the primary interface for chat in LangChain4j 1.0?",
-        "How does LangChain4j support type-safe AI services?",
-        "What vector stores does LangChain4j support?"
-    };
-
-    for (String question : questions) {
-        String answer = assistant.answer(question);
-        System.out.println("Q: " + question);
-        System.out.println("A: " + answer);
-        System.out.println();
-        
-        assertNotNull(answer);
-        assertFalse(answer.trim().isEmpty());
-    }
-}
-```
-
-### 10.4 Data Persistence and Cleanup
-
-Create utilities for managing the Redis vector store:
+Create a comprehensive production-ready RAG system using Chroma with metadata and optimized settings:
 
 ```java
 @Test
-void redisDataManagement() {
-    assumeTrue(isRedisAvailable(), "Redis is not available");
-
-    EmbeddingStore<TextSegment> embeddingStore = RedisEmbeddingStore.builder()
-            .host("localhost")
-            .port(6379)
-            .dimension(384)
-            .indexName("test-cleanup")
-            .build();
-
-    EmbeddingModel embeddingModel = AllMiniLmL6V2EmbeddingModel.builder().build();
-
-    // Add some test data
-    TextSegment segment = TextSegment.from("This is test data for cleanup demonstration.");
-    Embedding embedding = embeddingModel.embed(segment).content();
-    
-    String id = embeddingStore.add(embedding, segment);
-    System.out.println("Added segment with ID: " + id);
-
-    // Verify data exists
-    List<EmbeddingMatch<TextSegment>> results = embeddingStore.findRelevant(embedding, 1);
-    assertFalse(results.isEmpty());
-    
-    // Clean up (if your Redis implementation supports it)
-    // Note: Cleanup methods may vary depending on the specific Redis embedding store implementation
-    System.out.println("Data management test completed");
-}
-```
-
-### 10.5 Production RAG Configuration
-
-Create a more production-ready RAG configuration:
-
-```java
-@Test
-void productionRagConfiguration() {
-    assumeTrue(isRedisAvailable(), "Redis is not available");
+void productionRagSystem() {
+    // Check Chroma availability
+    assumeTrue(isChromaAvailable(), "Chroma is not available");
 
     // Configure models with production settings
     ChatModel chatModel = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
             .modelName(GPT_4_1_NANO)
-            .temperature(0.1) // Lower temperature for more consistent responses
+            .temperature(0.1) // Lower temperature for consistent responses
             .maxTokens(500)
             .build();
 
-    EmbeddingModel embeddingModel = AllMiniLmL6V2EmbeddingModel.builder().build();
+    EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
     
-    // Configure Redis with production settings
-    EmbeddingStore<TextSegment> embeddingStore = RedisEmbeddingStore.builder()
-            .host("localhost")
-            .port(6379)
-            .dimension(384)
-            .indexName("production-rag")
-            .prefix("prod:")
+    // Create Chroma embedding store
+    EmbeddingStore<TextSegment> embeddingStore = ChromaEmbeddingStore.builder()
+            .baseUrl("http://localhost:8000")
+            .collectionName(randomUUID())
             .build();
 
-    // Load comprehensive knowledge base
+    // Comprehensive knowledge base about LangChain4j
     List<Document> documents = Arrays.asList(
-        Document.from("LangChain4j is a Java library that provides abstractions for working with Large Language Models."),
-        Document.from("It supports multiple providers including OpenAI, Anthropic, and local models."),
-        Document.from("The library includes features for chat memory, function calling, and document processing."),
-        Document.from("RAG (Retrieval-Augmented Generation) allows AI to access external knowledge sources."),
-        Document.from("Vector stores like Redis enable persistent storage of embeddings for RAG applications."),
-        Document.from("LangChain4j uses builder patterns for configuring AI services and models."),
+        Document.from("LangChain4j 1.0 introduced the ChatModel interface as the primary way to interact with language models."),
+        Document.from("The AiServices interface in LangChain4j allows you to create type-safe AI-powered services using annotations."),
+        Document.from("LangChain4j supports multiple embedding models including OpenAI embeddings and local models like AllMiniLM."),
+        Document.from("ContentRetriever in LangChain4j is used to retrieve relevant content for RAG applications."),
+        Document.from("LangChain4j provides built-in support for Chroma as a vector store for production RAG systems."),
         Document.from("The @Tool annotation enables AI models to call Java methods during conversations."),
-        Document.from("AiServices provides a high-level interface for creating AI-powered applications.")
+        Document.from("RAG (Retrieval-Augmented Generation) allows AI to access external knowledge sources for better answers."),
+        Document.from("LangChain4j uses builder patterns throughout the library for configuring AI services and models.")
     );
 
+    // Process documents with metadata for better retrieval
     DocumentSplitter splitter = DocumentSplitters.recursive(150, 30);
     List<TextSegment> segments = splitter.splitAll(documents);
     
-    // Add metadata for better retrieval
+    // Add metadata for production use cases
     for (int i = 0; i < segments.size(); i++) {
         TextSegment segment = segments.get(i);
         segment.metadata().put("chunk_id", String.valueOf(i));
@@ -1836,50 +1740,91 @@ void productionRagConfiguration() {
         segment.metadata().put("created_at", LocalDateTime.now().toString());
     }
     
+    // Store embeddings in Chroma
     List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
     embeddingStore.addAll(embeddings, segments);
+    System.out.println("Stored " + segments.size() + " knowledge segments in Chroma");
 
-    // Configure retriever with optimized settings
+    // Configure retriever with production settings
     ContentRetriever retriever = EmbeddingStoreContentRetriever.builder()
             .embeddingStore(embeddingStore)
             .embeddingModel(embeddingModel)
-            .maxResults(4)
-            .minScore(0.7) // Higher threshold for production
+            .maxResults(3)
+            .minScore(0.6) // Balanced threshold for good results
             .build();
 
-    interface ProductionAssistant {
+    // Create AI assistant interface
+    interface LangChain4jAssistant {
         @SystemMessage("You are an expert assistant for LangChain4j documentation. " +
-                      "Provide accurate, helpful answers based on the context provided. " +
-                      "If you cannot answer based on the context, clearly state that.")
+                      "Provide accurate, helpful answers based on the provided context. " +
+                      "If the context doesn't contain enough information, clearly state that.")
         String answer(String question);
     }
 
-    ProductionAssistant assistant = AiServices.builder(ProductionAssistant.class)
+    // Build the RAG system
+    LangChain4jAssistant assistant = AiServices.builder(LangChain4jAssistant.class)
             .chatModel(chatModel)
             .contentRetriever(retriever)
             .build();
 
-    // Test with various question types
-    String[] testQuestions = {
-        "What is LangChain4j and what does it do?",
+    // Test with comprehensive questions
+    String[] questions = {
+        "What is the primary interface for chat in LangChain4j 1.0?",
+        "How does LangChain4j support type-safe AI services?",
+        "What is RAG and how does it help AI applications?",
         "How do I use tools with LangChain4j?",
-        "What is RAG and how does it work with LangChain4j?",
-        "How do I configure Redis as a vector store?"
+        "What vector stores does LangChain4j support?"
     };
 
-    for (String question : testQuestions) {
+    System.out.println("\n=== RAG System Q&A Test ===");
+    for (String question : questions) {
         String answer = assistant.answer(question);
-        System.out.println("Q: " + question);
+        System.out.println("\nQ: " + question);
         System.out.println("A: " + answer);
-        System.out.println("---");
         
-        assertNotNull(answer);
-        assertFalse(answer.trim().isEmpty());
+        // Verify response quality
+        assertNotNull(answer, "Answer should not be null");
+        assertFalse(answer.trim().isEmpty(), "Answer should not be empty");
+        assertTrue(answer.length() > 20, "Answer should be substantive");
+    }
+    
+    System.out.println("\n" + "=".repeat(50));
+    System.out.println("Production RAG system test completed successfully!");
+}
+```
+
+### Helper Method
+
+The `isChromaAvailable()` helper method checks if Chroma is running before executing tests:
+
+```java
+private boolean isChromaAvailable() {
+    try {
+        // Simple HTTP check to Chroma heartbeat endpoint
+        var client = HttpClient.newHttpClient();
+        var request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8000/api/v1/heartbeat"))
+                .build();
+        
+        HttpResponse<String> response = client.send(request,
+                HttpResponse.BodyHandlers.ofString());
+        
+        return response.statusCode() == 200;
+    } catch (Exception e) {
+        System.out.println("Chroma not available: " + e.getMessage());
+        return false;
     }
 }
 ```
 
-[↑ Back to table of contents](#table-of-contents)
+**Important Notes for Lab 10:**
+- Uses Chroma version 0.5.4 for compatibility with LangChain4j 1.0.1
+- Chroma provides excellent persistence without complex setup
+- Collection names use `randomUUID()` to avoid conflicts between test runs
+- The `isChromaAvailable()` helper method ensures tests only run when Chroma is accessible
+- Chroma includes a built-in web UI at http://localhost:8000 for exploring collections
+- Consider using metadata for production deployments to enable advanced filtering
+- Batch operations with `addAll()` are more efficient than individual `add()` calls
 
 ## Conclusion
 
@@ -1890,12 +1835,12 @@ Congratulations! You've completed a comprehensive tour of LangChain4j's capabili
 - Extract structured data from LLM responses using `AiServices`
 - Use prompt templates for consistent prompting
 - Maintain conversation state with `ChatMemory`
-- Work with vision capabilities for image analysis
-- Generate images using AI models
 - Extend AI capabilities with custom tools using `@Tool` annotations
 - Create high-level AI services with `AiServices` interface
+- Work with multimodal capabilities for image and audio processing
+- Generate images using AI models like DALL-E
 - Build Retrieval-Augmented Generation (RAG) systems with document processing
-- Use Redis as a persistent vector store for production RAG applications
+- Use Chroma as a persistent vector store for production RAG applications
 
 These skills provide a solid foundation for building AI-powered applications using LangChain4j and the Java ecosystem. The patterns you've learned can be extended and combined to create sophisticated AI applications tailored to your specific needs.
 
@@ -1904,6 +1849,7 @@ Key takeaways:
 - Builder patterns provide flexible configuration
 - `AiServices` enables type-safe, annotation-driven AI integration
 - RAG systems combine retrieval and generation for more accurate responses
-- Redis provides production-ready vector storage for scalable applications
+- Chroma provides production-ready vector storage for scalable applications
+- Multimodal capabilities enable rich AI interactions with images and audio
 
 Continue exploring the LangChain4j documentation and community examples to further enhance your AI application development skills.
