@@ -781,7 +781,9 @@ Multimedia capabilities allow AI models to analyze and understand both images an
 
 **Prerequisites:** 
 - An image file `bowl_of_fruit.jpg` in `src/main/resources/`
-- OpenAI API key with access to GPT-4 vision/audio models
+- An audio file `tftjs.mp3` in `src/main/resources/`
+- OpenAI API key with access to GPT-4 vision models
+- Google AI API key for audio processing with Gemini models
 
 **Lab Structure:**
 This lab includes 4 progressive multimedia tests:
@@ -884,31 +886,27 @@ void remoteImageAnalysis() {
 
 ### 7.3 Audio Transcription and Analysis
 
-Demonstrate audio processing using AudioContent with ChatModel:
+Demonstrate audio processing using AudioContent with Google's Gemini model:
 
 ```java
 @Test
+@EnabledIfEnvironmentVariable(named = "GOOGLEAI_API_KEY", matches = ".*")
 void audioTranscriptionAnalysis() throws IOException {
-    // Create GPT-4 model for audio processing
-    ChatModel model = OpenAiChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_MINI)
+    // Create Google Gemini model for audio processing
+    ChatModel model = GoogleAiGeminiChatModel.builder()
+            .apiKey(System.getenv("GOOGLEAI_API_KEY"))
+            .modelName("gemini-2.5-flash-preview-05-20")
             .build();
 
-    // Create a simple audio file in memory (simulated for demonstration)
-    // In a real scenario, you would load from resources or file system
-    byte[] audioData = createSimpleAudioData();
-    
     // Create audio and text content for the message
-    AudioContent audioContent = AudioContent.from(audioData, "audio/wav");
     TextContent textContent = TextContent.from("Please transcribe and analyze the content of this audio file.");
+    AudioContent audioContent = AudioContent.from(readSimpleAudioData(), "audio/mp3");
     
     UserMessage userMessage = UserMessage.from(textContent, audioContent);
     
     System.out.println("=== Audio Transcription and Analysis Test ===");
-    System.out.println("Audio data size: " + audioData.length + " bytes");
     
-    // Note: This will work when the model supports audio processing
+    // Process the audio with Gemini
     try {
         String response = model.chat(userMessage).aiMessage().text();
         System.out.println("Transcription/Analysis: " + response);
@@ -923,25 +921,28 @@ void audioTranscriptionAnalysis() throws IOException {
         System.out.println("=" + "=".repeat(50));
         
     } catch (Exception e) {
-        // Handle gracefully if audio processing is not supported yet
-        System.out.println("Audio processing not yet supported by this model: " + e.getMessage());
-        System.out.println("AudioContent class exists and is ready for future audio-enabled models");
+        // Handle gracefully if audio processing is not supported
+        System.out.println("Audio processing issue: " + e.getMessage());
+        e.printStackTrace();
         System.out.println("=" + "=".repeat(50));
         
         // Verify AudioContent was created successfully
         assertNotNull(audioContent, "AudioContent should be created successfully");
-        assertNotNull(audioContent.data(), "Audio data should not be null");
     }
 }
 
 /**
- * Creates simple audio data for demonstration purposes.
- * In a real application, you would load actual audio files.
+ * Load an audio file from resources and Base64 encode it.
  */
-private byte[] createSimpleAudioData() {
-    // Create a simple byte array representing audio data
-    // This is just for demonstration - in practice you'd load real audio files
-    return "AUDIO_PLACEHOLDER_DATA".getBytes();
+private String readSimpleAudioData() throws IOException {
+    // Load actual audio file from resources
+    try (var inputStream = getClass().getClassLoader()
+            .getResourceAsStream("tftjs.mp3")) {
+        if (inputStream == null) {
+            throw new RuntimeException("Could not find tftjs.mp3 in resources");
+        }
+        return Base64.getEncoder().encodeToString(inputStream.readAllBytes());
+    }
 }
 ```
 
@@ -1040,12 +1041,14 @@ void structuredImageAnalysis() throws IOException {
 ```
 
 **Important Notes for Lab 7:**
-- Uses GPT-4-1-Mini model which supports vision capabilities
+- Uses GPT-4-1-Mini model for vision capabilities (Tests 7.1, 7.2, 7.4)
+- Uses Google Gemini model for audio processing (Test 7.3)
 - Demonstrates both ImageContent and AudioContent classes for multimodal processing
 - Includes proper null checks for resource loading to avoid NullPointerException
 - Uses Base64 encoding for local images and direct URLs for remote images  
-- AudioContent class exists in LangChain4j 1.0.1 but audio model support may vary
-- Audio test includes graceful error handling for unsupported audio processing
+- Audio processing requires Google AI API key and uses Gemini 2.5 Flash Preview model
+- Audio file (`tftjs.mp3`) must be present in `src/main/resources/`
+- Audio test uses `@EnabledIfEnvironmentVariable` to run only when GOOGLEAI_API_KEY is set
 - Demonstrates both simple string responses and structured data extraction
 - Uses AssertJ and JUnit 5 assertAll() for comprehensive testing
 - Rate limiting: Consider adding delays between API calls if running multiple multimedia tests

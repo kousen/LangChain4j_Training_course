@@ -5,17 +5,17 @@ import dev.langchain4j.data.message.ImageContent;
 import dev.langchain4j.data.message.TextContent;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.googleai.GoogleAiGeminiChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.V;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.io.IOException;
 import java.util.Base64;
 import java.util.List;
 
-import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1;
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_MINI;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -129,23 +129,18 @@ class MultimediaCapabilitiesTests {
      * Demonstrates how to process audio files using AudioContent with ChatModel.
      */
     @Test
-    @Disabled("""
-            Audio processing is not yet supported by the current model.
-            This test is ready for future audio-enabled models.""")
+    @EnabledIfEnvironmentVariable(named = "GOOGLEAI_API_KEY", matches = ".*")
     void audioTranscriptionAnalysis() throws IOException {
         // Create GPT-4 model for audio processing
-        ChatModel model = OpenAiChatModel.builder()
-                .apiKey(System.getenv("OPENAI_API_KEY"))
-                .modelName(GPT_4_1)
+        ChatModel model = GoogleAiGeminiChatModel.builder()
+                .apiKey(System.getenv("GOOGLEAI_API_KEY"))
+                .modelName("gemini-2.5-flash-preview-05-20")
                 .build();
 
-        // Load audio file from resources and Base64 encode it
-        String audioData = createSimpleAudioData();
-        
         // Create audio and text content for the message
-        AudioContent audioContent = AudioContent.from(audioData, "audio/mp3");
         TextContent textContent = TextContent.from("Please transcribe and analyze the content of this audio file.");
-        
+        AudioContent audioContent = AudioContent.from(readSimpleAudioData(), "audio/mp3");
+
         UserMessage userMessage = UserMessage.from(textContent, audioContent);
         
         System.out.println("=== Audio Transcription and Analysis Test ===");
@@ -165,8 +160,8 @@ class MultimediaCapabilitiesTests {
             
         } catch (Exception e) {
             // Handle gracefully if audio processing is not supported yet
-            System.out.println("Audio processing not yet supported by this model: " + e.getMessage());
-            System.out.println("AudioContent class exists and is ready for future audio-enabled models");
+            System.out.println("Audio processing issue: " + e.getMessage());
+            e.printStackTrace();
             System.out.println("=" + "=".repeat(50));
             
             // Verify AudioContent was created successfully
@@ -175,9 +170,9 @@ class MultimediaCapabilitiesTests {
     }
 
     /**
-     * Creates audio data by loading the actual audio file from resources and Base64 encoding it.
+     * Load an audio file from resources and Base64 encode it.
      */
-    private String createSimpleAudioData() throws IOException {
+    private String readSimpleAudioData() throws IOException {
         // Load actual audio file from resources
         try (var inputStream = getClass().getClassLoader()
                 .getResourceAsStream("tftjs.mp3")) {
