@@ -148,7 +148,7 @@ class McpIntegrationTests {
      * Steps to implement:
      * 1. Configure ChatModel
      * 2. Create MCP client and tool provider using stdio approach
-     * 3. Build AI service with both .tools() (DateTimeTool, CalculatorTool) and .toolProvider()
+     * 3. Build AI service with both .tools() (DateTimeTool only - avoid CalculatorTool conflicts) and .toolProvider()
      * 4. Test questions that require both local and external tools
      * 5. Verify responses demonstrate both tool types working together
      */
@@ -185,15 +185,16 @@ class McpIntegrationTests {
         // }
 
         // TODO: Build AI service with both local tools and MCP tools
+        // // Note: Using only DateTimeTool to avoid conflicts with MCP server tools (e.g., "add" function)
         // HybridAssistant assistant = AiServices.builder(HybridAssistant.class)
         //         .chatModel(chatModel)
-        //         .tools(new DateTimeTool(), new CalculatorTool()) // Local tools
+        //         .tools(new DateTimeTool()) // Local tools - avoiding CalculatorTool due to potential conflicts
         //         .toolProvider(mcpToolProvider) // External MCP tools
         //         .build();
 
         // TODO: Test combining local and external tools
         // String response1 = assistant.chat("What's the current date and time, and what tools do you have available?");
-        // String response2 = assistant.chat("Calculate 15 * 23, and also tell me what MCP tools you can access");
+        // String response2 = assistant.chat("What's the current date, and can you also tell me what MCP tools you can access?");
 
         // TODO: Verify responses demonstrate both tool types
         // assertNotNull(response1, "Hybrid response should not be null");

@@ -812,8 +812,8 @@ Create a new test class `McpIntegrationTests.java` and implement the following e
 
 **Exercise 6.5.3:** Create `combiningLocalAndMcpTools()` test method
 - Configure ChatModel and create MCP client with stdio transport
-- Build AI service with both `.tools()` (DateTimeTool, CalculatorTool) and `.toolProvider()` 
-- Test questions that use both local tools (time, calculation) and MCP tools
+- Build AI service with both `.tools()` (DateTimeTool only - avoid CalculatorTool conflicts) and `.toolProvider()` 
+- Test questions that use both local tools (date/time) and MCP tools
 - Verify responses demonstrate both tool types working together
 
 **Exercise 6.5.4:** Create `mcpToolProviderConfiguration()` test method
@@ -828,6 +828,7 @@ Create a new test class `McpIntegrationTests.java` and implement the following e
 - Use `McpToolProvider.builder().mcpClients().build()` for tool providers
 - MCP enables access to external tools beyond local @Tool methods
 - The "everything" server provides various demo tools via npx stdio
+- **Tool Name Conflicts**: Avoid using CalculatorTool with MCP servers as they may provide conflicting tool names (e.g., "add"). Use DateTimeTool instead for hybrid testing.
 
 [↑ Back to table of contents](#table-of-contents)
 
