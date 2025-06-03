@@ -307,7 +307,7 @@ The course follows a structured progression documented in `labs.md`:
 4. **AI Services interface** - High-level AI integration patterns
 5. **Chat memory** - Conversation context and multi-user memory isolation
 6. **AI Tools** - Function calling with @Tool annotation (IMPLEMENTED)
-7. **Multimedia capabilities** - Image analysis with GPT-4 Vision, audio with Google Gemini
+7. **Multimodal capabilities** - Image analysis with GPT-4 Vision, audio with Google Gemini
 8. **Image generation** - AI-created images with DALL-E
 9. **RAG implementation** - Knowledge-augmented AI
 10. **Vector store optimization** - Production-ready RAG with Redis
@@ -385,7 +385,7 @@ This pattern is **essential for production conversational AI applications**.
 
 ### Future Considerations
 - **MCP Integration**: LangChain4j provides MCP client support (not server) - potential Lab 6.5
-- **Multimedia capabilities**: ✅ Lab 7 complete - includes:
+- **Multimodal capabilities**: ✅ Lab 7 complete - includes:
   - Image analysis with GPT-4 Vision (local/remote images, structured data extraction)
   - Audio processing with Google Gemini 2.5 Flash Preview model
 - **Error handling patterns**: Include division by zero, invalid inputs in tool examples

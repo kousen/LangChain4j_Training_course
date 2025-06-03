@@ -48,7 +48,7 @@ Follow the exercises in [labs.md](labs.md) to build LangChain4j applications fro
 4. **Prompt Templates** - Reusable AI prompts
 5. **Chat Memory** - Conversation context and multi-user memory isolation
 6. **AI Tools** - Function calling
-7. **Multimedia Capabilities** - Image and audio analysis
+7. **Multimodal Capabilities** - Image and audio analysis
 8. **Image Generation** - AI-created images
 9. **Retrieval-Augmented Generation (RAG)** - AI with knowledge base
 10. **Production RAG** - Redis vector store optimization
