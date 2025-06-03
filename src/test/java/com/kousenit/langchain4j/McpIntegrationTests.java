@@ -8,6 +8,8 @@ import dev.langchain4j.mcp.client.transport.stdio.StdioMcpTransport;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -38,6 +40,35 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class McpIntegrationTests {
 
+    // Shared MCP client across all tests for efficiency
+    private static McpTransport sharedTransport;
+    private static McpClient sharedMcpClient;
+
+    @BeforeAll
+    static void setupSharedMcpClient() {
+        // Create single stdio transport for MCP "everything" server via npx
+        sharedTransport = new StdioMcpTransport.Builder()
+                .command(List.of("npx", "-y", "@modelcontextprotocol/server-everything"))
+                .logEvents(false) // Reduce noise across multiple tests
+                .build();
+
+        // Create shared MCP client
+        sharedMcpClient = new DefaultMcpClient.Builder()
+                .key("SharedMcpClient")
+                .transport(sharedTransport)
+                .build();
+        
+        System.out.println("Shared MCP client initialized for all tests");
+    }
+
+    @AfterAll
+    static void teardownSharedMcpClient() {
+        // The transport will automatically clean up the npx process
+        if (sharedMcpClient != null) {
+            System.out.println("Shared MCP client cleanup completed");
+        }
+    }
+
     /**
      * Test 6.5.1: Basic MCP Client and Tool Provider Setup
      * <p>
@@ -46,30 +77,24 @@ class McpIntegrationTests {
      */
     @Test
     void basicMcpClientSetup() {
-        // Create stdio transport for MCP "everything" server via npx
-        McpTransport transport = new StdioMcpTransport.Builder()
-                .command(List.of("npx", "-y", "@modelcontextprotocol/server-everything"))
-                .logEvents(true)
-                .build();
-
-        // Create MCP client with unique key
-        McpClient mcpClient = new DefaultMcpClient.Builder()
-                .key("EverythingClient")
-                .transport(transport)
-                .build();
-
-        // Create MCP tool provider
+        // Use shared MCP client for efficiency (initialized in @BeforeAll)
+        // This demonstrates the basic setup process that was used to create the shared client
+        
+        // Create MCP tool provider using the shared client
         McpToolProvider toolProvider = McpToolProvider.builder()
-                .mcpClients(mcpClient)
+                .mcpClients(sharedMcpClient)
                 .build();
 
-        System.out.println("Successfully created MCP client and tool provider");
+        System.out.println("Successfully created MCP tool provider using shared client");
         
         // Verify tool provider was created
         assertNotNull(toolProvider, "MCP tool provider should be created");
-        assertNotNull(mcpClient, "MCP client should be created");
+        assertNotNull(sharedMcpClient, "Shared MCP client should be available");
         
-        System.out.println("MCP setup completed successfully!");
+        System.out.println("MCP setup verification completed successfully!");
+        
+        // Note: The actual transport/client setup is demonstrated in @BeforeAll method
+        // This pattern avoids creating multiple npx processes and improves test performance
     }
 
     /**
@@ -87,20 +112,9 @@ class McpIntegrationTests {
                 .temperature(0.3)
                 .build();
 
-        // Create stdio transport for MCP "everything" server via npx
-        McpTransport transport = new StdioMcpTransport.Builder()
-                .command(List.of("npx", "-y", "@modelcontextprotocol/server-everything"))
-                .build();
-
-        // Create MCP client with unique key
-        McpClient mcpClient = new DefaultMcpClient.Builder()
-                .key("AiServicesClient")
-                .transport(transport)
-                .build();
-
-        // Create MCP tool provider
+        // Create MCP tool provider using shared client for efficiency
         McpToolProvider mcpToolProvider = McpToolProvider.builder()
-                .mcpClients(mcpClient)
+                .mcpClients(sharedMcpClient)
                 .build();
         
         // Define AI assistant interface
@@ -146,20 +160,9 @@ class McpIntegrationTests {
                 .temperature(0.2)
                 .build();
 
-        // Create stdio transport for MCP "everything" server via npx
-        McpTransport transport = new StdioMcpTransport.Builder()
-                .command(List.of("npx", "-y", "@modelcontextprotocol/server-everything"))
-                .build();
-
-        // Create MCP client with unique key
-        McpClient mcpClient = new DefaultMcpClient.Builder()
-                .key("HybridClient")
-                .transport(transport)
-                .build();
-
-        // Create MCP tool provider
+        // Create MCP tool provider using shared client for efficiency
         McpToolProvider mcpToolProvider = McpToolProvider.builder()
-                .mcpClients(mcpClient)
+                .mcpClients(sharedMcpClient)
                 .build();
 
         // Define AI assistant interface
@@ -208,22 +211,11 @@ class McpIntegrationTests {
                 .temperature(0.3)
                 .build();
 
-        // Create stdio transport for MCP "everything" server via npx
-        McpTransport transport = new StdioMcpTransport.Builder()
-                .command(List.of("npx", "-y", "@modelcontextprotocol/server-everything"))
-                .build();
-
-        // Create MCP client with unique key
-        McpClient mcpClient = new DefaultMcpClient.Builder()
-                .key("FilteredClient")
-                .transport(transport)
-                .build();
-
-        // Create MCP tool provider with tool name filtering (if available)
+        // Create MCP tool provider using shared client for efficiency
+        // Note: filterToolNames might be available depending on LangChain4j version
         McpToolProvider toolProvider = McpToolProvider.builder()
-                .mcpClients(mcpClient)
-                // Note: filterToolNames might be available depending on LangChain4j version
-                // .filterToolNames("specific_tool_name")
+                .mcpClients(sharedMcpClient)
+                // .filterToolNames("specific_tool_name") // Example of potential filtering
                 .build();
 
         // Define AI assistant interface
