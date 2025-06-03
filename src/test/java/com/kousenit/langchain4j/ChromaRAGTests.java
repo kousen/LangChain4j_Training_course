@@ -244,9 +244,12 @@ class ChromaRAGTests {
      * <p>
      * Demonstrates realistic document processing with file loading and parsing:
      * - Loading documents from the filesystem
-     * - Parsing documents using Apache Tika
+     * - Parsing PDF documents using Apache Tika
      * - Processing real document content through the RAG pipeline
      * - Querying parsed document content with AI
+     * 
+     * Note: This test uses a real PDF file containing LangChain4j 1.0+ documentation,
+     * demonstrating true document parsing capabilities beyond simple text loading.
      */
     @Test
     void ragWithDocumentParsing() {
@@ -268,10 +271,11 @@ class ChromaRAGTests {
         //         .collectionName(randomUUID())
         //         .build();
 
-        // TODO: Load document from resources using FileSystemDocumentLoader
-        // Path documentPath = Paths.get("src/test/resources/langchain4j-modern-features.txt");
+        // TODO: Load PDF document from resources (Apache Tika will parse the PDF)
+        // Path documentPath = Paths.get("src/test/resources/LangChain4j-Modern-Features.pdf");
         // Document document = FileSystemDocumentLoader.loadDocument(documentPath);
-        // System.out.println("Loaded document with " + document.text().length() + " characters");
+        // 
+        // System.out.println("Loaded PDF document with " + document.text().length() + " characters");
 
         // TODO: Split document with appropriate chunk sizes for technical content
         // DocumentSplitter splitter = DocumentSplitters.recursive(300, 50);
@@ -281,8 +285,9 @@ class ChromaRAGTests {
         // for (int i = 0; i < segments.size(); i++) {
         //     TextSegment segment = segments.get(i);
         //     segment.metadata().put("chunk_id", String.valueOf(i));
-        //     segment.metadata().put("source_file", "langchain4j-modern-features.txt");
-        //     segment.metadata().put("document_type", "technical_documentation");
+        //     segment.metadata().put("source_file", "LangChain4j-Modern-Features.pdf");
+        //     segment.metadata().put("document_type", "pdf_documentation");
+        //     segment.metadata().put("format", "PDF");
         //     segment.metadata().put("processed_at", LocalDateTime.now().toString());
         // }
 

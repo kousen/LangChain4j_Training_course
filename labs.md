@@ -1788,7 +1788,7 @@ void productionRagSystem() {
 
 ### 10.3 RAG with Document Parsing
 
-Demonstrate realistic document processing by loading and parsing actual files:
+Demonstrate realistic document processing by loading and parsing actual PDF files with Apache Tika:
 
 ```java
 @Test
@@ -1812,11 +1812,11 @@ void ragWithDocumentParsing() {
             .collectionName(randomUUID())
             .build();
 
-    // Load document from resources (Apache Tika auto-detects format)
-    Path documentPath = Paths.get("src/test/resources/langchain4j-modern-features.txt");
+    // Load PDF document from resources (Apache Tika will parse the PDF)
+    Path documentPath = Paths.get("src/test/resources/LangChain4j-Modern-Features.pdf");
     Document document = FileSystemDocumentLoader.loadDocument(documentPath);
     
-    System.out.println("Loaded document with " + document.text().length() + " characters");
+    System.out.println("Loaded PDF document with " + document.text().length() + " characters");
 
     // Split document with appropriate chunk sizes for technical content
     DocumentSplitter splitter = DocumentSplitters.recursive(300, 50);
@@ -1826,8 +1826,9 @@ void ragWithDocumentParsing() {
     for (int i = 0; i < segments.size(); i++) {
         TextSegment segment = segments.get(i);
         segment.metadata().put("chunk_id", String.valueOf(i));
-        segment.metadata().put("source_file", "langchain4j-modern-features.txt");
-        segment.metadata().put("document_type", "technical_documentation");
+        segment.metadata().put("source_file", "LangChain4j-Modern-Features.pdf");
+        segment.metadata().put("document_type", "pdf_documentation");
+        segment.metadata().put("format", "PDF");
         segment.metadata().put("processed_at", LocalDateTime.now().toString());
     }
     
