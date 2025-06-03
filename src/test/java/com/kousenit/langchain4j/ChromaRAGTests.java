@@ -19,6 +19,10 @@ import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.chroma.ChromaEmbeddingStore;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -175,13 +179,13 @@ class ChromaRAGTests {
     private boolean isChromaAvailable() {
         try {
             // Simple HTTP check to Chroma heartbeat endpoint
-            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
-            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8000/api/v1/heartbeat"))
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("http://localhost:8000/api/v1/heartbeat"))
                     .build();
             
-            java.net.http.HttpResponse<String> response = client.send(request, 
-                    java.net.http.HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = client.send(request, 
+                    HttpResponse.BodyHandlers.ofString());
             
             return response.statusCode() == 200;
         } catch (Exception e) {
