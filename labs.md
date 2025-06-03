@@ -1599,13 +1599,6 @@ docker run -p 8000:8000 chromadb/chroma:0.5.4
 
 **Important**: Use Chroma version 0.5.4 for compatibility with LangChain4j 1.0.1. This version provides stable API endpoints that work reliably with the current LangChain4j integration.
 
-### Key Differences from Redis Implementation
-
-- **Dependency**: Use `dev.langchain4j:langchain4j-chroma` instead of Redis
-- **Connection**: Connect to `http://localhost:8000` instead of Redis ports
-- **Collection Names**: Use `randomUUID()` for unique collection names
-- **API**: Chroma uses HTTP REST API instead of Redis protocols
-
 ### 10.1 Basic Chroma Vector Store Operations
 
 Create a test that demonstrates fundamental vector store capabilities:
