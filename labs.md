@@ -1786,6 +1786,108 @@ void productionRagSystem() {
 }
 ```
 
+### 10.3 RAG with Document Parsing
+
+Demonstrate realistic document processing by loading and parsing actual files:
+
+```java
+@Test
+void ragWithDocumentParsing() {
+    // Check Chroma availability
+    assumeTrue(isChromaAvailable(), "Chroma is not available");
+
+    // Configure models for document processing
+    ChatModel chatModel = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .temperature(0.2) // Slightly higher for more natural responses
+            .maxTokens(600)
+            .build();
+
+    EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
+    
+    // Create Chroma embedding store
+    EmbeddingStore<TextSegment> embeddingStore = ChromaEmbeddingStore.builder()
+            .baseUrl("http://localhost:8000")
+            .collectionName(randomUUID())
+            .build();
+
+    // Load document from resources (Apache Tika auto-detects format)
+    Path documentPath = Paths.get("src/test/resources/langchain4j-modern-features.txt");
+    Document document = FileSystemDocumentLoader.loadDocument(documentPath);
+    
+    System.out.println("Loaded document with " + document.text().length() + " characters");
+
+    // Split document with appropriate chunk sizes for technical content
+    DocumentSplitter splitter = DocumentSplitters.recursive(300, 50);
+    List<TextSegment> segments = splitter.split(document);
+    
+    // Add metadata to track document source
+    for (int i = 0; i < segments.size(); i++) {
+        TextSegment segment = segments.get(i);
+        segment.metadata().put("chunk_id", String.valueOf(i));
+        segment.metadata().put("source_file", "langchain4j-modern-features.txt");
+        segment.metadata().put("document_type", "technical_documentation");
+        segment.metadata().put("processed_at", LocalDateTime.now().toString());
+    }
+    
+    // Generate embeddings and store in Chroma
+    List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
+    embeddingStore.addAll(embeddings, segments);
+    System.out.println("Processed and stored " + segments.size() + " document segments");
+
+    // Configure content retriever for document-based queries
+    ContentRetriever retriever = EmbeddingStoreContentRetriever.builder()
+            .embeddingStore(embeddingStore)
+            .embeddingModel(embeddingModel)
+            .maxResults(4) // More results for technical queries
+            .minScore(0.5) // Lower threshold for broader relevant content
+            .build();
+
+    // Create specialized assistant for document questions
+    interface DocumentAssistant {
+        @SystemMessage("You are an expert assistant that answers questions based on technical documentation. " +
+                      "Provide accurate, detailed answers based on the provided context from the document. " +
+                      "If the document doesn't contain enough information to fully answer the question, " +
+                      "clearly state what information is available and what is missing.")
+        String answer(String question);
+    }
+
+    // Build the document-based RAG system
+    DocumentAssistant assistant = AiServices.builder(DocumentAssistant.class)
+            .chatModel(chatModel)
+            .contentRetriever(retriever)
+            .build();
+
+    // Test with questions about the parsed document content
+    String[] documentQuestions = {
+        "What are the key API changes introduced in LangChain4j 1.0?",
+        "How does the new ChatModel interface differ from previous versions?",
+        "What vector stores are supported for production deployments?",
+        "What are the recommended best practices for testing LangChain4j applications?",
+        "How does the @Tool annotation system work in version 1.0?"
+    };
+
+    System.out.println("\n=== Document-Based RAG Q&A Test ===");
+    for (String question : documentQuestions) {
+        String answer = assistant.answer(question);
+        System.out.println("\nQ: " + question);
+        System.out.println("A: " + answer);
+        
+        // Verify response quality for document-based content
+        assertNotNull(answer, "Answer should not be null");
+        assertFalse(answer.trim().isEmpty(), "Answer should not be empty");
+        assertTrue(answer.length() > 30, "Answer should be detailed for technical content");
+    }
+    
+    System.out.println("\n" + "=".repeat(60));
+    System.out.println("Document parsing and RAG integration test completed successfully!");
+    System.out.println("Document segments processed: " + segments.size());
+    System.out.println("Total characters indexed: " + 
+        segments.stream().mapToInt(s -> s.text().length()).sum());
+}
+```
+
 ### Helper Method
 
 The `isChromaAvailable()` helper method checks if Chroma is running before executing tests:
@@ -1818,6 +1920,9 @@ private boolean isChromaAvailable() {
 - Chroma includes a built-in web UI at http://localhost:8000 for exploring collections
 - Consider using metadata for production deployments to enable advanced filtering
 - Batch operations with `addAll()` are more efficient than individual `add()` calls
+- Document parsing uses Apache Tika for comprehensive file format support
+- Test 10.3 demonstrates realistic document processing with actual file loading
+- Modern Java practices: uses `List.of()` instead of `Arrays.asList()` throughout
 
 ## Conclusion
 
