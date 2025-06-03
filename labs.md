@@ -13,6 +13,7 @@ This series of labs will guide you through building LangChain4j applications tha
 - [Lab 4: AI Services Interface](#lab-4-ai-services-interface)
 - [Lab 5: Chat Memory](#lab-5-chat-memory)
 - [Lab 6: AI Tools](#lab-6-ai-tools)
+- [Lab 6.5: MCP Integration](#lab-65-mcp-integration)
 - [Lab 7: Multimodal Capabilities](#lab-7-multimodal-capabilities)
 - [Lab 8: Image Generation](#lab-8-image-generation)
 - [Lab 9: Retrieval-Augmented Generation (RAG)](#lab-9-retrieval-augmented-generation-rag)
@@ -772,6 +773,65 @@ void useMultipleTools() {
     assertTrue(response.contains("120") || response.contains("calculation"));
 }
 ```
+
+[↑ Back to table of contents](#table-of-contents)
+
+## Lab 6.5: MCP Integration
+
+Model Context Protocol (MCP) allows AI applications to access tools and resources from external services. This lab demonstrates how to use LangChain4j's MCP client to connect to external MCP servers and integrate their tools with your AI applications.
+
+**Prerequisites:**
+- Understanding of @Tool annotation from Lab 6
+- Docker for running the MCP "everything" server
+- MCP "everything" server: `docker run -p 3000:3000 -p 8080:8080 docker.cloudsmith.io/mcp/public/servers/everything:latest`
+
+**Lab Structure:**
+This lab includes 4 progressive MCP integration tests:
+1. **Basic MCP Client Connection** - Connect to MCP server and list tools
+2. **MCP Tools with AiServices** - Integrate external MCP tools
+3. **Combining Local and MCP Tools** - Use both local @Tool and external MCP tools
+4. **MCP Tool Filtering** - Selectively expose specific external tools
+
+### TODO Exercises for Lab 6.5
+
+Create a new test class `McpIntegrationTests.java` and implement the following exercises:
+
+**Exercise 6.5.1:** Create `basicMcpClientConnection()` test method
+- Use `assumeTrue()` to check if MCP server is available with helper method
+- Create `HttpMcpTransport` with localhost:3000 and 30-second timeout
+- Build `McpClient` with the transport
+- Initialize the client, list available tools, and verify tools are found
+- Remember to close the client in a finally block
+
+**Exercise 6.5.2:** Create `mcpToolsWithAiServices()` test method  
+- Set up ChatModel with OpenAI GPT-4-1-Nano
+- Create MCP client and initialize it
+- Build `ToolProvider` from the MCP client using `ToolProvider.from()`
+- Create AI assistant interface and build service with `toolProviders()`
+- Test asking about available tools and verify responses
+
+**Exercise 6.5.3:** Create `combiningLocalAndMcpTools()` test method
+- Configure ChatModel and MCP client as before
+- Build AI service with both `.tools()` (DateTimeTool, CalculatorTool) and `.toolProviders()` 
+- Test questions that use both local tools (time, calculation) and MCP tools
+- Verify responses demonstrate both tool types working together
+
+**Exercise 6.5.4:** Create `mcpToolFilteringAndSelection()` test method
+- Set up MCP client and list all available tools
+- Create filtered ToolProvider using `.filter()` with a predicate (e.g., filesystem tools)
+- Build AI service with filtered tool provider
+- Test asking about filtered tools and verify only selected tools are available
+
+**Helper Method:** Create `isMcpServerAvailable()` method
+- Use `HttpClient` to send GET request to localhost:3000
+- Return true if status code < 500, false on any exception
+- Include helpful error message about starting the MCP server
+
+**Important Notes:**
+- Always use `assumeTrue()` to skip tests when MCP server unavailable
+- Use try-finally blocks to ensure MCP clients are properly closed
+- MCP enables access to external tools beyond local @Tool methods
+- The "everything" server provides various demo tools for testing
 
 [↑ Back to table of contents](#table-of-contents)
 
