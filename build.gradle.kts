@@ -23,7 +23,8 @@ dependencies {
     // LangChain4j model integrations
     implementation("dev.langchain4j:langchain4j-open-ai")
     implementation("dev.langchain4j:langchain4j-anthropic")
-    
+    implementation("dev.langchain4j:langchain4j-google-ai-gemini")
+
     // Document processing and RAG
     implementation("dev.langchain4j:langchain4j-document-parser-apache-tika")
     implementation("dev.langchain4j:langchain4j-embeddings-all-minilm-l6-v2-q")
