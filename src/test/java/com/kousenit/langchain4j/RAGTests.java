@@ -6,34 +6,30 @@ import dev.langchain4j.data.document.loader.FileSystemDocumentLoader;
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.embedding.onnx.allminilml6v2q.AllMiniLmL6V2QuantizedEmbeddingModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.model.embedding.onnx.allminilml6v2q.AllMiniLmL6V2QuantizedEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
-import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
+import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
-import dev.langchain4j.store.embedding.redis.RedisEmbeddingStore;
 import org.junit.jupiter.api.Test;
 import redis.clients.jedis.Jedis;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * Lab 9: Retrieval-Augmented Generation (RAG)
@@ -86,17 +82,21 @@ class RAGTests {
         List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
         embeddingStore.addAll(embeddings, segments);
 
-        System.out.println("Embedded " + segments.size() + " document segments");
+        System.out.printf("Embedded %d document segments%n", segments.size());
         
         // Test similarity search
         String query = "What is LangChain4j?";
         Embedding queryEmbedding = embeddingModel.embed(query).content();
         
-        List<EmbeddingMatch<TextSegment>> matches = embeddingStore.search(EmbeddingSearchRequest.builder().queryEmbedding(queryEmbedding).maxResults(2).build()).matches();
-        
-        System.out.println("Found " + matches.size() + " relevant segments:");
-        matches.forEach(match -> 
-            System.out.println("- " + match.embedded().text() + " (score: " + match.score() + ")")
+        List<EmbeddingMatch<TextSegment>> matches =
+                embeddingStore.search(EmbeddingSearchRequest.builder()
+                        .queryEmbedding(queryEmbedding)
+                        .maxResults(2)
+                        .build()).matches();
+
+        System.out.printf("Found %d relevant segments:%n", matches.size());
+        matches.forEach(match ->
+                System.out.printf("- %s (score: %s)%n", match.embedded().text(), match.score())
         );
 
         assertFalse(matches.isEmpty());
@@ -124,10 +124,18 @@ class RAGTests {
 
         // Load and process documents
         List<Document> documents = Arrays.asList(
-            Document.from("Java is a programming language and computing platform first released by Sun Microsystems in 1995."),
-            Document.from("Java is object-oriented, class-based, and designed to have as few implementation dependencies as possible."),
-            Document.from("Java applications are typically compiled to bytecode that can run on any Java virtual machine (JVM)."),
-            Document.from("Java is one of the most popular programming languages in use, particularly for client-server web applications.")
+            Document.from("""
+                Java is a programming language and computing platform
+                first released by Sun Microsystems in 1995."""),
+            Document.from("""
+                Java is object-oriented, class-based, and designed to
+                have as few implementation dependencies as possible."""),
+            Document.from("""
+                Java applications are typically compiled to bytecode
+                that can run on any Java virtual machine (JVM)."""),
+            Document.from("""
+            Java is one of the most popular programming languages in use,
+            particularly for client-server web applications.""")
         );
 
         DocumentSplitter splitter = DocumentSplitters.recursive(200, 50);
