@@ -42,7 +42,7 @@ class McpIntegrationTests {
      * Test 6.5.1: Basic MCP Client Setup
      * <p>
      * TODO: Implement this test to demonstrate creating an MCP client and tool provider.
-     * 
+     * <p>
      * Steps to implement:
      * 1. Create StdioMcpTransport with Docker command for "everything" server
      * 2. Create DefaultMcpClient with unique key and the transport
@@ -82,7 +82,7 @@ class McpIntegrationTests {
      * Test 6.5.2: MCP Tools with AiServices
      * <p>
      * TODO: Implement this test to demonstrate integrating MCP tools with LangChain4j AiServices.
-     * 
+     * <p>
      * Steps to implement:
      * 1. Configure ChatModel with OpenAI GPT-4-1-Nano
      * 2. Create MCP transport and client using stdio approach
@@ -143,7 +143,7 @@ class McpIntegrationTests {
      * Test 6.5.3: Combining Local Tools and MCP Tools
      * <p>
      * TODO: Implement this test to demonstrate using both local @Tool methods and external MCP tools together.
-     * 
+     * <p>
      * Steps to implement:
      * 1. Configure ChatModel
      * 2. Create MCP client and tool provider using stdio approach
@@ -206,7 +206,7 @@ class McpIntegrationTests {
      * Test 6.5.4: MCP Tool Provider Configuration
      * <p>
      * TODO: Implement this test to demonstrate MCP tool provider configuration options.
-     * 
+     * <p>
      * Steps to implement:
      * 1. Configure ChatModel
      * 2. Create MCP client using stdio approach
