@@ -1,0 +1,17 @@
+{
+  "name": "langchain4j-slides",
+  "private": true,
+  "scripts": {
+    "dev": "slidev --open",
+    "build": "slidev build",
+    "export": "slidev export",
+    "export-pdf": "slidev export --format pdf"
+  },
+  "devDependencies": {
+    "@slidev/cli": "latest",
+    "@slidev/theme-seriph": "latest"
+  },
+  "dependencies": {
+    "@slidev/theme-default": "^0.25.0"
+  }
+}

@@ -18,7 +18,14 @@ This repository contains starter code for a comprehensive LangChain4j training c
 2. **Environment Variables**:
    ```bash
    export OPENAI_API_KEY=your_openai_api_key
+   # Optional for Lab 7.3 audio processing:
+   export GOOGLEAI_API_KEY=your_google_api_key
    ```
+3. **Docker** (for Chroma vector store in Lab 10):
+   ```bash
+   docker run -p 8000:8000 chromadb/chroma
+   ```
+4. **Node.js/npm** (for slides and MCP integration)
 
 ### Quick Start
 
@@ -58,6 +65,18 @@ Follow the exercises in [labs.md](labs.md) to build LangChain4j applications fro
 - **Build incrementally**: Complete one lab before moving to the next
 - **Reference solutions**: Check the `solutions` branch when needed
 - **Hands-on learning**: Learn by implementing, not copying
+
+## Presentation Slides
+
+Interactive presentation slides are available in the [`slides/`](slides/) directory:
+
+```bash
+cd slides
+npm install
+npm run dev
+```
+
+See [`slides/README.md`](slides/README.md) for full setup instructions.
 
 ## Support
 

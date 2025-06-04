@@ -200,7 +200,7 @@ Set these environment variables before running tests and examples:
 
 ```bash
 export OPENAI_API_KEY=your_openai_api_key
-export ANTHROPIC_API_KEY=your_anthropic_api_key  # Optional, for Claude exercises
+export GOOGLEAI_API_KEY=your_google_api_key  # Required for Lab 7.3 audio processing
 ```
 
 ## Common Tasks
@@ -254,7 +254,7 @@ This pattern is useful for any long tutorial or exercise file to improve navigat
 
 1. **AI Model Clients**
    - `ChatModel` - Primary interface for interacting with AI models (LangChain4j 1.0)
-   - Model-specific implementations for OpenAI and Anthropic
+   - Model-specific implementations for OpenAI and Google AI
    - Configured with builder patterns
 
 2. **Memory and Tools**
@@ -280,16 +280,18 @@ This pattern is useful for any long tutorial or exercise file to improve navigat
 
 ### Vector Store Implementation
 
-The project supports multiple vector store implementations:
+The project uses the following vector store implementations:
 
-1. **In-Memory EmbeddingStore** (default)
+1. **In-Memory EmbeddingStore** (Lab 9)
    - Simple in-memory vector store
    - Good for development and testing
+   - No external dependencies
 
-2. **Redis EmbeddingStore** 
-   - Persistent vector store using Redis
-   - Requires a running Redis Stack instance
-   - Better for production use cases
+2. **Chroma EmbeddingStore** (Lab 10)
+   - Persistent vector store using Chroma
+   - Requires running Chroma server: `docker run -p 8000:8000 chromadb/chroma`
+   - HTTP-based REST API
+   - Good for production use with persistence
 
 ## Training Course Structure
 
@@ -405,3 +407,15 @@ This pattern is **essential for production conversational AI applications**.
 - **Audio Format**: MP3 files, Base64 encoded
 - **Test Annotation**: Uses `@EnabledIfEnvironmentVariable` for conditional execution
 - **Method Update**: `readSimpleAudioData()` loads and encodes audio from resources
+
+### Course Materials Organization
+- **Main course content**: Root directory (Java source, tests, labs.md)
+- **Presentation slides**: `slides/` directory (Slidev-based presentation)
+  - Run with: `cd slides && npm install && npm run dev`
+  - Contains comprehensive overview of all LangChain4j features
+  - Updated to reflect LangChain4j 1.0+ API changes
+
+### Recent Updates (June 2025)
+- **PDF Parsing**: Lab 10.3 now demonstrates Apache Tika PDF parsing with real PDF files
+- **Slides Reorganization**: Moved all slide materials to dedicated `slides/` directory
+- **API Corrections**: Fixed slides to use correct LangChain4j 1.0+ APIs (ChatModel, chat() method, etc.)
