@@ -25,12 +25,11 @@ This series of labs will guide you through building LangChain4j applications tha
 1. Make sure you have the following prerequisites:
    - Java 17+
    - An IDE (IntelliJ IDEA, Eclipse, VS Code)
-   - API keys for OpenAI and/or Anthropic (Claude)
+   - API key for OpenAI
 
 2. Set the required environment variables:
    ```bash
    export OPENAI_API_KEY=your_openai_api_key
-   export ANTHROPIC_API_KEY=your_anthropic_api_key  # Optional, for Claude exercises
    ```
 
 3. Check that the project builds successfully:
@@ -1588,7 +1587,7 @@ void basicDocumentEmbedding() {
     // Create some sample documents
     List<Document> documents = Arrays.asList(
         Document.from("LangChain4j is a Java library for building AI applications."),
-        Document.from("It provides integration with various language models like OpenAI and Anthropic."),
+        Document.from("It provides integration with various language models like OpenAI and Google AI."),
         Document.from("LangChain4j supports RAG, tools, memory, and streaming responses."),
         Document.from("The library uses a builder pattern for configuration.")
     );
@@ -1691,7 +1690,7 @@ void ragWithFileDocuments() throws IOException {
         LangChain4j is a powerful Java library for building applications with Large Language Models (LLMs).
         
         Key features include:
-        - Integration with multiple AI providers (OpenAI, Anthropic, etc.)
+        - Integration with multiple AI providers (OpenAI, Google AI, etc.)
         - Support for chat memory and conversation context
         - Tool/function calling capabilities
         - Retrieval-Augmented Generation (RAG)
