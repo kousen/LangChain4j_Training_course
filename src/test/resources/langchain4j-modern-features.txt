@@ -16,7 +16,7 @@ The most significant change in LangChain4j 1.0 is the introduction of the unifie
 
 ### Enhanced Builder Patterns
 Version 1.0 introduces consistent builder patterns across all components:
-- Model configuration builders for OpenAI, Anthropic, and Google AI
+- Model configuration builders for OpenAI, Google AI, and other providers
 - Embedding store builders with fluent configuration
 - Content retriever builders with advanced filtering options
 - AI service builders with improved annotation support

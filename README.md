@@ -18,7 +18,6 @@ This repository contains starter code for a comprehensive LangChain4j training c
 2. **Environment Variables**:
    ```bash
    export OPENAI_API_KEY=your_openai_api_key
-   export ANTHROPIC_API_KEY=your_anthropic_api_key  # Optional
    ```
 
 ### Quick Start
