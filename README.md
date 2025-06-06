@@ -37,6 +37,20 @@ cd LangChain4j_Training_Course
 git checkout solutions
 ```
 
+### Code Style
+
+This project uses automatic code formatting with [Spotless](https://github.com/diffplug/spotless) and [Palantir Java Format](https://github.com/palantir/palantir-java-format):
+
+```bash
+# Check code formatting
+./gradlew spotlessCheck
+
+# Apply code formatting
+./gradlew spotlessApply
+```
+
+The formatting style matches LangChain4j's standards for consistency.
+
 ## Course Structure
 
 Follow the exercises in [labs.md](labs.md) to build LangChain4j applications from scratch:

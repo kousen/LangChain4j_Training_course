@@ -40,6 +40,20 @@ The course demonstrates integration of Large Language Models (LLMs) with Java ap
 OPENAI_API_KEY=your_key ./gradlew test
 ```
 
+### Code Formatting
+
+This project uses [Spotless](https://github.com/diffplug/spotless) with [Palantir Java Format](https://github.com/palantir/palantir-java-format) for consistent code style:
+
+```bash
+# Check if code is properly formatted
+./gradlew spotlessCheck
+
+# Apply formatting to all code
+./gradlew spotlessApply
+```
+
+The formatting is automatically configured in `build.gradle.kts` and uses the same style as the LangChain4j project (Palantir Java Format 2.63.0). This ensures consistency when contributing code or following LangChain4j patterns.
+
 ### Testing
 
 ```bash
