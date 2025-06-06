@@ -40,3 +40,6 @@ bin/
 
 ### Claude Code ###
 .claude/
+
+### Slides ###
+slides/
