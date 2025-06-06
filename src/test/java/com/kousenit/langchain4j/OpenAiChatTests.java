@@ -1,15 +1,15 @@
 package com.kousenit.langchain4j;
 
+import static dev.langchain4j.model.openai.OpenAiChatModelName.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.junit.jupiter.api.Test;
-
-import static dev.langchain4j.model.openai.OpenAiChatModelName.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Lab 1: Basic Chat Interactions
@@ -44,13 +44,9 @@ class OpenAiChatTests {
         System.out.println("Simple Query Response:");
         System.out.println(response);
         System.out.println("=".repeat(50));
-        
+
         // Verify response using AssertJ
-        assertThat(response)
-                .as("Chat response")
-                .isNotNull()
-                .isNotEmpty()
-                .hasSizeGreaterThan(10);
+        assertThat(response).as("Chat response").isNotNull().isNotEmpty().hasSizeGreaterThan(10);
     }
 
     /**
@@ -79,7 +75,7 @@ class OpenAiChatTests {
         System.out.println("Pirate Response:");
         System.out.println(responseText);
         System.out.println("=".repeat(50));
-        
+
         // Verify pirate response using AssertJ
         assertThat(responseText)
                 .as("Pirate response text")
@@ -105,19 +101,17 @@ class OpenAiChatTests {
 
         // Create user message
         UserMessage userMessage = UserMessage.from("Why is the sky blue?");
-        
+
         // Generate response
         ChatResponse response = model.chat(userMessage);
 
         // Extract and print metadata
-        assertThat(response)
-                .as("Response object")
-                .isNotNull();
-        
+        assertThat(response).as("Response object").isNotNull();
+
         String content = response.aiMessage().text();
         System.out.println("Response with Metadata:");
         System.out.println("Content: " + content);
-        
+
         if (response.tokenUsage() != null) {
             System.out.println("Token Usage: " + response.tokenUsage());
             System.out.println("  Input Tokens: " + response.tokenUsage().inputTokenCount());
@@ -126,20 +120,16 @@ class OpenAiChatTests {
         } else {
             System.out.println("Token Usage: Not available");
         }
-        
+
         if (response.finishReason() != null) {
             System.out.println("Finish Reason: " + response.finishReason());
         } else {
             System.out.println("Finish Reason: Not available");
         }
-        
+
         System.out.println("=".repeat(50));
-        
+
         // Verify the response content using AssertJ
-        assertThat(content)
-                .as("Response content")
-                .isNotNull()
-                .isNotEmpty()
-                .hasSizeGreaterThan(10);
+        assertThat(content).as("Response content").isNotNull().isNotEmpty().hasSizeGreaterThan(10);
     }
 }

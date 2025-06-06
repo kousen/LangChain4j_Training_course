@@ -1,12 +1,11 @@
 package com.kousenit.langchain4j;
 
 import dev.langchain4j.agent.tool.Tool;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * DateTimeTool provides date and time related functionality for AI assistants.
@@ -18,7 +17,7 @@ import java.time.format.DateTimeFormatter;
  */
 public class DateTimeTool {
     private static final Logger logger = LoggerFactory.getLogger(DateTimeTool.class);
-    
+
     @Tool("Get the current date and time")
     public String getCurrentDateTime() {
         logger.info("Getting current date and time");

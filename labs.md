@@ -125,7 +125,7 @@ void streamingChat() throws InterruptedException {
             .build();
 
     String userMessage = "Tell me a story about a brave robot.";
-    
+
     CountDownLatch latch = new CountDownLatch(1);
     StringBuilder fullResponse = new StringBuilder();
 
@@ -168,10 +168,10 @@ void streamingWithContext() throws InterruptedException {
 
     SystemMessage systemMessage = SystemMessage.from("You are a helpful coding assistant.");
     UserMessage userMessage = UserMessage.from("Explain recursion in simple terms.");
-    
+
     CountDownLatch latch = new CountDownLatch(1);
 
-    model.chat(Arrays.asList(systemMessage, userMessage), 
+    model.chat(Arrays.asList(systemMessage, userMessage),
         new StreamingChatResponseHandler() {
             @Override
             public void onPartialResponse(String token) {
@@ -259,7 +259,7 @@ record ActorFilmographies(List<ActorFilms> filmographies) {}
 interface ActorService {
     @SystemMessage("You are a movie database expert.")
     ActorFilms getActorFilmography(@UserMessage String actorName);
-    
+
     @SystemMessage("You are a comprehensive movie database expert. Provide accurate filmographies.")
     ActorFilmographies getMultipleActorFilmographies(@UserMessage String actors);
 }
@@ -308,11 +308,11 @@ void extractMultipleActorFilmographies() {
     );
 
     List<ActorFilms> filmographies = result.filmographies();
-    
+
     assertNotNull(result);
     assertNotNull(filmographies);
     assertEquals(3, filmographies.size());
-    
+
     // Verify each filmography has exactly 4 movies
     filmographies.forEach(actorFilms -> {
         assertNotNull(actorFilms.actor());
@@ -331,7 +331,7 @@ interface AdvancedActorService {
     @SystemMessage("You are an expert movie database assistant specializing in actor filmographies.")
     @UserMessage("Generate filmography for {{actorName}} with exactly {{movieCount}} of their most famous movies")
     ActorFilms getSpecificActorFilmography(
-        @V("actorName") String actorName, 
+        @V("actorName") String actorName,
         @V("movieCount") int movieCount
     );
 }
@@ -371,13 +371,13 @@ Define a high-level service interface for your AI application:
 
 ```java
 interface FilmographyService {
-    
+
     @SystemMessage("You are a helpful assistant that provides accurate information about actors and their movies.")
     List<String> getMovies(@UserMessage String actor);
-    
+
     @SystemMessage("You are a movie expert. Provide detailed analysis.")
     String analyzeActor(@UserMessage String actorName);
-    
+
     ActorFilms getFullFilmography(String actorName);
 }
 ```
@@ -401,7 +401,7 @@ void useFilmographyService() {
     // Test simple movie list
     List<String> tomHanksMovies = service.getMovies("Tom Hanks");
     System.out.println("Tom Hanks movies: " + tomHanksMovies);
-    
+
     // Test actor analysis
     String analysis = service.analyzeActor("Meryl Streep");
     System.out.println("Meryl Streep analysis: " + analysis);
@@ -458,10 +458,10 @@ interface DocumentAnalyzer {
     @SystemMessage("You are an expert document analyzer. Provide concise, accurate analysis.")
     @UserMessage("Analyze this document content and provide key insights: {{content}}")
     String analyzeDocument(@V("content") String documentContent);
-    
+
     @UserMessage("Extract the main themes from: {{content}}")
     List<String> extractThemes(@V("content") String documentContent);
-    
+
     @UserMessage("Rate the sentiment of this content from 1-10: {{content}}")
     int analyzeSentiment(@V("content") String documentContent);
 }
@@ -546,7 +546,7 @@ void requestsWithMemory() {
     System.out.println("First interaction with memory:");
     UserMessage firstMessage = UserMessage.from("My name is Inigo Montoya. You killed my father. Prepare to die.");
     memory.add(firstMessage);
-    
+
     ChatResponse response1 = model.chat(memory.messages());
     memory.add(response1.content());
     System.out.println(response1.aiMessage().text());
@@ -554,7 +554,7 @@ void requestsWithMemory() {
     System.out.println("\nSecond interaction with memory:");
     UserMessage secondMessage = UserMessage.from("Who am I?");
     memory.add(secondMessage);
-    
+
     ChatResponse response2 = model.chat(memory.messages());
     memory.add(response2.content());
     System.out.println(response2.aiMessage().text());
@@ -579,7 +579,7 @@ void differentMemoryTypes() {
 
     // Token-based memory - limits based on token count
     ChatMemory tokenMemory = TokenWindowChatMemory.withMaxTokens(1000, new OpenAiTokenizer(GPT_4_1_NANO));
-    
+
     // Message-based memory - limits based on message count
     ChatMemory messageMemory = MessageWindowChatMemory.withMaxMessages(5);
 
@@ -590,10 +590,10 @@ void differentMemoryTypes() {
     // Test with token memory
     UserMessage newMessage = UserMessage.from("What did I just tell you about myself?");
     tokenMemory.add(newMessage);
-    
+
     ChatResponse response = model.chat(tokenMemory.messages());
     System.out.println("Token memory response: " + response.aiMessage().text());
-    
+
     assertNotNull(response.aiMessage().text());
 }
 ```
@@ -814,7 +814,7 @@ class McpIntegrationTests {
                 .key("SharedMcpClient")
                 .transport(sharedTransport)
                 .build();
-        
+
         System.out.println("Shared MCP client initialized for all tests");
     }
 
@@ -830,20 +830,20 @@ class McpIntegrationTests {
     void basicMcpClientSetup() {
         // Use shared MCP client for efficiency (initialized in @BeforeAll)
         // This demonstrates the basic setup process that was used to create the shared client
-        
+
         // Create MCP tool provider using the shared client
         McpToolProvider toolProvider = McpToolProvider.builder()
                 .mcpClients(sharedMcpClient)
                 .build();
 
         System.out.println("Successfully created MCP tool provider using shared client");
-        
+
         // Verify tool provider was created
         assertNotNull(toolProvider, "MCP tool provider should be created");
         assertNotNull(sharedMcpClient, "Shared MCP client should be available");
-        
+
         System.out.println("MCP setup verification completed successfully!");
-        
+
         // Note: The actual transport/client setup is demonstrated in @BeforeAll method
         // This pattern avoids creating multiple npx processes and improves test performance
     }
@@ -868,7 +868,7 @@ void mcpToolsWithAiServices() {
     McpToolProvider mcpToolProvider = McpToolProvider.builder()
             .mcpClients(sharedMcpClient)
             .build();
-    
+
     // Define AI assistant interface
     interface McpAssistant {
         String chat(String message);
@@ -882,10 +882,10 @@ void mcpToolsWithAiServices() {
 
     // Test using MCP tools through the assistant
     System.out.println("\n=== Testing MCP Tool Integration ===");
-    
+
     String response1 = assistant.chat("What tools are available to you from the MCP server?");
     System.out.println("Available tools response: " + response1);
-    
+
     String response2 = assistant.chat("Can you use any filesystem or utility tools to help me?");
     System.out.println("Tool capabilities response: " + response2);
 
@@ -893,7 +893,7 @@ void mcpToolsWithAiServices() {
     assertNotNull(response1, "Response about available tools should not be null");
     assertNotNull(response2, "Response about tool capabilities should not be null");
     assertFalse(response1.trim().isEmpty(), "Response should contain information about tools");
-    
+
     System.out.println("MCP tool integration test completed successfully!");
 }
 ```
@@ -931,11 +931,11 @@ void combiningLocalAndMcpTools() {
             .build();
 
     System.out.println("\n=== Testing Hybrid Tool Integration ===");
-    
+
     // Test combining local and external tools
     String response1 = assistant.chat("What's the current date and time, and what tools do you have available?");
     System.out.println("Hybrid tools response: " + response1);
-    
+
     String response2 = assistant.chat("What's the current date, and can you also tell me what MCP tools you can access?");
     System.out.println("Mixed tool usage response: " + response2);
 
@@ -944,7 +944,7 @@ void combiningLocalAndMcpTools() {
     assertNotNull(response2, "Mixed tool response should not be null");
     assertTrue(response1.length() > 20, "Response should be substantive");
     assertTrue(response2.length() > 20, "Response should be substantive");
-    
+
     System.out.println("\nSuccessfully demonstrated hybrid local + MCP tool integration!");
 }
 ```
@@ -982,14 +982,14 @@ void mcpToolProviderWithFiltering() {
             .build();
 
     System.out.println("\n=== Testing MCP Tool Provider ===");
-    
+
     String response = assistant.chat("What tools do you have available from the MCP server?");
     System.out.println("MCP tools response: " + response);
 
     // Verify response
     assertNotNull(response, "MCP response should not be null");
     assertFalse(response.trim().isEmpty(), "Response should contain tool information");
-    
+
     System.out.println("\nSuccessfully demonstrated MCP tool provider setup!");
 }
 
@@ -1011,7 +1011,7 @@ void mcpToolProviderWithFiltering() {
 
 Multimodal capabilities allow AI models to analyze and understand both images and audio. This lab demonstrates how to use GPT-4 with multimodal content to process images and audio files using LangChain4j.
 
-**Prerequisites:** 
+**Prerequisites:**
 - An image file `bowl_of_fruit.jpg` in `src/main/resources/`
 - An audio file `tftjs.mp3` in `src/main/resources/`
 - OpenAI API key with access to GPT-4 vision models
@@ -1020,7 +1020,7 @@ Multimodal capabilities allow AI models to analyze and understand both images an
 **Lab Structure:**
 This lab includes 4 progressive multimodal tests:
 1. **Local Image Analysis** - Analyze images from local resources
-2. **Remote Image Analysis** - Analyze images from URLs  
+2. **Remote Image Analysis** - Analyze images from URLs
 3. **Audio Transcription** - Process audio content with AudioContent
 4. **Structured Image Analysis** - Extract structured data from images
 
@@ -1052,14 +1052,14 @@ void localImageAnalysis() throws IOException {
     // Create image and text content for the message
     ImageContent imageContent = ImageContent.from(imageString, "image/jpeg");
     TextContent textContent = TextContent.from("What do you see in this image? Describe it in detail.");
-    
+
     UserMessage userMessage = UserMessage.from(textContent, imageContent);
-    
+
     System.out.println("=== Local Image Analysis Test ===");
     String response = model.chat(userMessage).aiMessage().text();
     System.out.println("Analysis: " + response);
     System.out.println("=".repeat(50));
-    
+
     // Verify response quality
     assertAll("Local image analysis validation",
         () -> assertNotNull(response, "Response should not be null"),
@@ -1089,19 +1089,19 @@ void remoteImageAnalysis() {
 
     // Use a publicly available image URL
     String imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg";
-    
+
     // Create image and text content for the message
     ImageContent imageContent = ImageContent.from(imageUrl);
     TextContent textContent = TextContent.from("Describe this natural landscape in detail. What can you see?");
-    
+
     UserMessage userMessage = UserMessage.from(textContent, imageContent);
-    
+
     System.out.println("=== Remote Image Analysis Test ===");
     String response = model.chat(userMessage).aiMessage().text();
     System.out.println("URL: " + imageUrl);
     System.out.println("Analysis: " + response);
     System.out.println("=".repeat(50));
-    
+
     // Verify response quality
     assertAll("Remote image analysis validation",
         () -> assertNotNull(response, "Response should not be null"),
@@ -1133,16 +1133,16 @@ void audioTranscriptionAnalysis() throws IOException {
     // Create audio and text content for the message
     TextContent textContent = TextContent.from("Please transcribe and analyze the content of this audio file.");
     AudioContent audioContent = AudioContent.from(readSimpleAudioData(), "audio/mp3");
-    
+
     UserMessage userMessage = UserMessage.from(textContent, audioContent);
-    
+
     System.out.println("=== Audio Transcription and Analysis Test ===");
-    
+
     // Process the audio with Gemini
     try {
         String response = model.chat(userMessage).aiMessage().text();
         System.out.println("Transcription/Analysis: " + response);
-        
+
         // Verify response quality
         assertAll("Audio analysis validation",
             () -> assertNotNull(response, "Response should not be null"),
@@ -1151,13 +1151,13 @@ void audioTranscriptionAnalysis() throws IOException {
         );
 
         System.out.println("=" + "=".repeat(50));
-        
+
     } catch (Exception e) {
         // Handle gracefully if audio processing is not supported
         System.out.println("Audio processing issue: " + e.getMessage());
         e.printStackTrace();
         System.out.println("=" + "=".repeat(50));
-        
+
         // Verify AudioContent was created successfully
         assertNotNull(audioContent, "AudioContent should be created successfully");
     }
@@ -1228,17 +1228,17 @@ void structuredImageAnalysis() throws IOException {
     ImageContent image = ImageContent.from(imageString, "image/jpeg");
 
     System.out.println("=== Structured Image Analysis Test ===");
-    
+
     // Get comprehensive structured analysis
     ImageAnalysisResult result = analyst.analyzeComprehensively(image);
-    
+
     System.out.println("Description: " + result.description());
     System.out.println("Objects: " + result.objects());
     System.out.println("Colors: " + result.colors());
     System.out.println("Composition: " + result.composition());
     System.out.println("Mood: " + result.mood());
     System.out.println("Text Content: " + result.textContent());
-    
+
     System.out.println("=".repeat(50));
 
     // Verify structured analysis
@@ -1257,13 +1257,13 @@ void structuredImageAnalysis() throws IOException {
             .as("Image description")
             .isNotBlank()
             .hasSizeGreaterThan(20);
-            
+
     if (!result.objects().isEmpty()) {
         assertThat(result.objects())
                 .as("Identified objects")
                 .allSatisfy(object -> assertThat(object).isNotBlank());
     }
-    
+
     if (!result.colors().isEmpty()) {
         assertThat(result.colors())
                 .as("Identified colors")
@@ -1277,7 +1277,7 @@ void structuredImageAnalysis() throws IOException {
 - Uses Google Gemini model for audio processing (Test 7.3)
 - Demonstrates both ImageContent and AudioContent classes for multimodal processing
 - Includes proper null checks for resource loading to avoid NullPointerException
-- Uses Base64 encoding for local images and direct URLs for remote images  
+- Uses Base64 encoding for local images and direct URLs for remote images
 - Audio processing requires Google AI API key and uses Gemini 2.5 Flash Preview model
 - Audio file (`tftjs.mp3`) must be present in `src/main/resources/`
 - Audio test uses `@EnabledIfEnvironmentVariable` to run only when GOOGLEAI_API_KEY is set
@@ -1298,7 +1298,7 @@ Image generation capabilities allow AI models to create images from text prompts
 **Lab Structure:**
 This lab includes 5 progressive image generation tests:
 1. **Basic Image Generation** - Simple image creation with DALL-E
-2. **Image Generation with Options** - Configuration options for quality and style  
+2. **Image Generation with Options** - Configuration options for quality and style
 3. **Advanced Image Generation** - Different artistic and technical styles
 4. **Creative Image Variations** - Multiple images with varied prompts
 5. **Base64 Image Generation** - Using gpt-image-1 model with base64-encoded images
@@ -1318,21 +1318,21 @@ void basicImageGeneration() {
 
     // Define a creative prompt for image generation
     String prompt = "A majestic dragon soaring over a crystal castle at sunset, fantasy art style";
-    
+
     System.out.println("=== Basic Image Generation Test ===");
     System.out.println("Prompt: " + prompt);
-    
+
     // Generate the image
     Response<Image> response = model.generate(prompt);
-    
+
     // Extract and verify the generated image
     assertNotNull(response, "Response should not be null");
     assertNotNull(response.content(), "Response content should not be null");
-    
+
     Image image = response.content();
     System.out.println("Generated image URL: " + image.url());
     System.out.println("Revised prompt: " + image.revisedPrompt());
-    
+
     // Verify the image was generated successfully
     assertNotNull(image.url(), "Image URL should not be null");
     assertThat(image.url().toString())
@@ -1360,23 +1360,23 @@ void imageGenerationWithOptions() throws IOException {
 
     // Define a detailed prompt for high-quality generation
     String prompt = "A futuristic cityscape at dawn with flying vehicles, neon lights reflecting on wet streets, cyberpunk aesthetic";
-    
+
     System.out.println("=== Image Generation with Options Test ===");
     System.out.println("Prompt: " + prompt);
     System.out.println("Configuration: 1024x1024, HD quality, vivid style");
-    
+
     // Generate the image with enhanced settings
     Response<Image> response = model.generate(prompt);
     Image image = response.content();
-    
+
     // Display results and verify
     System.out.println("High-quality generated image URL: " + image.url());
     System.out.println("Revised prompt: " + image.revisedPrompt());
-    
+
     if (image.url() != null) {
         System.out.println("Image generated successfully with HD quality!");
     }
-    
+
     // Verify the image generation
     assertNotNull(image.url(), "HD image URL should not be null");
     assertThat(image.url().toString())
@@ -1402,32 +1402,32 @@ void advancedImageGeneration() {
             .build();
 
     System.out.println("=== Advanced Image Generation Test ===");
-    
+
     // Test artistic style variation
     String artisticPrompt = "A serene Japanese garden with cherry blossoms, traditional architecture, and a koi pond, watercolor painting style";
     Response<Image> artisticResponse = model.generate(artisticPrompt);
     Image artisticImage = artisticResponse.content();
-    
+
     System.out.println("Artistic prompt: " + artisticPrompt);
     System.out.println("Generated artistic image: " + artisticImage.url());
-    
+
     // Test technical/detailed prompt
     String technicalPrompt = "A detailed cross-section of a mechanical watch showing gears, springs, and intricate components, technical illustration style";
     Response<Image> technicalResponse = model.generate(technicalPrompt);
     Image technicalImage = technicalResponse.content();
-    
+
     System.out.println("Technical prompt: " + technicalPrompt);
     System.out.println("Generated technical image: " + technicalImage.url());
-    
+
     // Verify both images were generated successfully
     assertNotNull(artisticImage.url(), "Artistic image URL should not be null");
     assertNotNull(technicalImage.url(), "Technical image URL should not be null");
-    
+
     assertThat(artisticImage.url().toString())
             .as("Artistic image URL")
             .isNotBlank()
             .startsWith("https://");
-            
+
     assertThat(technicalImage.url().toString())
             .as("Technical image URL")
             .isNotBlank()
@@ -1455,22 +1455,22 @@ void creativeImageVariations() {
         "A minimalist abstract representation of music, flowing lines and geometric shapes",
         "A cozy library in a treehouse, warm lighting, books floating magically"
     };
-    
+
     System.out.println("=== Creative Image Variations Test ===");
-    
+
     // Generate and display multiple image variations
     for (int i = 0; i < prompts.length; i++) {
         Response<Image> response = model.generate(prompts[i]);
         Image image = response.content();
-        
+
         System.out.println("=== Variation " + (i + 1) + " ===");
         System.out.println("Original prompt: " + prompts[i]);
         System.out.println("Generated image URL: " + image.url());
-        
+
         if (image.revisedPrompt() != null) {
             System.out.println("Revised prompt: " + image.revisedPrompt());
         }
-        
+
         // Verify each image generation
         assertNotNull(image.url(), "Image " + (i + 1) + " URL should not be null");
         assertThat(image.url().toString())
@@ -1478,7 +1478,7 @@ void creativeImageVariations() {
                 .isNotBlank()
                 .startsWith("https://");
     }
-    
+
     System.out.println("All variations generated successfully!");
 }
 ```
@@ -1499,15 +1499,15 @@ void base64ImageGeneration() throws IOException {
 
     // Define a creative prompt
     String prompt = "A warrior cat rides a dragon into battle";
-    
+
     System.out.println("=== Base64 Image Generation Test ===");
     System.out.println("Prompt: " + prompt);
     System.out.println("Model: gpt-image-1 (returns base64-encoded images)");
-    
+
     // Generate the image
     Response<Image> response = model.generate(prompt);
     Image image = response.content();
-    
+
     // The gpt-image-1 model returns base64-encoded images instead of URLs
     String base64Data = null;
     if (image.base64Data() != null) {
@@ -1516,30 +1516,30 @@ void base64ImageGeneration() throws IOException {
         // Fallback: parse from data URL format
         base64Data = image.url().toString().split(",")[1];
     }
-    
+
     assertNotNull(base64Data, "Base64 image data should not be null");
     System.out.println("Base64 data length: " + base64Data.length() + " characters");
-    
+
     // Decode the base64 to bytes using Java's built-in decoder
     byte[] imageBytes = Base64.getDecoder().decode(base64Data);
-    
+
     // Create output directory if it doesn't exist
     Path outputDir = Path.of("src/main/resources");
     if (!Files.exists(outputDir)) {
         Files.createDirectories(outputDir);
     }
-    
+
     // Write to file (PNG format)
     Path outputPath = outputDir.resolve("generated_image.png");
     Files.write(outputPath, imageBytes);
-    
+
     System.out.println("Image saved as: " + outputPath);
     System.out.println("File size: " + imageBytes.length + " bytes");
-    
+
     // Verify the file was created and has content
     assertTrue(Files.exists(outputPath), "Generated image file should exist");
     assertTrue(Files.size(outputPath) > 0, "Generated image file should have content");
-    
+
     // Note: The generated image file can be opened with any image viewer
     // This approach provides more control over image data compared to URL-based responses
 }
@@ -1580,7 +1580,7 @@ Create a test that demonstrates document loading and embedding:
 void basicDocumentEmbedding() {
     // Create embedding model
     EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
-    
+
     // Create in-memory embedding store
     EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
 
@@ -1601,15 +1601,15 @@ void basicDocumentEmbedding() {
     embeddingStore.addAll(embeddings, segments);
 
     System.out.println("Embedded " + segments.size() + " document segments");
-    
+
     // Test similarity search
     String query = "What is LangChain4j?";
     Embedding queryEmbedding = embeddingModel.embed(query).content();
-    
+
     List<EmbeddingMatch<TextSegment>> matches = embeddingStore.search(EmbeddingSearchRequest.builder().queryEmbedding(queryEmbedding).maxResults(2).build()).matches();
-    
+
     System.out.println("Found " + matches.size() + " relevant segments:");
-    matches.forEach(match -> 
+    matches.forEach(match ->
         System.out.println("- " + match.embedded().text() + " (score: " + match.score() + ")")
     );
 
@@ -1643,7 +1643,7 @@ void ragWithContentRetriever() {
 
     DocumentSplitter splitter = DocumentSplitters.recursive(200, 50);
     List<TextSegment> segments = splitter.splitAll(documents);
-    
+
     List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
     embeddingStore.addAll(embeddings, segments);
 
@@ -1668,7 +1668,7 @@ void ragWithContentRetriever() {
     // Test RAG
     String question = "When was Java first released?";
     String answer = assistant.answer(question);
-    
+
     System.out.println("Question: " + question);
     System.out.println("Answer: " + answer);
 
@@ -1688,7 +1688,7 @@ void ragWithFileDocuments() throws IOException {
     Path tempFile = Files.createTempFile("sample", ".txt");
     Files.writeString(tempFile, """
         LangChain4j is a powerful Java library for building applications with Large Language Models (LLMs).
-        
+
         Key features include:
         - Integration with multiple AI providers (OpenAI, Google AI, etc.)
         - Support for chat memory and conversation context
@@ -1696,7 +1696,7 @@ void ragWithFileDocuments() throws IOException {
         - Retrieval-Augmented Generation (RAG)
         - Streaming responses
         - Image and audio processing
-        
+
         The library follows modern Java practices and uses builder patterns for configuration.
         It provides both low-level and high-level APIs for different use cases.
         """);
@@ -1712,10 +1712,10 @@ void ragWithFileDocuments() throws IOException {
 
         // Load document from file
         Document document = FileSystemDocumentLoader.loadDocument(tempFile);
-        
+
         DocumentSplitter splitter = DocumentSplitters.recursive(300, 50);
         List<TextSegment> segments = splitter.split(document);
-        
+
         List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
         embeddingStore.addAll(embeddings, segments);
 
@@ -1735,11 +1735,11 @@ void ragWithFileDocuments() throws IOException {
                 .build();
 
         String answer = assistant.answer("What are the key features of LangChain4j?");
-        
+
         System.out.println("Answer based on document: " + answer);
-        
+
         assertNotNull(answer);
-        assertTrue(answer.toLowerCase().contains("langchain4j") || 
+        assertTrue(answer.toLowerCase().contains("langchain4j") ||
                   answer.toLowerCase().contains("feature"));
 
     } finally {
@@ -1784,7 +1784,7 @@ void ragWithMetadataFiltering() {
 
     DocumentSplitter splitter = DocumentSplitters.recursive(200, 50);
     List<TextSegment> segments = splitter.splitAll(allDocs);
-    
+
     List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
     embeddingStore.addAll(embeddings, segments);
 
@@ -1807,7 +1807,7 @@ void ragWithMetadataFiltering() {
             .build();
 
     String answer = assistant.answerAboutLanguage("Who created Java and when?");
-    
+
     System.out.println("Answer: " + answer);
     assertNotNull(answer);
     assertTrue(answer.toLowerCase().contains("james gosling") || answer.toLowerCase().contains("sun"));
@@ -1818,7 +1818,7 @@ void ragWithMetadataFiltering() {
 
 ## Lab 10: Chroma Vector Store for RAG
 
-> **Note**: Lab 10 has been updated to use Chroma instead of Redis for better compatibility and stability. 
+> **Note**: Lab 10 has been updated to use Chroma instead of Redis for better compatibility and stability.
 > The complete working implementation is available in `ChromaRAGTests.java` on the solutions branch.
 
 ### Prerequisites
@@ -1842,7 +1842,7 @@ void chromaVectorStoreOperations() {
     assumeTrue(isChromaAvailable(), "Chroma is not available");
 
     EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
-    
+
     // Create Chroma embedding store with unique collection name
     EmbeddingStore<TextSegment> embeddingStore = ChromaEmbeddingStore.builder()
             .baseUrl("http://localhost:8000")
@@ -1862,7 +1862,7 @@ void chromaVectorStoreOperations() {
 
     DocumentSplitter splitter = DocumentSplitters.recursive(100, 20);
     List<TextSegment> segments = splitter.splitAll(documents);
-    
+
     List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
     embeddingStore.addAll(embeddings, segments);
 
@@ -1877,16 +1877,16 @@ void chromaVectorStoreOperations() {
 
     for (String query : queries) {
         Embedding queryEmbedding = embeddingModel.embed(query).content();
-        
+
         List<EmbeddingMatch<TextSegment>> matches = embeddingStore.search(
             EmbeddingSearchRequest.builder()
                     .queryEmbedding(queryEmbedding)
                     .maxResults(2)
                     .build()
         ).matches();
-        
+
         System.out.println("\nSearch: " + query);
-        matches.forEach(match -> 
+        matches.forEach(match ->
             System.out.printf("- %.3f: %s%n", match.score(), match.embedded().text())
         );
 
@@ -1903,10 +1903,10 @@ private boolean isChromaAvailable() {
         var request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8000/api/v1/heartbeat"))
                 .build();
-        
+
         HttpResponse<String> response = client.send(request,
                 HttpResponse.BodyHandlers.ofString());
-        
+
         return response.statusCode() == 200;
     } catch (Exception e) {
         System.out.println("Chroma not available: " + e.getMessage());
@@ -1934,7 +1934,7 @@ void productionRagSystem() {
             .build();
 
     EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
-    
+
     // Create Chroma embedding store
     EmbeddingStore<TextSegment> embeddingStore = ChromaEmbeddingStore.builder()
             .baseUrl("http://localhost:8000")
@@ -1956,7 +1956,7 @@ void productionRagSystem() {
     // Process documents with metadata for better retrieval
     DocumentSplitter splitter = DocumentSplitters.recursive(150, 30);
     List<TextSegment> segments = splitter.splitAll(documents);
-    
+
     // Add metadata for production use cases
     for (int i = 0; i < segments.size(); i++) {
         TextSegment segment = segments.get(i);
@@ -1964,7 +1964,7 @@ void productionRagSystem() {
         segment.metadata().put("source", "langchain4j_docs");
         segment.metadata().put("created_at", LocalDateTime.now().toString());
     }
-    
+
     // Store embeddings in Chroma
     List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
     embeddingStore.addAll(embeddings, segments);
@@ -2006,13 +2006,13 @@ void productionRagSystem() {
         String answer = assistant.answer(question);
         System.out.println("\nQ: " + question);
         System.out.println("A: " + answer);
-        
+
         // Verify response quality
         assertNotNull(answer, "Answer should not be null");
         assertFalse(answer.trim().isEmpty(), "Answer should not be empty");
         assertTrue(answer.length() > 20, "Answer should be substantive");
     }
-    
+
     System.out.println("\n" + "=".repeat(50));
     System.out.println("Production RAG system test completed successfully!");
 }
@@ -2037,7 +2037,7 @@ void ragWithDocumentParsing() {
             .build();
 
     EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
-    
+
     // Create Chroma embedding store
     EmbeddingStore<TextSegment> embeddingStore = ChromaEmbeddingStore.builder()
             .baseUrl("http://localhost:8000")
@@ -2047,13 +2047,13 @@ void ragWithDocumentParsing() {
     // Load PDF document from resources (Apache Tika will parse the PDF)
     Path documentPath = Paths.get("src/test/resources/LangChain4j-Modern-Features.pdf");
     Document document = FileSystemDocumentLoader.loadDocument(documentPath);
-    
+
     System.out.println("Loaded PDF document with " + document.text().length() + " characters");
 
     // Split document with appropriate chunk sizes for technical content
     DocumentSplitter splitter = DocumentSplitters.recursive(300, 50);
     List<TextSegment> segments = splitter.split(document);
-    
+
     // Add metadata to track document source
     for (int i = 0; i < segments.size(); i++) {
         TextSegment segment = segments.get(i);
@@ -2063,7 +2063,7 @@ void ragWithDocumentParsing() {
         segment.metadata().put("format", "PDF");
         segment.metadata().put("processed_at", LocalDateTime.now().toString());
     }
-    
+
     // Generate embeddings and store in Chroma
     List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
     embeddingStore.addAll(embeddings, segments);
@@ -2106,17 +2106,17 @@ void ragWithDocumentParsing() {
         String answer = assistant.answer(question);
         System.out.println("\nQ: " + question);
         System.out.println("A: " + answer);
-        
+
         // Verify response quality for document-based content
         assertNotNull(answer, "Answer should not be null");
         assertFalse(answer.trim().isEmpty(), "Answer should not be empty");
         assertTrue(answer.length() > 30, "Answer should be detailed for technical content");
     }
-    
+
     System.out.println("\n" + "=".repeat(60));
     System.out.println("Document parsing and RAG integration test completed successfully!");
     System.out.println("Document segments processed: " + segments.size());
-    System.out.println("Total characters indexed: " + 
+    System.out.println("Total characters indexed: " +
         segments.stream().mapToInt(s -> s.text().length()).sum());
 }
 ```
@@ -2133,10 +2133,10 @@ private boolean isChromaAvailable() {
         var request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8000/api/v1/heartbeat"))
                 .build();
-        
+
         HttpResponse<String> response = client.send(request,
                 HttpResponse.BodyHandlers.ofString());
-        
+
         return response.statusCode() == 200;
     } catch (Exception e) {
         System.out.println("Chroma not available: " + e.getMessage());
@@ -2162,7 +2162,7 @@ private boolean isChromaAvailable() {
 Congratulations! You've completed a comprehensive tour of LangChain4j's capabilities. You've learned how to:
 
 - Interact with LLMs through LangChain4j's `ChatModel` interface
-- Stream responses for better user experience  
+- Stream responses for better user experience
 - Extract structured data from LLM responses using `AiServices`
 - Use prompt templates for consistent prompting
 - Maintain conversation state with `ChatMemory`

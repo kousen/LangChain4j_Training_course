@@ -42,7 +42,7 @@ git checkout solutions
 Follow the exercises in [labs.md](labs.md) to build LangChain4j applications from scratch:
 
 1. **Basic Chat Interactions** - Simple AI conversations
-2. **Streaming Responses** - Real-time AI responses  
+2. **Streaming Responses** - Real-time AI responses
 3. **Structured Data Extraction** - AI-powered data parsing
 4. **Prompt Templates** - Reusable AI prompts
 5. **Chat Memory** - Conversation context and multi-user memory isolation

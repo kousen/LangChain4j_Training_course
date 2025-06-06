@@ -16,7 +16,7 @@ This is a **hands-on training course** for learning LangChain4j through progress
 The course demonstrates integration of Large Language Models (LLMs) with Java applications using the LangChain4j library (version 1.0.1), covering:
 
 - Text generation and chat capabilities
-- Structured data extraction  
+- Structured data extraction
 - Prompt engineering with templates
 - Chat memory for maintaining conversation context
 - Function calling with local @Tool methods
@@ -136,7 +136,7 @@ git add .
 git commit -m "Complete Lab X: [Lab Title] implementation
 
 - Implement all working test methods
-- Add proper error handling and assertions  
+- Add proper error handling and assertions
 - Include educational logging and output
 - All tests pass with valid API keys
 
@@ -286,7 +286,7 @@ The project supports multiple vector store implementations:
    - Simple in-memory vector store
    - Good for development and testing
 
-2. **Redis EmbeddingStore** 
+2. **Redis EmbeddingStore**
    - Persistent vector store using Redis
    - Requires a running Redis Stack instance
    - Better for production use cases
@@ -340,7 +340,7 @@ src/main/java/com/kousenit/langchain4j/
 **Benefits:**
 - **Reusability** across multiple test classes
 - **Proper separation of concerns** (tools vs tests)
-- **Professional code organization** 
+- **Professional code organization**
 - **Students can study tool implementation patterns**
 
 ### Testing Strategy: Hybrid JUnit 5 + AssertJ
@@ -393,7 +393,7 @@ This pattern is **essential for production conversational AI applications**.
   - Tool name conflict resolution (avoid CalculatorTool with MCP servers)
   - Prerequisites: Node.js/npm (not Docker)
 
-### Future Considerations  
+### Future Considerations
 - **Multimodal capabilities**: ✅ Lab 7 complete - includes:
   - Image analysis with GPT-4 Vision (local/remote images, structured data extraction)
   - Audio processing with Google Gemini 2.5 Flash Preview model

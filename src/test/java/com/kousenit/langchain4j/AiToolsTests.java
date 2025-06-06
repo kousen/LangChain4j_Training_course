@@ -1,13 +1,13 @@
 package com.kousenit.langchain4j;
 
+import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
+
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
 import org.junit.jupiter.api.Test;
-
-import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Lab 6: AI Tools
@@ -24,9 +24,9 @@ class AiToolsTests {
     /*
      * Tool classes are now standalone classes in src/main/java/com/kousenit/langchain4j/:
      * - DateTimeTool.java - Date and time related functionality
-     * - WeatherTool.java - Weather information with parameters  
+     * - WeatherTool.java - Weather information with parameters
      * - CalculatorTool.java - Mathematical operations with error handling
-     * 
+     *
      * These can be imported and used directly in tests and other classes.
      */
 
@@ -57,7 +57,7 @@ class AiToolsTests {
                 .build();
 
         System.out.println("=== Basic Tool Usage Test ===");
-        
+
         // Test current date/time functionality
         String response1 = assistant.chat("What is the current date and time?");
         System.out.println("Current time response: " + response1);
@@ -69,25 +69,25 @@ class AiToolsTests {
         // Test alarm setting
         String response3 = assistant.chat("Set an alarm for 8:00 AM tomorrow");
         System.out.println("Alarm response: " + response3);
-        
+
         System.out.println("=".repeat(50));
 
         // Verify all responses are not null and contain meaningful content
-        assertAll("Basic tool usage validation",
-            () -> assertNotNull(response1, "Current time response should not be null"),
-            () -> assertNotNull(response2, "Future year response should not be null"),
-            () -> assertNotNull(response3, "Alarm response should not be null"),
-            () -> assertFalse(response1.trim().isEmpty(), "Current time response should not be empty"),
-            () -> assertFalse(response2.trim().isEmpty(), "Future year response should not be empty"),
-            () -> assertFalse(response3.trim().isEmpty(), "Alarm response should not be empty")
-        );
+        assertAll(
+                "Basic tool usage validation",
+                () -> assertNotNull(response1, "Current time response should not be null"),
+                () -> assertNotNull(response2, "Future year response should not be null"),
+                () -> assertNotNull(response3, "Alarm response should not be null"),
+                () -> assertFalse(response1.trim().isEmpty(), "Current time response should not be empty"),
+                () -> assertFalse(response2.trim().isEmpty(), "Future year response should not be empty"),
+                () -> assertFalse(response3.trim().isEmpty(), "Alarm response should not be empty"));
 
         // Verify specific content using AssertJ
         assertThat(response2)
                 .as("Future year calculation")
                 .containsAnyOf("2029", "2030", "year")
                 .hasSizeGreaterThan(10);
-                
+
         assertThat(response3)
                 .as("Alarm setting response")
                 .containsIgnoringCase("alarm")
@@ -95,7 +95,7 @@ class AiToolsTests {
     }
 
     /**
-     * Test 6.2: Tools with Parameters  
+     * Test 6.2: Tools with Parameters
      * <p>
      * Demonstrates how tools can accept parameters for dynamic functionality.
      */
@@ -114,7 +114,7 @@ class AiToolsTests {
                 .build();
 
         System.out.println("=== Tools with Parameters Test ===");
-        
+
         // Test weather query with specific city and units
         String response1 = assistant.chat("What's the weather like in Paris? Use metric units.");
         System.out.println("Paris weather (metric): " + response1);
@@ -122,23 +122,19 @@ class AiToolsTests {
         // Test weather query with different city and units
         String response2 = assistant.chat("How about the weather in New York with Fahrenheit?");
         System.out.println("New York weather (Fahrenheit): " + response2);
-        
+
         System.out.println("=".repeat(50));
 
         // Verify responses contain expected information
-        assertAll("Weather tool parameter validation",
-            () -> assertNotNull(response1, "Paris weather response should not be null"),
-            () -> assertNotNull(response2, "New York weather response should not be null")
-        );
+        assertAll(
+                "Weather tool parameter validation",
+                () -> assertNotNull(response1, "Paris weather response should not be null"),
+                () -> assertNotNull(response2, "New York weather response should not be null"));
 
         // Verify location-specific responses using AssertJ
-        assertThat(response1)
-                .as("Paris weather response")
-                .containsIgnoringCase("paris");
-                
-        assertThat(response2.toLowerCase())
-                .as("New York weather response")  
-                .containsAnyOf("new york", "york");
+        assertThat(response1).as("Paris weather response").containsIgnoringCase("paris");
+
+        assertThat(response2.toLowerCase()).as("New York weather response").containsAnyOf("new york", "york");
     }
 
     /**
@@ -161,7 +157,7 @@ class AiToolsTests {
                 .build();
 
         System.out.println("=== Multiple Tools Integration Test ===");
-        
+
         // Test complex query requiring multiple tools
         String response1 = assistant.chat("What's 15 multiplied by 8, and what year will it be in 3 years?");
         System.out.println("Math and date response: " + response1);
@@ -173,30 +169,28 @@ class AiToolsTests {
         // Test weather and calculation combination
         String response3 = assistant.chat("What's 25 + 17? Also, what's the weather in London with metric units?");
         System.out.println("Math and weather response: " + response3);
-        
+
         System.out.println("=".repeat(50));
 
         // Verify all multi-tool responses
-        assertAll("Multiple tools integration validation",
-            () -> assertNotNull(response1, "Math and date response should not be null"),
-            () -> assertNotNull(response2, "Division and time response should not be null"),
-            () -> assertNotNull(response3, "Math and weather response should not be null")
-        );
+        assertAll(
+                "Multiple tools integration validation",
+                () -> assertNotNull(response1, "Math and date response should not be null"),
+                () -> assertNotNull(response2, "Division and time response should not be null"),
+                () -> assertNotNull(response3, "Math and weather response should not be null"));
 
         // Verify specific tool usage using AssertJ
         assertThat(response1)
                 .as("Math and date combination")
                 .containsAnyOf("120", "15", "8", "multiply")
                 .containsAnyOf("2027", "2028", "year", "years");
-                
+
         assertThat(response2)
                 .as("Division and time combination")
                 .containsAnyOf("25", "100", "4", "divide")
                 .hasSizeGreaterThan(20);
-                
-        assertThat(response3)
-                .as("Math and weather combination")
-                .containsAnyOf("42", "25", "17", "add");
+
+        assertThat(response3).as("Math and weather combination").containsAnyOf("42", "25", "17", "add");
         assertThat(response3.toLowerCase())
                 .as("Math and weather combination - location")
                 .containsAnyOf("london", "weather");
@@ -223,37 +217,39 @@ class AiToolsTests {
                 .build();
 
         System.out.println("=== Advanced Tool Scenarios Test ===");
-        
+
         // Test sequential tool usage
         String response1 = assistant.chat("First multiply 12 by 7, then set an alarm for that time in military format");
         System.out.println("Sequential tools response: " + response1);
 
         // Test conditional tool usage
-        String response2 = assistant.chat("If today is a weekday, tell me the weather in Tokyo. Otherwise, calculate 50 divided by 2.");
+        String response2 = assistant.chat(
+                "If today is a weekday, tell me the weather in Tokyo. Otherwise, calculate 50 divided by 2.");
         System.out.println("Conditional tools response: " + response2);
 
         // Test tool chaining
-        String response3 = assistant.chat("Calculate what year it will be in 10 years, then set an alarm for midnight of that year");
+        String response3 = assistant.chat(
+                "Calculate what year it will be in 10 years, then set an alarm for midnight of that year");
         System.out.println("Tool chaining response: " + response3);
-        
+
         System.out.println("=".repeat(50));
 
         // Verify advanced scenarios work
-        assertAll("Advanced tool scenarios validation",
-            () -> assertNotNull(response1, "Sequential tools response should not be null"),
-            () -> assertNotNull(response2, "Conditional tools response should not be null"),
-            () -> assertNotNull(response3, "Tool chaining response should not be null"),
-            () -> assertFalse(response1.trim().isEmpty(), "Sequential tools response should not be empty"),
-            () -> assertFalse(response2.trim().isEmpty(), "Conditional tools response should not be empty"),
-            () -> assertFalse(response3.trim().isEmpty(), "Tool chaining response should not be empty")
-        );
+        assertAll(
+                "Advanced tool scenarios validation",
+                () -> assertNotNull(response1, "Sequential tools response should not be null"),
+                () -> assertNotNull(response2, "Conditional tools response should not be null"),
+                () -> assertNotNull(response3, "Tool chaining response should not be null"),
+                () -> assertFalse(response1.trim().isEmpty(), "Sequential tools response should not be empty"),
+                () -> assertFalse(response2.trim().isEmpty(), "Conditional tools response should not be empty"),
+                () -> assertFalse(response3.trim().isEmpty(), "Tool chaining response should not be empty"));
 
         // Verify complex interactions using AssertJ
         assertThat(response1)
                 .as("Sequential tool usage")
                 .containsAnyOf("84", "12", "7", "multiply", "alarm")
                 .hasSizeGreaterThan(15);
-                
+
         assertThat(response3)
                 .as("Tool chaining")
                 .containsAnyOf("2034", "2035", "10", "year", "alarm", "midnight")
@@ -280,7 +276,7 @@ class AiToolsTests {
                 .build();
 
         System.out.println("=== Tool Error Handling Test ===");
-        
+
         // Test division by zero handling
         String response1 = assistant.chat("What is 10 divided by 0?");
         System.out.println("Division by zero response: " + response1);
@@ -288,23 +284,23 @@ class AiToolsTests {
         // Test normal calculation for comparison
         String response2 = assistant.chat("What is 10 divided by 2?");
         System.out.println("Normal division response: " + response2);
-        
+
         System.out.println("=".repeat(50));
 
         // Verify error handling responses
-        assertAll("Tool error handling validation",
-            () -> assertNotNull(response1, "Division by zero response should not be null"),
-            () -> assertNotNull(response2, "Normal division response should not be null"),
-            () -> assertFalse(response1.trim().isEmpty(), "Division by zero response should not be empty"),
-            () -> assertFalse(response2.trim().isEmpty(), "Normal division response should not be empty")
-        );
+        assertAll(
+                "Tool error handling validation",
+                () -> assertNotNull(response1, "Division by zero response should not be null"),
+                () -> assertNotNull(response2, "Normal division response should not be null"),
+                () -> assertFalse(response1.trim().isEmpty(), "Division by zero response should not be empty"),
+                () -> assertFalse(response2.trim().isEmpty(), "Normal division response should not be empty"));
 
         // Verify error handling behavior using AssertJ
         assertThat(response1)
                 .as("Division by zero handling")
                 .containsAnyOf("error", "cannot", "zero", "undefined", "impossible")
                 .hasSizeGreaterThan(10);
-                
+
         assertThat(response2)
                 .as("Normal division result")
                 .containsAnyOf("5", "5.0", "five")

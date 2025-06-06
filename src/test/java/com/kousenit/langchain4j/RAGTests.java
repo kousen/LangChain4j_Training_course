@@ -1,5 +1,8 @@
 package com.kousenit.langchain4j;
 
+import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
+import static org.junit.jupiter.api.Assertions.*;
+
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentSplitter;
 import dev.langchain4j.data.document.loader.FileSystemDocumentLoader;
@@ -18,16 +21,12 @@ import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
-import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
-import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * Lab 9: Retrieval-Augmented Generation (RAG)
@@ -60,17 +59,16 @@ class RAGTests {
     void basicDocumentEmbedding() {
         // Create embedding model
         EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
-        
+
         // Create in-memory embedding store
         EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
 
         // Create some sample documents
         List<Document> documents = List.of(
-            Document.from("LangChain4j is a Java library for building AI applications."),
-            Document.from("It provides integration with various language models like OpenAI and Anthropic."),
-            Document.from("LangChain4j supports RAG, tools, memory, and streaming responses."),
-            Document.from("The library uses a builder pattern for configuration.")
-        );
+                Document.from("LangChain4j is a Java library for building AI applications."),
+                Document.from("It provides integration with various language models like OpenAI and Anthropic."),
+                Document.from("LangChain4j supports RAG, tools, memory, and streaming responses."),
+                Document.from("The library uses a builder pattern for configuration."));
 
         // Split documents into segments
         DocumentSplitter splitter = DocumentSplitters.recursive(100, 20);
@@ -81,21 +79,21 @@ class RAGTests {
         embeddingStore.addAll(embeddings, segments);
 
         System.out.printf("Embedded %d document segments%n", segments.size());
-        
+
         // Test similarity search
         String query = "What is LangChain4j?";
         Embedding queryEmbedding = embeddingModel.embed(query).content();
-        
-        List<EmbeddingMatch<TextSegment>> matches =
-                embeddingStore.search(EmbeddingSearchRequest.builder()
+
+        List<EmbeddingMatch<TextSegment>> matches = embeddingStore
+                .search(EmbeddingSearchRequest.builder()
                         .queryEmbedding(queryEmbedding)
                         .maxResults(2)
-                        .build()).matches();
+                        .build())
+                .matches();
 
         System.out.printf("Found %d relevant segments:%n", matches.size());
         matches.forEach(match ->
-                System.out.printf("- %s (score: %s)%n", match.embedded().text(), match.score())
-        );
+                System.out.printf("- %s (score: %s)%n", match.embedded().text(), match.score()));
 
         assertFalse(matches.isEmpty());
     }
@@ -122,23 +120,26 @@ class RAGTests {
 
         // Load and process documents
         List<Document> documents = List.of(
-            Document.from("""
+                Document.from(
+                        """
                 Java is a programming language and computing platform
                 first released by Sun Microsystems in 1995."""),
-            Document.from("""
+                Document.from(
+                        """
                 Java is object-oriented, class-based, and designed to
                 have as few implementation dependencies as possible."""),
-            Document.from("""
+                Document.from(
+                        """
                 Java applications are typically compiled to bytecode
                 that can run on any Java virtual machine (JVM)."""),
-            Document.from("""
+                Document.from(
+                        """
             Java is one of the most popular programming languages in use,
-            particularly for client-server web applications.""")
-        );
+            particularly for client-server web applications."""));
 
         DocumentSplitter splitter = DocumentSplitters.recursive(200, 50);
         List<TextSegment> segments = splitter.splitAll(documents);
-        
+
         List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
         embeddingStore.addAll(embeddings, segments);
 
@@ -163,7 +164,7 @@ class RAGTests {
         // Test RAG
         String question = "When was Java first released?";
         String answer = assistant.answer(question);
-        
+
         System.out.println("Question: " + question);
         System.out.println("Answer: " + answer);
 
@@ -184,9 +185,11 @@ class RAGTests {
     void ragWithFileDocuments() throws IOException {
         // Create a sample text file for testing
         Path tempFile = Files.createTempFile("sample", ".txt");
-        Files.writeString(tempFile, """
+        Files.writeString(
+                tempFile,
+                """
             LangChain4j is a powerful Java library for building applications with Large Language Models (LLMs).
-            
+
             Key features include:
             - Integration with multiple AI providers (OpenAI, Anthropic, etc.)
             - Support for chat memory and conversation context
@@ -194,7 +197,7 @@ class RAGTests {
             - Retrieval-Augmented Generation (RAG)
             - Streaming responses
             - Image and audio processing
-            
+
             The library follows modern Java practices and uses builder patterns for configuration.
             It provides both low-level and high-level APIs for different use cases.
             """);
@@ -210,10 +213,10 @@ class RAGTests {
 
             // Load document from file
             Document document = FileSystemDocumentLoader.loadDocument(tempFile);
-            
+
             DocumentSplitter splitter = DocumentSplitters.recursive(300, 50);
             List<TextSegment> segments = splitter.split(document);
-            
+
             List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
             embeddingStore.addAll(embeddings, segments);
 
@@ -233,12 +236,12 @@ class RAGTests {
                     .build();
 
             String answer = assistant.answer("What are the key features of LangChain4j?");
-            
+
             System.out.println("Answer based on document: " + answer);
-            
+
             assertNotNull(answer);
-            assertTrue(answer.toLowerCase().contains("langchain4j") || 
-                      answer.toLowerCase().contains("feature"));
+            assertTrue(answer.toLowerCase().contains("langchain4j")
+                    || answer.toLowerCase().contains("feature"));
 
         } finally {
             Files.deleteIfExists(tempFile);
@@ -266,14 +269,12 @@ class RAGTests {
 
         // Create documents with metadata
         List<Document> javaDocs = List.of(
-            Document.from("Java was created by James Gosling at Sun Microsystems."),
-            Document.from("Java uses automatic memory management with garbage collection.")
-        );
+                Document.from("Java was created by James Gosling at Sun Microsystems."),
+                Document.from("Java uses automatic memory management with garbage collection."));
 
         List<Document> pythonDocs = List.of(
-            Document.from("Python was created by Guido van Rossum in 1991."),
-            Document.from("Python uses reference counting for memory management.")
-        );
+                Document.from("Python was created by Guido van Rossum in 1991."),
+                Document.from("Python uses reference counting for memory management."));
 
         List<Document> allDocs = new ArrayList<>();
         allDocs.addAll(javaDocs);
@@ -281,7 +282,7 @@ class RAGTests {
 
         DocumentSplitter splitter = DocumentSplitters.recursive(200, 50);
         List<TextSegment> segments = splitter.splitAll(allDocs);
-        
+
         List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
         embeddingStore.addAll(embeddings, segments);
 
@@ -304,10 +305,10 @@ class RAGTests {
                 .build();
 
         String answer = assistant.answerAboutLanguage("Who created Java and when?");
-        
+
         System.out.println("Answer: " + answer);
         assertNotNull(answer);
-        assertTrue(answer.toLowerCase().contains("james gosling") || answer.toLowerCase().contains("sun"));
+        assertTrue(answer.toLowerCase().contains("james gosling")
+                || answer.toLowerCase().contains("sun"));
     }
-
 }
