@@ -9,5 +9,4 @@ import java.util.List;
  * This record demonstrates how LangChain4j can extract structured data
  * from AI responses and automatically map it to Java objects.
  */
-public record ActorFilms(String actor, List<String> movies) {
-}
+public record ActorFilms(String actor, List<String> movies) {}

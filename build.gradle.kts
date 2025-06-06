@@ -57,7 +57,7 @@ tasks.test {
 
 spotless {
     // Configure ratcheting to only format files changed from main branch
-    ratchetFrom("origin/main")
+    // ratchetFrom("origin/main")
 
     java {
         target("src/**/*.java")
