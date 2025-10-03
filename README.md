@@ -1,6 +1,6 @@
 # LangChain4j Training Course
 
-A hands-on training course for learning LangChain4j through progressive lab exercises.
+A hands-on training course for learning LangChain4j 1.7.1 through progressive lab exercises.
 
 ## Getting Started
 

@@ -2,7 +2,7 @@
 
 This series of labs will guide you through building LangChain4j applications that use various capabilities of large language models. By the end of these exercises, you'll have hands-on experience with text generation, structured data extraction, prompt templates, chat memory, vision capabilities, and more.
 
-> **Note:** This project uses LangChain4j 1.0.1. LangChain4j 1.0 includes significant API changes, including the new `ChatModel` interface (replacing `ChatLanguageModel`) and streamlined builder patterns.
+> **Note:** This project uses LangChain4j 1.7.1. LangChain4j 1.0+ includes significant API changes, including the new `ChatModel` interface (replacing `ChatLanguageModel`) and streamlined builder patterns. Version 1.7.1 adds support for class-based agents, ChromaDB API V2, enhanced MCP integration with Docker transport, and improved AI model integrations.
 
 ## Table of Contents
 
@@ -359,7 +359,7 @@ void advancedStructuredDataExtraction() {
 - Add Jackson dependency for JSON parsing: `com.fasterxml.jackson.core:jackson-databind`
 - Use wrapper records like `ActorFilmographies` for better parsing of collections
 - The `@SystemMessage`, `@UserMessage`, and `@V` annotations are from `dev.langchain4j.service`
-- Use `.chatModel()` method (not `.chatLanguageModel()`) in LangChain4j 1.0.1
+- Use `.chatModel()` method (not `.chatLanguageModel()`) in LangChain4j 1.0+
 
 [↑ Back to table of contents](#table-of-contents)
 
@@ -1395,6 +1395,8 @@ implementation("dev.langchain4j:langchain4j-google-ai-gemini")
 
 If this dependency is missing, add it and run `./gradlew build` to refresh dependencies.
 
+> **Note on Model Providers**: As of LangChain4j 1.7.1, HuggingFace chat and language models have been deprecated. Use OpenAI, Anthropic (Claude), or Google AI (Gemini) for production applications.
+
 ### 9.1 Basic Document Loading and Embedding
 
 Create a test that demonstrates document loading and embedding:
@@ -1653,7 +1655,7 @@ To use Chroma as a vector store, you need a running Chroma instance:
 docker run -p 8000:8000 chromadb/chroma:0.5.4
 ```
 
-**Important**: Use Chroma version 0.5.4 for compatibility with LangChain4j 1.0.1. This version provides stable API endpoints that work reliably with the current LangChain4j integration.
+**Important**: LangChain4j 1.7.1 supports ChromaDB API V2, providing enhanced compatibility with newer Chroma versions. While Chroma 0.5.4 remains stable and tested, you may also use newer Chroma versions that support API V2 for additional features and improvements.
 
 ### 10.1 Basic Chroma Vector Store Operations
 
@@ -1970,7 +1972,8 @@ private boolean isChromaAvailable() {
 ```
 
 **Important Notes for Lab 10:**
-- Uses Chroma version 0.5.4 for compatibility with LangChain4j 1.0.1
+- **Updated for LangChain4j 1.7.1**: Now supports ChromaDB API V2 for improved performance and features
+- Recommended Chroma version: 0.5.4+ (or latest stable) for compatibility with LangChain4j 1.7.1
 - Chroma provides excellent persistence without complex setup
 - Collection names use `randomUUID()` to avoid conflicts between test runs
 - The `isChromaAvailable()` helper method ensures tests only run when Chroma is accessible

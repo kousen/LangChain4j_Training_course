@@ -5,15 +5,15 @@ class: text-center
 highlighter: shiki
 lineNumbers: false
 info: |
-  ## LangChain4j Training Course
-  Learn to build AI-powered Java applications with LangChain4j
+  ## LangChain4j 1.7.1 Training Course
+  Learn to build AI-powered Java applications with LangChain4j 1.7.1
 drawings:
   persist: false
 transition: slide-left
-title: LangChain4j Training Course
+title: LangChain4j 1.7.1 Training Course
 ---
 
-# LangChain4j Training Course
+# LangChain4j 1.7.1 Training Course
 
 Building AI-Powered Java Applications
 
@@ -29,7 +29,7 @@ transition: fade-out
 
 # What is LangChain4j?
 
-LangChain4j is a Java library for building applications with Large Language Models (LLMs)
+LangChain4j 1.7.1 is a Java library for building applications with Large Language Models (LLMs)
 
 <div class="grid grid-cols-2 gap-4">
 
@@ -57,6 +57,50 @@ LangChain4j is a Java library for building applications with Large Language Mode
 - Active community
 - Extensive documentation
 
+</div>
+
+</div>
+
+---
+layout: two-cols
+---
+
+# What's New in 1.7.1?
+
+Latest enhancements and features
+
+::right::
+
+<div class="space-y-3 text-sm">
+
+<div v-click class="bg-blue-500 bg-opacity-20 p-3 rounded">
+<strong>🎯 Class-Based Agents</strong>
+<p class="text-xs mt-1">Create agents from classes, not just interfaces</p>
+</div>
+
+<div v-click class="bg-green-500 bg-opacity-20 p-3 rounded">
+<strong>🗄️ ChromaDB API V2</strong>
+<p class="text-xs mt-1">Enhanced vector store with improved performance</p>
+</div>
+
+<div v-click class="bg-purple-500 bg-opacity-20 p-3 rounded">
+<strong>🐳 Docker MCP Transport</strong>
+<p class="text-xs mt-1">Containerized MCP server integration</p>
+</div>
+
+<div v-click class="bg-orange-500 bg-opacity-20 p-3 rounded">
+<strong>🤖 Enhanced AI Models</strong>
+<p class="text-xs mt-1">OpenAI SDK v4.0, Anthropic custom params</p>
+</div>
+
+<div v-click class="bg-yellow-500 bg-opacity-20 p-3 rounded">
+<strong>📄 New Parsers</strong>
+<p class="text-xs mt-1">YAML documents, Oracle loader, GPU support</p>
+</div>
+
+<div v-click class="bg-red-500 bg-opacity-20 p-3 rounded">
+<strong>⚠️ HuggingFace Deprecated</strong>
+<p class="text-xs mt-1">Use OpenAI, Anthropic, or Google AI instead</p>
 </div>
 
 </div>
@@ -411,6 +455,46 @@ String answer = assistant.chat("What does the document say about X?");
 layout: two-cols
 ---
 
+# ChromaDB Vector Store (API V2)
+
+Production-ready vector database with enhanced performance
+
+::right::
+
+```java {all|1-6|8-14|16-22|all}
+// LangChain4j 1.7.1 supports ChromaDB API V2
+EmbeddingStore<TextSegment> store = ChromaEmbeddingStore.builder()
+    .baseUrl("http://localhost:8000")
+    .collectionName(randomUUID())
+    .logRequests(true)
+    .build();
+
+// Process documents
+List<Document> documents = loadDocuments();
+DocumentSplitter splitter = DocumentSplitters.recursive(300, 50);
+List<TextSegment> segments = splitter.splitAll(documents);
+
+List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
+store.addAll(embeddings, segments);
+
+// Query with semantic search
+Embedding queryEmbedding = embeddingModel.embed("search query").content();
+List<EmbeddingMatch<TextSegment>> matches = store.search(
+    EmbeddingSearchRequest.builder()
+        .queryEmbedding(queryEmbedding)
+        .maxResults(5)
+        .build()
+).matches();
+```
+
+<div v-click class="mt-4 p-3 bg-green-500 bg-opacity-20 rounded text-sm">
+🚀 <strong>API V2:</strong> Better performance, newer Chroma versions supported
+</div>
+
+---
+layout: two-cols
+---
+
 # Multimodal: Image Analysis
 
 Process and understand images with AI
@@ -527,35 +611,40 @@ Model Context Protocol for external tool integration
 
 ::right::
 
-```java {all|1-7|9-15|17-23|all}
-// Connect to MCP server (requires Node.js)
-// npx -y @modelcontextprotocol/server-everything
-McpClient mcpClient = new McpClient.Builder()
-    .executable("npx")
-    .arguments(List.of(
-        "-y", "@modelcontextprotocol/server-everything"
-    ))
+```java {all|1-7|9-15|17-25|all}
+// Option 1: stdio transport (npx)
+McpTransport transport = new StdioMcpTransport.Builder()
+    .command(List.of("npx", "-y",
+        "@modelcontextprotocol/server-everything"))
     .build();
 
-// Create AI service with MCP tools
+McpClient mcpClient = new DefaultMcpClient.Builder()
+    .transport(transport)
+    .build();
+
+// Option 2: NEW in 1.7.1 - Docker transport
+McpTransport dockerTransport = new DockerMcpTransport.Builder()
+    .image("mcp-server:latest")
+    .build();
+
+McpClient dockerClient = new DefaultMcpClient.Builder()
+    .transport(dockerTransport)
+    .build();
+
+// Create MCP tool provider
+McpToolProvider toolProvider = McpToolProvider.builder()
+    .mcpClients(mcpClient)
+    .build();
+
+// Use with AI services
 Assistant assistant = AiServices.builder(Assistant.class)
-    .chatLanguageModel(model)
-    .tools(mcpClient.listTools())
+    .chatModel(model)
+    .toolProvider(toolProvider)
     .build();
-
-// AI can now use external tools
-String result = assistant.chat(
-    "What's the weather like in San Francisco?"
-);
-
-// MCP handles the external API calls
-System.out.println(result);
-// "The weather in San Francisco is 72°F and sunny"
 ```
 
-<div v-click class="mt-4 text-sm text-gray-400">
-<p>🔧 Access to external APIs and services</p>
-<p>🌐 Standardized tool integration protocol</p>
+<div v-click class="mt-4 p-3 bg-purple-500 bg-opacity-20 rounded text-sm">
+🐳 <strong>1.7.1 NEW:</strong> Docker transport for containerized MCP servers
 </div>
 
 ---
@@ -564,7 +653,7 @@ layout: two-cols
 
 # Production Considerations
 
-Real-world deployment best practices
+Real-world deployment best practices (LangChain4j 1.7.1)
 
 ::right::
 
@@ -583,19 +672,23 @@ ChatResponse response = model.chat("Hello");
 TokenUsage usage = response.tokenUsage();
 System.out.println("Input tokens: " + usage.inputTokenCount());
 System.out.println("Output tokens: " + usage.outputTokenCount());
-System.out.println("Total cost: $" + 
+System.out.println("Total cost: $" +
     calculateCost(usage.totalTokenCount()));
 
-// Caching for embeddings (Redis example)
-EmbeddingStore<TextSegment> store = RedisEmbeddingStore.builder()
-    .host("localhost")
-    .port(6379)
+// Vector stores: ChromaDB (API V2 in 1.7.1)
+EmbeddingStore<TextSegment> store = ChromaEmbeddingStore.builder()
+    .baseUrl("http://localhost:8000")
+    .collectionName("production-embeddings")
     .dimension(384) // Match your embedding model
     .build();
 ```
 
 <div v-click class="mt-4 p-3 bg-red-500 bg-opacity-20 rounded text-sm">
 ⚠️ <strong>Security:</strong> Never log API keys, validate inputs, rate limit
+</div>
+
+<div v-click class="mt-2 p-3 bg-yellow-500 bg-opacity-20 rounded text-sm">
+⚠️ <strong>Deprecated:</strong> HuggingFace models - use OpenAI/Anthropic/Google AI
 </div>
 
 ---
@@ -662,10 +755,11 @@ layout: two-cols
 - [GitHub Repository](https://github.com/langchain4j/langchain4j)
 - [Examples](https://github.com/langchain4j/langchain4j-examples)
 
-## 🛠️ This Course
+## 🛠️ This Course (v1.7.1)
 - Main branch: Starter code
 - Solutions branch: Complete implementations
 - Labs.md: Step-by-step guide
+- UPGRADE_NOTES_1.7.1.md: What's new
 
 </div>
 
@@ -679,12 +773,15 @@ layout: two-cols
 - Monitor token usage
 - Cache embeddings when possible
 - Test with different models
+- Use ChromaDB API V2 for production
 
 ## 💡 Tips
 - Start simple, iterate
 - Read the JavaDocs
 - Check the examples repo
 - Join the community
+- Explore class-based agents (1.7.1)
+- Try Docker MCP transport
 
 </div>
 

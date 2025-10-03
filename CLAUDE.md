@@ -6,6 +6,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **hands-on training course** for learning LangChain4j through progressive lab exercises. The repository is structured as a proper training course where students build functionality incrementally.
 
+### LangChain4j 1.7.1 New Features
+
+This course has been updated to LangChain4j 1.7.1, which includes:
+
+1. **Class-Based Agents**: Create agents using classes in addition to interfaces, providing more flexibility in agent design
+2. **ChromaDB API V2**: Enhanced vector store support with improved performance and compatibility with newer Chroma versions
+3. **Docker MCP Transport**: New containerized approach for MCP server integration alongside existing npx/stdio transport
+4. **Enhanced AI Model Support**:
+   - OpenAI SDK upgraded to v4.0.0
+   - Custom parameter support for Anthropic models
+   - maxCompletionTokens support for Azure OpenAI
+5. **New Document Parsers**: YAML document parser and Oracle Document Loader
+6. **HuggingFace Deprecation**: HuggingFace chat/language models deprecated (use OpenAI, Anthropic, or Google AI instead)
+7. **GPU Support**: TornadoVM integration for GPU-accelerated operations
+
 ### Repository Structure
 
 - **`main` branch**: Starter code with TODO-guided exercises for students
@@ -13,7 +28,7 @@ This is a **hands-on training course** for learning LangChain4j through progress
 - **Test classes**: Contain TODO comments guiding students through implementation
 - **Example classes**: Skeleton implementations with TODO instructions
 
-The course demonstrates integration of Large Language Models (LLMs) with Java applications using the LangChain4j library (version 1.0.1), covering:
+The course demonstrates integration of Large Language Models (LLMs) with Java applications using the LangChain4j library (version 1.7.1), covering:
 
 - Text generation and chat capabilities
 - Structured data extraction  
@@ -394,6 +409,7 @@ This pattern is **essential for production conversational AI applications**.
   - Shared MCP client pattern for optimal test performance
   - Tool name conflict resolution (avoid CalculatorTool with MCP servers)
   - Prerequisites: Node.js/npm (not Docker)
+  - **LangChain4j 1.7.1 Enhancement**: Adds Docker MCP transport support for containerized MCP servers
 
 ### Future Considerations  
 - **Multimodal capabilities**: ✅ Lab 7 complete - includes:
