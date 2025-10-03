@@ -610,52 +610,35 @@ EmbeddingStore<TextSegment> store = ChromaEmbeddingStore.builder()
 </div>
 
 ---
-layout: fact
+layout: two-cols
 ---
 
-# Complete Lab Progression
+# Lab Progression
 
-10 hands-on labs covering all LangChain4j capabilities
+10 hands-on labs
 
-<div class="grid grid-cols-2 gap-6 mt-8 text-sm">
+::right::
 
-<div v-click class="space-y-3">
-<div class="bg-blue-500 bg-opacity-20 p-3 rounded">
-<h4 class="font-bold mb-2">🚀 Foundation (Labs 1-3)</h4>
-<ul class="space-y-1">
-<li>• Lab 1: Basic Chat Interactions</li>
-<li>• Lab 2: Streaming Responses</li>
-<li>• Lab 3: Structured Data Extraction</li>
-</ul>
+<div class="space-y-3 text-sm mt-4">
+
+<div v-click class="bg-blue-500 bg-opacity-20 p-2 rounded">
+<strong>🚀 Foundation</strong>
+<p class="text-xs">Labs 1-3: Chat, Streaming, Extraction</p>
 </div>
 
-<div class="bg-green-500 bg-opacity-20 p-3 rounded">
-<h4 class="font-bold mb-2">🧠 Services & Memory (Labs 4-5)</h4>
-<ul class="space-y-1">
-<li>• Lab 4: AI Services Interface</li>
-<li>• Lab 5: Chat Memory</li>
-</ul>
-</div>
+<div v-click class="bg-green-500 bg-opacity-20 p-2 rounded">
+<strong>🧠 Services & Memory</strong>
+<p class="text-xs">Labs 4-5: AI Services, Chat Memory</p>
 </div>
 
-<div v-click class="space-y-3">
-<div class="bg-purple-500 bg-opacity-20 p-3 rounded">
-<h4 class="font-bold mb-2">🛠️ Tools & Integration (Labs 6-8)</h4>
-<ul class="space-y-1">
-<li>• Lab 6: AI Tools (Function Calling)</li>
-<li>• Lab 6.5: MCP Integration</li>
-<li>• Lab 7: Multimodal (Vision & Audio)</li>
-<li>• Lab 8: Image Generation</li>
-</ul>
+<div v-click class="bg-purple-500 bg-opacity-20 p-2 rounded">
+<strong>🛠️ Tools & Integration</strong>
+<p class="text-xs">Labs 6-8: Function Calling, MCP, Multimodal</p>
 </div>
 
-<div class="bg-orange-500 bg-opacity-20 p-3 rounded">
-<h4 class="font-bold mb-2">📚 RAG Implementation (Labs 9-10)</h4>
-<ul class="space-y-1">
-<li>• Lab 9: Retrieval-Augmented Generation</li>
-<li>• Lab 10: Chroma Vector Store for RAG</li>
-</ul>
-</div>
+<div v-click class="bg-orange-500 bg-opacity-20 p-2 rounded">
+<strong>📚 RAG Implementation</strong>
+<p class="text-xs">Labs 9-10: RAG, Vector Stores</p>
 </div>
 
 </div>
@@ -666,40 +649,68 @@ layout: two-cols
 
 # Resources
 
-<div class="mt-8">
-
-## 📚 Documentation
-- [LangChain4j Docs](https://docs.langchain4j.dev)
-- [GitHub Repository](https://github.com/langchain4j/langchain4j)
-- [Examples](https://github.com/langchain4j/langchain4j-examples)
-
-## 🛠️ This Course (v1.7.1)
-- Main branch: Starter code
-- Solutions branch: Complete implementations
-- Labs.md: Step-by-step guide
-- UPGRADE_NOTES_1.7.1.md: What's new
-
-</div>
+Documentation and course materials
 
 ::right::
 
-<div class="mt-8">
+<div class="mt-4 space-y-4 text-sm">
 
-## 🎯 Best Practices
-- Use environment variables for API keys
-- Implement proper error handling
-- Monitor token usage
-- Cache embeddings when possible
-- Test with different models
-- Use ChromaDB API V2 for production
+<div v-click class="bg-blue-500 bg-opacity-20 p-3 rounded">
+<strong>📚 Documentation</strong>
+<ul class="text-xs mt-1 space-y-1">
+<li>• [LangChain4j Docs](https://docs.langchain4j.dev)</li>
+<li>• [GitHub Repository](https://github.com/langchain4j/langchain4j)</li>
+<li>• [Examples](https://github.com/langchain4j/langchain4j-examples)</li>
+</ul>
+</div>
 
-## 💡 Tips
-- Start simple, iterate
-- Read the JavaDocs
-- Check the examples repo
-- Join the community
-- Explore class-based agents (1.7.1)
-- Try Docker MCP transport
+<div v-click class="bg-green-500 bg-opacity-20 p-3 rounded">
+<strong>🛠️ This Course (v1.7.1)</strong>
+<ul class="text-xs mt-1 space-y-1">
+<li>• Main branch: Starter code</li>
+<li>• Solutions branch: Complete implementations</li>
+<li>• Labs.md: Step-by-step guide</li>
+<li>• UPGRADE_NOTES_1.7.1.md: What's new</li>
+</ul>
+</div>
+
+</div>
+
+---
+layout: two-cols
+---
+
+# Best Practices
+
+Tips for production use
+
+::right::
+
+<div class="mt-4 space-y-4 text-sm">
+
+<div v-click class="bg-purple-500 bg-opacity-20 p-3 rounded">
+<strong>🎯 Best Practices</strong>
+<ul class="text-xs mt-1 space-y-1">
+<li>• Use environment variables for API keys</li>
+<li>• Implement proper error handling</li>
+<li>• Monitor token usage</li>
+<li>• Cache embeddings when possible</li>
+<li>• Test with different models</li>
+<li>• Use ChromaDB API V2 for production</li>
+</ul>
+</div>
+
+<div v-click class="bg-orange-500 bg-opacity-20 p-3 rounded">
+<strong>💡 Tips</strong>
+<ul class="text-xs mt-1 space-y-1">
+<li>• Start simple, iterate</li>
+<li>• Read the JavaDocs</li>
+<li>• Check the examples repo</li>
+<li>• Join the community</li>
+<li>• Explore class-based agents (1.7.1)</li>
+<li>• Try Docker MCP transport</li>
+</ul>
+</div>
 
 </div>
 
