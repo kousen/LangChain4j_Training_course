@@ -134,7 +134,7 @@ Basic interaction with OpenAI's GPT model (LangChain4j 1.0+)
 void simpleQuery() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
     
     String response = model.chat(
@@ -149,7 +149,7 @@ void simpleQuery() {
 <div v-after class="text-sm mt-4 text-gray-400">
 <p v-click="4">✨ ChatModel interface (LangChain4j 1.0+)</p>
 <p v-click="5">✨ Simple chat() method</p>
-<p v-click="6">✨ GPT_4_1_NANO constant</p>
+<p v-click="6">✨ GPT_5_NANO constant</p>
 </div>
 
 ---
@@ -167,7 +167,7 @@ Change AI behavior with system instructions
 void simpleQueryWithSystemMessage() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     SystemMessage systemMessage = SystemMessage.from(
@@ -459,7 +459,7 @@ Process images with AI
 ```java {all|1-3|5-9|all}
 // Vision model
 ChatModel model = OpenAiChatModel.builder()
-    .modelName(GPT_4_1_MINI)
+    .modelName(GPT_5)
     .build();
 
 // Analyze image
@@ -579,7 +579,7 @@ Real-world deployment best practices (LangChain4j 1.7.1)
 // Error handling and retries
 ChatModel model = OpenAiChatModel.builder()
         .apiKey(System.getenv("OPENAI_API_KEY"))
-        .modelName(GPT_4_1_NANO)
+        .modelName(GPT_5_NANO)
         .maxRetries(3)
         .logRequests(true)
         .logResponses(true)

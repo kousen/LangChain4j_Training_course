@@ -49,7 +49,7 @@ void simpleQuery() {
     // Create OpenAI chat model using builder pattern
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     // Send a user message and get the response
@@ -70,7 +70,7 @@ Modify the previous test to include a system message that changes the model's be
 void simpleQueryWithSystemMessage() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     // Create system and user messages
@@ -93,7 +93,7 @@ Create a test that retrieves and displays the full `ChatResponse` object with me
 void simpleQueryWithMetadata() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     UserMessage userMessage = UserMessage.from("Why is the sky blue?");
@@ -121,7 +121,7 @@ Create a test that streams the response using LangChain4j's streaming capabiliti
 void streamingChat() throws InterruptedException {
     StreamingChatModel model = OpenAiStreamingChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     String userMessage = "Tell me a story about a brave robot.";
@@ -163,7 +163,7 @@ Create a test that demonstrates streaming with conversation context:
 void streamingWithContext() throws InterruptedException {
     StreamingChatModel model = OpenAiStreamingChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     SystemMessage systemMessage = SystemMessage.from("You are a helpful coding assistant.");
@@ -218,7 +218,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 void extractActorFilms() throws JsonProcessingException {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .responseFormat("json_object")
             .build();
 
@@ -268,7 +268,7 @@ interface ActorService {
 void extractActorFilmsWithAiServices() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     ActorService service = AiServices.builder(ActorService.class)
@@ -296,7 +296,7 @@ Test extracting multiple structured entities using the wrapper record pattern:
 void extractMultipleActorFilmographies() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     ActorService service = AiServices.builder(ActorService.class)
@@ -340,7 +340,7 @@ interface AdvancedActorService {
 void advancedStructuredDataExtraction() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     AdvancedActorService service = AiServices.builder(AdvancedActorService.class)
@@ -391,7 +391,7 @@ Create a test that uses the `AiServices` to implement the interface:
 void useFilmographyService() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     FilmographyService service = AiServices.builder(FilmographyService.class)
@@ -425,7 +425,7 @@ interface PersonalAssistant {
 void personalAssistantWithMemoryAndTools() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
@@ -470,8 +470,7 @@ interface DocumentAnalyzer {
 void advancedServiceConfiguration() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
-            .temperature(0.3)  // Lower temperature for more consistent analysis
+            .modelName(GPT_5_NANO)
             .build();
 
     DocumentAnalyzer analyzer = AiServices.builder(DocumentAnalyzer.class)
@@ -512,7 +511,7 @@ All requests to AI models are stateless by default. Create a test that demonstra
 void defaultRequestsAreStateless() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     System.out.println("First interaction:");
@@ -538,7 +537,7 @@ Use LangChain4j's `ChatMemory` to maintain conversation state:
 void requestsWithMemory() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
@@ -574,11 +573,11 @@ LangChain4j provides different memory implementations:
 void differentMemoryTypes() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     // Token-based memory - limits based on token count
-    ChatMemory tokenMemory = TokenWindowChatMemory.withMaxTokens(1000, new OpenAiTokenizer(GPT_4_1_NANO));
+    ChatMemory tokenMemory = TokenWindowChatMemory.withMaxTokens(1000, new OpenAiTokenizer(GPT_5_NANO));
     
     // Message-based memory - limits based on message count
     ChatMemory messageMemory = MessageWindowChatMemory.withMaxMessages(5);
@@ -611,7 +610,7 @@ interface AssistantWithMemory {
 void aiServicesWithMemory() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
@@ -701,7 +700,7 @@ interface Assistant {
 void useToolsWithAiServices() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     Assistant assistant = AiServices.builder(Assistant.class)
@@ -732,7 +731,7 @@ Use the provided `WeatherTool` to demonstrate how tools can accept parameters:
 void useWeatherTool() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     Assistant assistant = AiServices.builder(Assistant.class)
@@ -756,7 +755,7 @@ Use multiple provided tools together (`DateTimeTool`, `CalculatorTool`, and `Wea
 void useMultipleTools() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     Assistant assistant = AiServices.builder(Assistant.class)
@@ -803,7 +802,7 @@ Create a new test class `McpIntegrationTests.java` and implement the following e
 - No need for server availability checks - npx handles this
 
 **Exercise 6.5.2:** Create `mcpToolsWithAiServices()` test method  
-- Set up ChatModel with OpenAI GPT-4-1-Nano
+- Set up ChatModel with OpenAI GPT-5-Nano
 - Create MCP client using stdio transport approach
 - Build `McpToolProvider` from the MCP client
 - Create AI assistant interface and build service with `.toolProvider()`
@@ -833,12 +832,12 @@ Create a new test class `McpIntegrationTests.java` and implement the following e
 
 ## Lab 7: Multimodal Capabilities
 
-Multimodal capabilities allow AI models to analyze and understand both images and audio. This lab demonstrates how to use GPT-4 with multimodal content to process images and audio files using LangChain4j.
+Multimodal capabilities allow AI models to analyze and understand both images and audio. This lab demonstrates how to use GPT-5 with multimodal content to process images and audio files using LangChain4j.
 
 **Prerequisites:** 
 - An image file `bowl_of_fruit.jpg` in `src/main/resources/`
 - An audio file `tftjs.mp3` in `src/main/resources/`
-- OpenAI API key with access to GPT-4 vision models
+- OpenAI API key with access to GPT-5 vision models
 - Google AI API key for audio processing with Gemini models
 
 **Lab Structure:**
@@ -855,10 +854,10 @@ Create a test that analyzes a local image file:
 ```java
 @Test
 void localImageAnalysis() throws IOException {
-    // Create GPT-4 model with vision capabilities
+    // Create GPT-5 model with vision capabilities
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_MINI)
+            .modelName(GPT_5)
             .build();
 
     // Load image from resources with null check
@@ -905,10 +904,10 @@ Create a test that analyzes an image from a remote URL:
 ```java
 @Test
 void remoteImageAnalysis() {
-    // Create GPT-4 Vision model
+    // Create GPT-5 Vision model
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_MINI)
+            .modelName(GPT_5)
             .build();
 
     // Use a publicly available image URL
@@ -1029,10 +1028,10 @@ record ImageAnalysisResult(
 
 @Test
 void structuredImageAnalysis() throws IOException {
-    // Create GPT-4 Vision model
+    // Create GPT-5 Vision model
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_MINI)
+            .modelName(GPT_5)
             .build();
 
     // Create detailed analyst service
@@ -1097,7 +1096,7 @@ void structuredImageAnalysis() throws IOException {
 ```
 
 **Important Notes for Lab 7:**
-- Uses GPT-4-1-Mini model for vision capabilities (Tests 7.1, 7.2, 7.4)
+- Uses GPT-5 model for vision capabilities (Tests 7.1, 7.2, 7.4)
 - Uses Google Gemini model for audio processing (Test 7.3)
 - Demonstrates both ImageContent and AudioContent classes for multimodal processing
 - Includes proper null checks for resource loading to avoid NullPointerException
@@ -1453,7 +1452,7 @@ void ragWithContentRetriever() {
     // Set up models
     ChatModel chatModel = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
@@ -1530,7 +1529,7 @@ void ragWithFileDocuments() throws IOException {
     try {
         ChatModel chatModel = OpenAiChatModel.builder()
                 .apiKey(System.getenv("OPENAI_API_KEY"))
-                .modelName(GPT_4_1_NANO)
+                .modelName(GPT_5_NANO)
                 .build();
 
         EmbeddingModel embeddingModel = AllMiniLmL6V2EmbeddingModel.builder().build();
@@ -1583,7 +1582,7 @@ Create a more advanced RAG system that uses metadata for filtering:
 void ragWithMetadataFiltering() {
     ChatModel chatModel = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
+            .modelName(GPT_5_NANO)
             .build();
 
     EmbeddingModel embeddingModel = AllMiniLmL6V2EmbeddingModel.builder().build();
@@ -1754,8 +1753,7 @@ void productionRagSystem() {
     // Configure models with production settings
     ChatModel chatModel = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
-            .temperature(0.1) // Lower temperature for consistent responses
+            .modelName(GPT_5_NANO)
             .maxTokens(500)
             .build();
 
@@ -1857,8 +1855,7 @@ void ragWithDocumentParsing() {
     // Configure models for document processing
     ChatModel chatModel = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
-            .temperature(0.2) // Slightly higher for more natural responses
+            .modelName(GPT_5_NANO)
             .maxTokens(600)
             .build();
 
