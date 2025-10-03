@@ -987,6 +987,167 @@ McpToolProvider toolProvider = McpToolProvider.builder()
 
 ---
 layout: image-right
+image: https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920
+backgroundSize: cover
+---
+
+# Lab 6.6: Multi-Agent Systems
+
+<div class="text-center mt-20">
+  <h2 class="text-4xl font-bold text-white bg-black bg-opacity-60 px-6 py-3 rounded-lg">
+    Agent Orchestration
+  </h2>
+  <p class="text-xl text-white bg-black bg-opacity-60 px-4 py-2 rounded mt-4">
+    NEW in 1.7.1
+  </p>
+</div>
+
+---
+
+# Multi-Agent Systems
+
+Coordinate multiple specialized agents
+
+```java {all|1-4|6-9|11-14|all}
+// Define specialized agents
+interface ResearchAgent {
+    @SystemMessage("You are a research specialist.")
+    String research(@UserMessage String topic);
+}
+
+interface WriterAgent {
+    @SystemMessage("You are a creative writer.")
+    String write(@UserMessage String research);
+}
+
+// Execute agents in sequence
+String research = researcher.research("AI agents");
+String article = writer.write(research);
+```
+
+---
+
+# Sequential Agent Workflow
+
+Build agent pipelines
+
+```java
+// Create specialized agents
+ResearchAgent researcher = AiServices.builder(ResearchAgent.class)
+    .chatModel(model)
+    .build();
+
+WriterAgent writer = AiServices.builder(WriterAgent.class)
+    .chatModel(model)
+    .build();
+
+// Chain agents together
+String topic = "LangChain4j multi-agent systems";
+String research = researcher.research(topic);
+String article = writer.write(research);
+```
+
+<div v-click class="mt-2 text-sm text-gray-400">
+<p>🔗 Each agent is independent and specialized</p>
+</div>
+
+---
+
+# Structured Agent Output
+
+Agents returning complex data
+
+```java {all|1-5|7-10|12-15|all}
+record ResearchFindings(
+    String topic,
+    List<String> keyPoints,
+    String summary
+) {}
+
+interface StructuredResearchAgent {
+    @SystemMessage("You are a research analyst.")
+    ResearchFindings analyze(@UserMessage String topic);
+}
+
+StructuredResearchAgent agent =
+    AiServices.builder(StructuredResearchAgent.class)
+        .chatModel(model)
+        .build();
+
+ResearchFindings findings = agent.analyze("Multi-agent AI");
+```
+
+---
+
+# Advanced Agent Patterns
+
+Official LangChain4j Tutorial covers:
+
+<div class="grid grid-cols-2 gap-4 text-sm mt-4">
+
+<div v-click class="bg-blue-500 bg-opacity-20 p-3 rounded">
+<strong>🔄 Sequential Workflows</strong>
+<p class="text-xs mt-1">Typed and untyped chains</p>
+</div>
+
+<div v-click class="bg-green-500 bg-opacity-20 p-3 rounded">
+<strong>🔁 Loop Workflows</strong>
+<p class="text-xs mt-1">Exit conditions and state</p>
+</div>
+
+<div v-click class="bg-purple-500 bg-opacity-20 p-3 rounded">
+<strong>⚡ Parallel Execution</strong>
+<p class="text-xs mt-1">Concurrent agents</p>
+</div>
+
+<div v-click class="bg-orange-500 bg-opacity-20 p-3 rounded">
+<strong>🎯 Conditional Workflows</strong>
+<p class="text-xs mt-1">Score-based branching</p>
+</div>
+
+<div v-click class="bg-yellow-500 bg-opacity-20 p-3 rounded">
+<strong>👔 Supervisor Orchestration</strong>
+<p class="text-xs mt-1">Meta-agent coordination</p>
+</div>
+
+<div v-click class="bg-red-500 bg-opacity-20 p-3 rounded">
+<strong>👤 Human-in-the-Loop</strong>
+<p class="text-xs mt-1">Interactive validation</p>
+</div>
+
+</div>
+
+<div v-click class="mt-4 p-3 bg-blue-500 bg-opacity-20 rounded text-sm">
+📚 <strong>Full Tutorial:</strong> <a href="https://github.com/langchain4j/langchain4j-examples/tree/main/agentic-tutorial">LangChain4j Agentic Examples</a>
+</div>
+
+---
+
+# AgenticServices API
+
+Advanced orchestration framework
+
+```java
+// Example: Parallel agent execution
+UntypedAgent workflow = AgenticServices
+    .parallelBuilder()
+    .subAgents(
+        ResearchAgent.class,
+        AnalysisAgent.class,
+        SummaryAgent.class
+    )
+    .build();
+
+// Execute workflow
+Map<String, Object> results = workflow.execute(input);
+```
+
+<div v-click class="mt-4 p-3 bg-purple-500 bg-opacity-20 rounded text-sm">
+💡 <strong>Lab 6.6 covers basics</strong> - See official tutorial for AgenticServices patterns
+</div>
+
+---
+layout: image-right
 image: https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=1920
 backgroundSize: cover
 ---
