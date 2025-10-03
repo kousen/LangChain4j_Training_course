@@ -43,3 +43,5 @@ bin/
 
 ### Node.js (for slides) ###
 node_modules/
+slides/package-lock.json
+slides/package.json
