@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
     // LangChain4j BOM for version management
-    implementation(platform("dev.langchain4j:langchain4j-bom:1.0.1"))
+    implementation(platform("dev.langchain4j:langchain4j-bom:1.7.1"))
 
     // Core LangChain4j
     implementation("dev.langchain4j:langchain4j")

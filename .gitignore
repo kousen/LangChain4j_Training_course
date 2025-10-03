@@ -42,4 +42,5 @@ bin/
 .claude/
 
 ### Slides ###
-slides/
+# slides/ - Uncommented to track slides in git again
+slides/node_modules/
