@@ -916,18 +916,20 @@ Assistant ai = AiServices.builder(Assistant.class)
 
 # MCP Architecture
 
+<div class="scale-75 origin-top">
+
 ```mermaid
 flowchart TB
-    App[Your Java App] --> MCP[MCP Client]
-    MCP --> Stdio[Stdio Transport]
-    MCP --> Docker[Docker Transport]
+    App[Java App] --> MCP[MCP Client]
+    MCP --> Stdio[Stdio]
+    MCP --> Docker[Docker]
 
-    Stdio --> NPX[npx MCP Server]
-    Docker --> Container[Docker Container]
+    Stdio --> NPX[npx Server]
+    Docker --> Container[Container]
 
-    NPX --> Tools1[File Tools]
-    NPX --> Tools2[Database Tools]
-    Container --> Tools3[API Tools]
+    NPX --> Tools1[Files]
+    NPX --> Tools2[Database]
+    Container --> Tools3[API]
 
     style App fill:#4ECDC4,stroke:#333,stroke-width:2px,color:#000
     style MCP fill:#FF6B6B,stroke:#333,stroke-width:2px,color:#000
@@ -939,6 +941,8 @@ flowchart TB
     style Tools2 fill:#FFF3E0,stroke:#333,stroke-width:2px,color:#000
     style Tools3 fill:#FFF3E0,stroke:#333,stroke-width:2px,color:#000
 ```
+
+</div>
 
 ---
 
@@ -1706,37 +1710,32 @@ Protect sensitive data
 
 # Monitoring and Observability
 
-Track AI performance
+Track AI performance with AOP
 
 ```java
 @Aspect
 @Component
 public class AiMonitoringAspect {
-
     @Around("@annotation(Tool)")
     public Object monitorToolExecution(ProceedingJoinPoint pjp) {
-        long startTime = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
         try {
             Object result = pjp.proceed();
-            long duration = System.currentTimeMillis() - startTime;
-
-            metrics.recordToolExecution(
-                pjp.getSignature().getName(),
-                duration,
-                "success"
-            );
+            metrics.record(pjp.getSignature().getName(),
+                System.currentTimeMillis() - start, "success");
             return result;
         } catch (Throwable e) {
-            metrics.recordToolExecution(
-                pjp.getSignature().getName(),
-                System.currentTimeMillis() - startTime,
-                "error"
-            );
+            metrics.record(pjp.getSignature().getName(),
+                System.currentTimeMillis() - start, "error");
             throw e;
         }
     }
 }
 ```
+
+<div v-click class="mt-2 text-sm text-gray-400">
+<p>📊 Track execution time and success rates</p>
+</div>
 
 ---
 
