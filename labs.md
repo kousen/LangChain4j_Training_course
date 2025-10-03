@@ -14,6 +14,7 @@ This series of labs will guide you through building LangChain4j applications tha
 - [Lab 5: Chat Memory](#lab-5-chat-memory)
 - [Lab 6: AI Tools](#lab-6-ai-tools)
 - [Lab 6.5: MCP Integration](#lab-65-mcp-integration)
+- [Lab 6.6: Multi-Agent Systems (AgenticServices)](#lab-66-multi-agent-systems-agenticservices)
 - [Lab 7: Multimodal Capabilities](#lab-7-multimodal-capabilities)
 - [Lab 8: Image Generation](#lab-8-image-generation)
 - [Lab 9: Retrieval-Augmented Generation (RAG)](#lab-9-retrieval-augmented-generation-rag)
@@ -827,6 +828,175 @@ Create a new test class `McpIntegrationTests.java` and implement the following e
 - MCP enables access to external tools beyond local @Tool methods
 - The "everything" server provides various demo tools via npx stdio
 - **Tool Name Conflicts**: Avoid using CalculatorTool with MCP servers as they may provide conflicting tool names (e.g., "add"). Use DateTimeTool instead for hybrid testing.
+
+[↑ Back to table of contents](#table-of-contents)
+
+## Lab 6.6: Multi-Agent Systems (AgenticServices)
+
+**NEW in LangChain4j 1.7.1**: Multi-agent orchestration allows you to build complex AI workflows by coordinating multiple specialized agents. This lab introduces the `AgenticServices` API for creating sequential, parallel, and conditional agent workflows.
+
+**Prerequisites:**
+- Understanding of AI Services from Lab 4
+- Understanding of Tools from Lab 6
+- OpenAI API key for testing agent interactions
+
+**Lab Overview:**
+This is an **introductory lab** that demonstrates the basics of multi-agent systems. For comprehensive coverage of sequential workflows, loops, parallel execution, supervisors, and human-in-the-loop patterns, see the official [LangChain4j Agentic Tutorial](https://github.com/langchain4j/langchain4j-examples/tree/main/agentic-tutorial/src/main/java).
+
+**Lab Structure:**
+This lab includes 2 introductory exercises:
+1. **Basic Sequential Agent Workflow** - Chain multiple agents together
+2. **Agent with Different Output Types** - Structured agent outputs
+
+### 6.6.1 Basic Sequential Agent Workflow
+
+Create a test that demonstrates a simple multi-agent workflow where agents execute in sequence:
+
+```java
+@Test
+void basicSequentialAgentWorkflow() {
+    // Define specialized agents as interfaces
+    interface ResearchAgent {
+        @SystemMessage("You are a research specialist. Gather key facts about the topic.")
+        String research(@UserMessage String topic);
+    }
+
+    interface WriterAgent {
+        @SystemMessage("You are a creative writer. Write a brief summary based on the research.")
+        String write(@UserMessage String research);
+    }
+
+    // Create chat model
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_5_NANO)
+            .build();
+
+    // Build the research agent
+    ResearchAgent researcher = AiServices.builder(ResearchAgent.class)
+            .chatModel(model)
+            .build();
+
+    // Build the writer agent
+    WriterAgent writer = AiServices.builder(WriterAgent.class)
+            .chatModel(model)
+            .build();
+
+    System.out.println("=== Sequential Agent Workflow ===");
+
+    // Execute agents in sequence
+    String topic = "LangChain4j multi-agent systems";
+    System.out.println("Topic: " + topic);
+
+    String research = researcher.research(topic);
+    System.out.println("\n--- Research Output ---");
+    System.out.println(research);
+
+    String article = writer.write(research);
+    System.out.println("\n--- Writer Output ---");
+    System.out.println(article);
+
+    // Verify outputs
+    assertAll("Sequential agent workflow",
+        () -> assertNotNull(research, "Research should not be null"),
+        () -> assertFalse(research.trim().isEmpty(), "Research should not be empty"),
+        () -> assertNotNull(article, "Article should not be null"),
+        () -> assertFalse(article.trim().isEmpty(), "Article should not be empty")
+    );
+}
+```
+
+### 6.6.2 Agent with Structured Output
+
+Create a test demonstrating agents that return structured data:
+
+```java
+@Test
+void agentWithStructuredOutput() {
+    // Define structured output types
+    record ResearchFindings(
+        String topic,
+        List<String> keyPoints,
+        String summary
+    ) {}
+
+    // Define agent with structured output
+    interface StructuredResearchAgent {
+        @SystemMessage("You are a research analyst. Extract key information about the topic.")
+        ResearchFindings analyze(@UserMessage String topic);
+    }
+
+    // Create chat model
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_5_NANO)
+            .build();
+
+    // Build agent
+    StructuredResearchAgent agent = AiServices.builder(StructuredResearchAgent.class)
+            .chatModel(model)
+            .build();
+
+    System.out.println("=== Structured Agent Output ===");
+
+    // Execute agent
+    String topic = "Benefits of multi-agent AI systems";
+    ResearchFindings findings = agent.analyze(topic);
+
+    // Display structured output
+    System.out.println("Topic: " + findings.topic());
+    System.out.println("\nKey Points:");
+    findings.keyPoints().forEach(point -> System.out.println("  • " + point));
+    System.out.println("\nSummary: " + findings.summary());
+
+    // Verify structured output
+    assertAll("Structured agent output",
+        () -> assertNotNull(findings, "Findings should not be null"),
+        () -> assertNotNull(findings.topic(), "Topic should not be null"),
+        () -> assertNotNull(findings.keyPoints(), "Key points should not be null"),
+        () -> assertFalse(findings.keyPoints().isEmpty(), "Key points should not be empty"),
+        () -> assertNotNull(findings.summary(), "Summary should not be null")
+    );
+}
+```
+
+### TODO Exercises for Lab 6.6
+
+Create a new test class `MultiAgentTests.java` and implement the following exercises:
+
+**Exercise 6.6.1:** Create `basicSequentialAgentWorkflow()` test method
+- Define two agent interfaces: ResearchAgent and WriterAgent with appropriate system messages
+- Create ChatModel using GPT-5-Nano
+- Build both agents using AiServices.builder()
+- Execute agents sequentially (research → write)
+- Print intermediate and final outputs
+- Verify all outputs are non-null and non-empty
+
+**Exercise 6.6.2:** Create `agentWithStructuredOutput()` test method
+- Define a `ResearchFindings` record with topic, keyPoints (List<String>), and summary fields
+- Define StructuredResearchAgent interface returning ResearchFindings
+- Create ChatModel and build the agent
+- Execute agent and capture structured output
+- Print formatted results showing topic, bullet points, and summary
+- Verify all fields in the structured output
+
+**Important Notes:**
+- This lab demonstrates **basic agent patterns** using standard AiServices
+- For **advanced multi-agent orchestration** (parallel, loops, supervisors, etc.), see:
+  - [LangChain4j Agentic Tutorial](https://github.com/langchain4j/langchain4j-examples/tree/main/agentic-tutorial/src/main/java) - 15 comprehensive examples
+  - Topics covered: Sequential workflows, loops, parallel execution, conditional branching, supervisors, human-in-the-loop, and more
+- The official tutorial uses `AgenticServices` API for advanced orchestration patterns
+- Sequential execution shown here is the foundation for more complex workflows
+- Each agent in a workflow can have its own tools, memory, and specialized behavior
+
+**Advanced Topics (See Official Tutorial):**
+- **Sequential Workflows**: Typed and untyped agent chains
+- **Loop Workflows**: Agents with exit conditions and state management
+- **Parallel Execution**: Running multiple agents concurrently
+- **Conditional Workflows**: Score-based branching and decision trees
+- **Supervisor Orchestration**: Meta-agents coordinating sub-agents
+- **Non-AI Agents**: Deterministic operations in agent workflows
+- **Human-in-the-Loop**: Interactive validation and chatbots with memory
 
 [↑ Back to table of contents](#table-of-contents)
 
