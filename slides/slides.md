@@ -67,40 +67,54 @@ layout: two-cols
 
 # What's New in 1.7.1?
 
-Latest enhancements and features
+Core enhancements
 
 ::right::
 
-<div class="space-y-3 text-sm">
+<div class="space-y-4">
 
 <div v-click class="bg-blue-500 bg-opacity-20 p-3 rounded">
 <strong>🎯 Class-Based Agents</strong>
-<p class="text-xs mt-1">Create agents from classes, not just interfaces</p>
+<p class="text-xs mt-1">Create agents from classes</p>
 </div>
 
 <div v-click class="bg-green-500 bg-opacity-20 p-3 rounded">
 <strong>🗄️ ChromaDB API V2</strong>
-<p class="text-xs mt-1">Enhanced vector store with improved performance</p>
+<p class="text-xs mt-1">Enhanced vector store</p>
 </div>
 
 <div v-click class="bg-purple-500 bg-opacity-20 p-3 rounded">
 <strong>🐳 Docker MCP Transport</strong>
-<p class="text-xs mt-1">Containerized MCP server integration</p>
+<p class="text-xs mt-1">Containerized integration</p>
 </div>
 
+</div>
+
+---
+layout: two-cols
+---
+
+# What's New in 1.7.1?
+
+Additional improvements
+
+::right::
+
+<div class="space-y-4">
+
 <div v-click class="bg-orange-500 bg-opacity-20 p-3 rounded">
-<strong>🤖 Enhanced AI Models</strong>
-<p class="text-xs mt-1">OpenAI SDK v4.0, Anthropic custom params</p>
+<strong>🤖 Enhanced Models</strong>
+<p class="text-xs mt-1">OpenAI SDK v4.0, custom params</p>
 </div>
 
 <div v-click class="bg-yellow-500 bg-opacity-20 p-3 rounded">
 <strong>📄 New Parsers</strong>
-<p class="text-xs mt-1">YAML documents, Oracle loader, GPU support</p>
+<p class="text-xs mt-1">YAML, Oracle, GPU support</p>
 </div>
 
 <div v-click class="bg-red-500 bg-opacity-20 p-3 rounded">
 <strong>⚠️ HuggingFace Deprecated</strong>
-<p class="text-xs mt-1">Use OpenAI, Anthropic, or Google AI instead</p>
+<p class="text-xs mt-1">Use OpenAI/Anthropic/Google AI</p>
 </div>
 
 </div>
@@ -182,46 +196,29 @@ Real-time AI responses for better user experience
 
 ::right::
 
-```java {all|1-5|7-16|18-25|all}
+```java {all|1-4|6-10|all}
 @Test
-void streamingChat() throws InterruptedException {
-    StreamingChatModel model = OpenAiStreamingChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
-            .build();
+void streamingChat() {
+    StreamingChatModel model = OpenAiStreamingChatModel
+        .builder()
+        .apiKey(System.getenv("OPENAI_API_KEY"))
+        .build();
 
-    CountDownLatch latch = new CountDownLatch(1);
-    StringBuilder fullResponse = new StringBuilder();
-    
-    model.chat("Tell me a story about a brave robot.", 
+    model.chat("Tell me a story",
         new StreamingChatResponseHandler() {
-        @Override
-        public void onPartialResponse(String token) {
-            System.out.print(token);
-            fullResponse.append(token);
-        }
-        
-        @Override
-        public void onCompleteResponse(ChatResponse response) {
-            System.out.println("\nStreaming completed!");
-            latch.countDown();
-        }
-        
-        @Override
-        public void onError(Throwable error) {
-            System.err.println("Error: " + error.getMessage());
-            latch.countDown();
-        }
-    });
-    
-    latch.await();
+            public void onPartialResponse(String token) {
+                System.out.print(token);
+            }
+            public void onCompleteResponse(ChatResponse r) {
+                System.out.println("\nDone!");
+            }
+        });
 }
 ```
 
 <div v-click class="mt-4 text-sm text-gray-400">
-<p>🌊 Tokens arrive in real-time</p>
-<p>⚡ Better perceived performance</p>
-<p>🛡️ Built-in error handling</p>
+<p>🌊 Real-time tokens</p>
+<p>⚡ Better UX</p>
 </div>
 
 ---
@@ -230,38 +227,28 @@ layout: two-cols
 
 # AI Services Interface
 
-High-level interfaces with annotations for complex AI interactions
+High-level type-safe AI interactions
 
 ::right::
 
-```java {all|1-6|8-13|15-21|all}
+```java {all|1-4|6-10|all}
 interface FilmographyService {
-    @SystemMessage("You are a helpful assistant that provides accurate information about actors and their movies.")
-    List<String> getMovies(@UserMessage String actor);
-    
-    @UserMessage("Generate filmography for {{actorName}} with exactly {{movieCount}} movies")
-    ActorFilms getSpecificActorFilmography(
-        @V("actorName") String actorName, 
-        @V("movieCount") int movieCount
-    );
+    @SystemMessage("Movie expert")
+    List<String> getMovies(
+        @UserMessage String actor);
 }
 
-// Create the service
-ChatModel model = OpenAiChatModel.builder()
-        .apiKey(System.getenv("OPENAI_API_KEY"))
-        .modelName(GPT_4_1_NANO)
-        .build();
-
-FilmographyService service = AiServices.builder(FilmographyService.class)
+FilmographyService service =
+    AiServices.builder(FilmographyService.class)
         .chatModel(model)
         .build();
 
-// Use it
 List<String> movies = service.getMovies("Tom Hanks");
 ```
 
-<div v-click class="mt-4 p-3 bg-green-500 bg-opacity-20 rounded text-sm">
-💡 <strong>Templates via annotations:</strong> @SystemMessage, @UserMessage, @V variables
+<div v-click class="mt-4 text-sm text-gray-400">
+<p>✨ Type-safe interfaces</p>
+<p>✨ Annotation-driven</p>
 </div>
 
 ---
@@ -270,34 +257,25 @@ class: px-20
 
 # Structured Data Extraction
 
-Extract structured data from unstructured text
+Type-safe data parsing
 
-```java {1-6|8-14|16-20|all}
-// Define your data structure
-record Person(
-    String name,
-    int age,
-    String occupation
-) {}
+```java {1-4|6-10|all}
+record Person(String name, int age, String occupation) {}
 
-// Create extraction interface
 interface PersonExtractor {
-    @UserMessage("Extract person information from: {{text}}")
+    @UserMessage("Extract: {{text}}")
     Person extractPerson(@V("text") String text);
 }
 
-// Use it
-PersonExtractor extractor = AiServices.create(
-    PersonExtractor.class, model
-);
+PersonExtractor ex = AiServices.create(
+    PersonExtractor.class, model);
 
-Person person = extractor.extractPerson(
-    "John Doe is a 35-year-old software engineer"
-);
+Person p = ex.extractPerson(
+    "John Doe is a 35-year-old engineer");
 ```
 
-<div v-click="4" class="mt-4 p-4 bg-blue-500 bg-opacity-20 rounded">
-<p class="text-sm">💡 <strong>Result:</strong> Person[name=John Doe, age=35, occupation=software engineer]</p>
+<div v-click class="mt-4 text-sm text-gray-400">
+<p>💡 Returns: Person[name=John Doe, age=35, ...]</p>
 </div>
 
 ---
@@ -309,42 +287,34 @@ image: https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=920
 
 Let AI call your Java methods
 
-```java {1-9|11-17|all}
+```java {1-6|8-12|all}
 class WeatherTool {
     @Tool("Get current weather")
     String getWeather(String location) {
-        // Simulate weather API
-        return String.format(
-            "Weather in %s: 72°F, sunny", 
-            location
-        );
+        return "Weather in " + location +
+               ": 72°F, sunny";
     }
 }
 
-// Wire it up
 var assistant = AiServices.builder(Assistant.class)
     .chatModel(model)
     .tools(new WeatherTool())
     .build();
 
-// AI can now check weather!
-String response = assistant.chat(
-    "What's the weather in NYC?"
-);
+assistant.chat("What's the weather in NYC?");
 ```
 
+---
+layout: two-cols
 ---
 
 # Chat Memory
 
-Maintain conversation context
+Single user conversation
 
-<div class="grid grid-cols-2 gap-4">
+::right::
 
-<div>
-
-```java
-// Single user memory
+```java {all|1-3|5-9|all}
 interface Assistant {
     String chat(String message);
 }
@@ -355,38 +325,36 @@ var assistant = AiServices.builder(Assistant.class)
         .withMaxMessages(10))
     .build();
 
-// Remembers context
 assistant.chat("My name is Alice");
 assistant.chat("What's my name?");
 // Response: "Your name is Alice"
 ```
 
-</div>
+---
+layout: two-cols
+---
 
-<div>
+# Chat Memory
 
-```java
-// Multi-user memory
+Multi-user conversations
+
+::right::
+
+```java {all|1-4|6-10|all}
 interface MultiUserAssistant {
-    String chat(@MemoryId int userId, 
+    String chat(@MemoryId int userId,
                 @UserMessage String msg);
 }
 
-var assistant = AiServices.builder(MultiUserAssistant.class)
-    .chatModel(model)
-    .chatMemoryProvider(memoryId -> 
+var assistant = AiServices.builder(...)
+    .chatMemoryProvider(memoryId ->
         MessageWindowChatMemory
             .withMaxMessages(10))
     .build();
 
-// Separate memory per user
 assistant.chat(1, "I'm Alice");
 assistant.chat(2, "I'm Bob");
 ```
-
-</div>
-
-</div>
 
 ---
 layout: center
@@ -420,148 +388,120 @@ graph LR
 
 ---
 
-# RAG Implementation Example
+# RAG Implementation
 
-```java {1-10|12-18|20-25|all}
-// 1. Set up components
-EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
-EmbeddingStore<TextSegment> store = new InMemoryEmbeddingStore<>();
+```java {1-4|6-10|12-16|all}
+// Setup embedding model and store
+EmbeddingModel embeddingModel =
+    new AllMiniLmL6V2QuantizedEmbeddingModel();
+EmbeddingStore<TextSegment> store =
+    new InMemoryEmbeddingStore<>();
 
-// 2. Load and process documents
-Document document = FileSystemDocumentLoader.loadDocument(
-    Paths.get("knowledge-base.pdf")
-);
-DocumentSplitter splitter = DocumentSplitters.recursive(300, 50);
-List<TextSegment> segments = splitter.split(document);
+// Load and split documents
+Document doc = FileSystemDocumentLoader.loadDocument(
+    Paths.get("knowledge-base.pdf"));
+List<TextSegment> segments =
+    DocumentSplitters.recursive(300, 50).split(doc);
 
-// 3. Store embeddings
-EmbeddingStoreIngestor ingestor = EmbeddingStoreIngestor.builder()
-    .documentSplitter(splitter)
-    .embeddingModel(embeddingModel)
-    .embeddingStore(store)
-    .build();
-ingestor.ingest(document);
-
-// 4. Create RAG-enabled assistant
+// Create RAG assistant
 Assistant assistant = AiServices.builder(Assistant.class)
     .chatModel(model)
-    .contentRetriever(EmbeddingStoreContentRetriever.from(store))
+    .contentRetriever(
+        EmbeddingStoreContentRetriever.from(store))
     .build();
-
-String answer = assistant.chat("What does the document say about X?");
 ```
 
 ---
 layout: two-cols
 ---
 
-# ChromaDB Vector Store (API V2)
+# ChromaDB (API V2)
 
-Production-ready vector database with enhanced performance
+Production vector store
 
 ::right::
 
-```java {all|1-6|8-14|16-22|all}
-// LangChain4j 1.7.1 supports ChromaDB API V2
-EmbeddingStore<TextSegment> store = ChromaEmbeddingStore.builder()
-    .baseUrl("http://localhost:8000")
-    .collectionName(randomUUID())
-    .logRequests(true)
-    .build();
+```java {all|1-4|6-9|11-14|all}
+// ChromaDB with API V2 support (1.7.1)
+EmbeddingStore<TextSegment> store =
+    ChromaEmbeddingStore.builder()
+        .baseUrl("http://localhost:8000")
+        .collectionName(randomUUID())
+        .build();
 
-// Process documents
-List<Document> documents = loadDocuments();
-DocumentSplitter splitter = DocumentSplitters.recursive(300, 50);
-List<TextSegment> segments = splitter.splitAll(documents);
-
-List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
+// Process and store
+List<TextSegment> segments = splitDocuments(docs);
+List<Embedding> embeddings =
+    embeddingModel.embedAll(segments).content();
 store.addAll(embeddings, segments);
 
-// Query with semantic search
-Embedding queryEmbedding = embeddingModel.embed("search query").content();
-List<EmbeddingMatch<TextSegment>> matches = store.search(
-    EmbeddingSearchRequest.builder()
+// Semantic search
+List<EmbeddingMatch<TextSegment>> matches =
+    store.search(EmbeddingSearchRequest.builder()
         .queryEmbedding(queryEmbedding)
-        .maxResults(5)
-        .build()
-).matches();
+        .maxResults(5).build()).matches();
 ```
 
-<div v-click class="mt-4 p-3 bg-green-500 bg-opacity-20 rounded text-sm">
-🚀 <strong>API V2:</strong> Better performance, newer Chroma versions supported
+<div v-click class="mt-2 text-sm text-gray-400">
+<p>🚀 API V2: Better performance</p>
 </div>
 
 ---
 layout: two-cols
 ---
 
-# Multimodal: Image Analysis
+# Multimodal: Images
 
-Process and understand images with AI
+Process images with AI
 
 ::right::
 
-```java {all|1-5|7-14|16-21|all}
-// Set up vision-capable model
+```java {all|1-3|5-9|all}
+// Vision model
 ChatModel model = OpenAiChatModel.builder()
-        .apiKey(System.getenv("OPENAI_API_KEY"))
-        .modelName(GPT_4_1_MINI)  // Mini for vision
-        .build();
+    .modelName(GPT_4_1_MINI)
+    .build();
 
-// Load and encode local image
-byte[] imageBytes = inputStream.readAllBytes();
-String imageString = Base64.getEncoder().encodeToString(imageBytes);
+// Analyze image
+ImageContent img = ImageContent.from(imageString, "image/jpeg");
+TextContent txt = TextContent.from("What do you see?");
+UserMessage msg = UserMessage.from(txt, img);
 
-ImageContent imageContent = ImageContent.from(imageString, "image/jpeg");
-TextContent textContent = TextContent.from("What do you see in this image?");
-
-// Create multimodal message
-UserMessage userMessage = UserMessage.from(textContent, imageContent);
-
-String response = model.chat(userMessage).aiMessage().text();
-
-System.out.println("Image analysis: " + response);
+String response = model.chat(msg).aiMessage().text();
 ```
 
-<div v-click class="mt-4 p-3 bg-purple-500 bg-opacity-20 rounded text-sm">
-🖼️ <strong>Uses GPT_4_1_MINI</strong> for vision capabilities
+<div v-click class="mt-2 text-sm text-gray-400">
+<p>🖼️ GPT-4 Mini for vision</p>
 </div>
 
 ---
 layout: two-cols
 ---
 
-# Multimodal: Audio Processing
+# Multimodal: Audio
 
-Speech-to-text capabilities with Google Gemini
+Speech-to-text with Gemini
 
 ::right::
 
-```java {all|1-5|7-12|14-19|all}
-// Audio processing with Google Gemini
+```java {all|1-4|6-10|all}
+// Gemini for audio
 ChatModel model = GoogleAiGeminiChatModel.builder()
-        .apiKey(System.getenv("GOOGLEAI_API_KEY"))
-        .modelName("gemini-2.5-flash-preview-05-20")
-        .build();
+    .apiKey(System.getenv("GOOGLEAI_API_KEY"))
+    .modelName("gemini-2.5-flash-preview-05-20")
+    .build();
 
-// Process audio input
-TextContent textContent = TextContent.from("Please transcribe this audio:");
-AudioContent audioContent = AudioContent.from(
-    readSimpleAudioData(), // Base64 encoded MP3
-    "audio/mp3"
-);
+// Transcribe audio
+AudioContent audio = AudioContent.from(
+    readAudioData(), "audio/mp3");
+UserMessage msg = UserMessage.from(
+    TextContent.from("Transcribe:"), audio);
 
-// Create multimodal message  
-UserMessage userMessage = UserMessage.from(textContent, audioContent);
-
-String transcription = model.chat(userMessage).aiMessage().text();
-System.out.println("Transcription: " + transcription);
+String text = model.chat(msg).aiMessage().text();
 ```
 
-<div v-click class="mt-4 text-sm text-gray-400">
-<p>🎵 Supports MP3, WAV, and other formats</p>
-<p>🗣️ Great for voice interfaces</p>
-<p>⚠️ Requires GOOGLEAI_API_KEY</p>
+<div v-click class="mt-2 text-sm text-gray-400">
+<p>🎵 MP3, WAV support</p>
 </div>
 
 ---
@@ -570,35 +510,27 @@ layout: two-cols
 
 # Image Generation
 
-Create images from text descriptions using DALL-E
+Create images with DALL-E
 
 ::right::
 
-```java {all|1-6|8-14|16-21|all}
-// Set up DALL-E image model
+```java {all|1-4|6-9|all}
+// DALL-E model
 ImageModel imageModel = OpenAiImageModel.builder()
-        .apiKey(System.getenv("OPENAI_API_KEY"))
-        .modelName(DALL_E_3)
-        .quality("hd")
-        .build();
+    .modelName(DALL_E_3)
+    .quality("hd")
+    .build();
 
-// Generate image from prompt
+// Generate from prompt
 Response<Image> response = imageModel.generate(
-    "A coffee cup on a wooden desk with morning sunlight, " +
-    "photorealistic style, high quality"
-);
+    "A coffee cup on a desk, photorealistic");
 
-// Get the generated image
-Image generatedImage = response.content();
-String imageUrl = generatedImage.url();
-System.out.println("Generated image: " + imageUrl);
-
-// Can also get as Base64 data
-byte[] imageData = generatedImage.base64Data();
+Image img = response.content();
+String url = img.url();
 ```
 
-<div v-click class="mt-4 p-3 bg-pink-500 bg-opacity-20 rounded text-sm">
-🎨 <strong>Uses DALL_E_3 constant</strong> for latest model
+<div v-click class="mt-2 text-sm text-gray-400">
+<p>🎨 DALL-E 3 support</p>
 </div>
 
 ---
@@ -607,44 +539,30 @@ layout: two-cols
 
 # MCP Integration
 
-Model Context Protocol for external tool integration
+External tool protocol
 
 ::right::
 
-```java {all|1-7|9-15|17-25|all}
-// Option 1: stdio transport (npx)
-McpTransport transport = new StdioMcpTransport.Builder()
-    .command(List.of("npx", "-y",
-        "@modelcontextprotocol/server-everything"))
+```java {all|1-5|7-11|all}
+// MCP client (stdio)
+McpTransport transport =
+    new StdioMcpTransport.Builder()
+        .command(List.of("npx", "-y",
+            "@modelcontextprotocol/server-everything"))
+        .build();
+
+// Use with AI
+McpToolProvider tools = McpToolProvider.builder()
+    .mcpClients(new DefaultMcpClient.Builder()
+        .transport(transport).build())
     .build();
 
-McpClient mcpClient = new DefaultMcpClient.Builder()
-    .transport(transport)
-    .build();
-
-// Option 2: NEW in 1.7.1 - Docker transport
-McpTransport dockerTransport = new DockerMcpTransport.Builder()
-    .image("mcp-server:latest")
-    .build();
-
-McpClient dockerClient = new DefaultMcpClient.Builder()
-    .transport(dockerTransport)
-    .build();
-
-// Create MCP tool provider
-McpToolProvider toolProvider = McpToolProvider.builder()
-    .mcpClients(mcpClient)
-    .build();
-
-// Use with AI services
-Assistant assistant = AiServices.builder(Assistant.class)
-    .chatModel(model)
-    .toolProvider(toolProvider)
-    .build();
+Assistant ai = AiServices.builder(Assistant.class)
+    .toolProvider(tools).build();
 ```
 
-<div v-click class="mt-4 p-3 bg-purple-500 bg-opacity-20 rounded text-sm">
-🐳 <strong>1.7.1 NEW:</strong> Docker transport for containerized MCP servers
+<div v-click class="mt-2 text-sm text-gray-400">
+<p>🐳 Docker transport in 1.7.1</p>
 </div>
 
 ---
