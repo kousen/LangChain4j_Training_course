@@ -6,6 +6,7 @@ import dev.langchain4j.service.AiServices;
 import org.junit.jupiter.api.Test;
 
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
+import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_5_NANO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -76,24 +77,34 @@ class AiToolsTests {
     @Test
     void useBasicDateTimeTool() {
         // TODO: Create OpenAI chat model
-        // ChatModel model = OpenAiChatModel.builder()...
+        ChatModel model = OpenAiChatModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName(GPT_5_NANO)
+                .build();
         
         // TODO: Create assistant with DateTimeTool
-        // Assistant assistant = AiServices.builder(Assistant.class)...
+        Assistant assistant = AiServices.builder(Assistant.class)
+                .chatModel(model)
+                .tools(new DateTimeTool())
+                .build();
         
         // TODO: Test current date/time request
-        // String response1 = assistant.chat("What is the current date and time?");
+        String response1 = assistant.chat("What is the current date and time?");
         
         // TODO: Test future date calculation  
-        // String response2 = assistant.chat("What year will it be in 5 years?");
+        String response2 = assistant.chat("What year will it be in 5 years?");
         
         // TODO: Test alarm setting
-        // String response3 = assistant.chat("Set an alarm for 8:00 AM tomorrow");
+        String response3 = assistant.chat("Set an alarm for 8:00 AM tomorrow");
         
         // TODO: Add assertions to verify responses
         // Use assertAll() for grouped assertions and assertThat() for specific content
-        
-        fail("TODO: Implement basic tool usage test");
+
+        System.out.println("=".repeat(50));
+        System.out.println(response1);
+        System.out.println(response2);
+        System.out.println(response3);
+
     }
 
     /**
@@ -107,18 +118,29 @@ class AiToolsTests {
     @Test
     void useToolsWithParameters() {
         // TODO: Create OpenAI chat model
+        ChatModel model = OpenAiChatModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName(GPT_5_NANO)
+                .build();
         
         // TODO: Create assistant with WeatherTool
+        Assistant assistant = AiServices.builder(Assistant.class)
+                .chatModel(model)
+                .tools(new WeatherTool())
+                .build();
         
         // TODO: Test weather query with metric units
-        // "What's the weather like in Paris? Use metric units."
-        
+        String response1 = assistant.chat("What's the weather like in Paris? Use metric units");
+
         // TODO: Test weather query with Fahrenheit
         // "How about the weather in New York with Fahrenheit?"
+        String response2 = assistant.chat("What's the weather like in New York with Fahrenheit?");
         
         // TODO: Verify responses contain city names and correct temperature units
-        
-        fail("TODO: Implement tools with parameters test");
+
+        System.out.println("=".repeat(50));
+        System.out.println(response1);
+        System.out.println(response2);
     }
 
     /**
