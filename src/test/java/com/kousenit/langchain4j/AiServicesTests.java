@@ -1,5 +1,7 @@
 package com.kousenit.langchain4j;
 
+import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
@@ -9,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
+import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_5_NANO;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -49,29 +52,29 @@ class AiServicesTests {
     @Test
     void useFilmographyService() {
         // TODO: Create OpenAI chat model
-        // ChatModel model = OpenAiChatModel.builder()
-        //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_1_NANO)
-        //         .build();
+         ChatModel model = OpenAiChatModel.builder()
+                 .apiKey(System.getenv("OPENAI_API_KEY"))
+                 .modelName(GPT_5_NANO)
+                 .build();
 
         // TODO: Create FilmographyService using AiServices
-        // FilmographyService service = AiServices.builder(FilmographyService.class)
-        //         .chatModel(model)
-        //         .build();
+         FilmographyService service = AiServices.builder(FilmographyService.class)
+                 .chatModel(model)
+                 .build();
 
         // TODO: Test simple movie list
-        // List<String> tomHanksMovies = service.getMovies("Tom Hanks");
-        // System.out.println("Tom Hanks movies: " + tomHanksMovies);
+         List<String> tomHanksMovies = service.getMovies("Tom Hanks");
+         System.out.println("Tom Hanks movies: " + tomHanksMovies);
         
         // TODO: Test actor analysis
-        // String analysis = service.analyzeActor("Meryl Streep");
-        // System.out.println("Meryl Streep analysis: " + analysis);
+         String analysis = service.analyzeActor("Meryl Streep");
+         System.out.println("Meryl Streep analysis: " + analysis);
 
         // TODO: Verify results
-        // assertNotNull(tomHanksMovies);
-        // assertFalse(tomHanksMovies.isEmpty());
-        // assertNotNull(analysis);
-        // assertFalse(analysis.trim().isEmpty());
+         assertNotNull(tomHanksMovies);
+         assertFalse(tomHanksMovies.isEmpty());
+         assertNotNull(analysis);
+         assertFalse(analysis.trim().isEmpty());
     }
 
     /**
@@ -94,32 +97,34 @@ class AiServicesTests {
     @Test
     void personalAssistantWithMemoryAndTools() {
         // TODO: Create OpenAI chat model
-        // ChatModel model = OpenAiChatModel.builder()
-        //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_1_NANO)
-        //         .build();
+         ChatModel model = OpenAiChatModel.builder()
+                 .apiKey(System.getenv("OPENAI_API_KEY"))
+                 .modelName(GPT_4_1_NANO)
+                 .build();
 
         // TODO: Create chat memory
-        // ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
+        ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
 
         // TODO: Create PersonalAssistant with memory and tools
-        // PersonalAssistant assistant = AiServices.builder(PersonalAssistant.class)
-        //         .chatModel(model)
-        //         .chatMemory(memory)
-        //         .tools(new DateTimeTool())
-        //         .build();
+         PersonalAssistant assistant = AiServices.builder(PersonalAssistant.class)
+                 .chatModel(model)
+                 .chatMemory(memory)
+                 .tools(new DateTimeTool())
+                 .build();
 
         // TODO: Have a conversation that uses both memory and tools
-        // String response1 = assistant.chat("Hi, my name is Alice and I'm a software developer.");
-        // System.out.println("Response 1: " + response1);
+         String response1 = assistant.chat("Hi, my name is Alice and I'm a software developer.");
+         System.out.println("Response 1: " + response1);
 
-        // String response2 = assistant.chat("What's my name and what year will it be in 3 years?");
-        // System.out.println("Response 2: " + response2);
+         String response2 = assistant.chat("What's my name and what year will it be in 3 years?");
+         System.out.println("Response 2: " + response2);
+
+        System.out.println(assistant.chat("Who won the last three Super Bowls?"));
 
         // TODO: Verify memory and tool usage
-        // assertTrue(response2.toLowerCase().contains("alice"));
-        // assertNotNull(response2);
-        // assertFalse(response2.trim().isEmpty());
+         assertTrue(response2.toLowerCase().contains("alice"));
+         assertNotNull(response2);
+         assertFalse(response2.trim().isEmpty());
     }
 
     /**
@@ -151,39 +156,39 @@ class AiServicesTests {
     @Test
     void advancedServiceConfiguration() {
         // TODO: Create OpenAI chat model with custom configuration
-        // ChatModel model = OpenAiChatModel.builder()
-        //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_1_NANO)
-        //         .temperature(0.3)  // Lower temperature for more consistent analysis
-        //         .build();
+         ChatModel model = OpenAiChatModel.builder()
+                 .apiKey(System.getenv("OPENAI_API_KEY"))
+                 .modelName(GPT_5_NANO)
+                 //.temperature(0.3)  // Lower temperature for more consistent analysis
+                 .build();
 
         // TODO: Create DocumentAnalyzer using AiServices
-        // DocumentAnalyzer analyzer = AiServices.builder(DocumentAnalyzer.class)
-        //         .chatModel(model)
-        //         .build();
+         DocumentAnalyzer analyzer = AiServices.builder(DocumentAnalyzer.class)
+                 .chatModel(model)
+                 .build();
 
         // TODO: Prepare sample content for analysis
-        // String sampleContent = """
-        //         The quarterly earnings report shows strong growth in the technology sector,
-        //         with cloud computing services leading the way. Customer satisfaction remains high,
-        //         though there are concerns about increasing competition and market saturation.
-        //         """;
+         String sampleContent = """
+                 The quarterly earnings report shows strong growth in the technology sector,
+                 with cloud computing services leading the way. Customer satisfaction remains high,
+                 though there are concerns about increasing competition and market saturation.
+                 """;
 
         // TODO: Test all service methods
-        // String analysis = analyzer.analyzeDocument(sampleContent);
-        // List<String> themes = analyzer.extractThemes(sampleContent);
-        // int sentiment = analyzer.analyzeSentiment(sampleContent);
+         String analysis = analyzer.analyzeDocument(sampleContent);
+         List<String> themes = analyzer.extractThemes(sampleContent);
+         int sentiment = analyzer.analyzeSentiment(sampleContent);
 
         // TODO: Print results
-        // System.out.println("Analysis: " + analysis);
-        // System.out.println("Themes: " + themes);
-        // System.out.println("Sentiment: " + sentiment);
+         System.out.println("Analysis: " + analysis);
+         System.out.println("Themes: " + themes);
+         System.out.println("Sentiment: " + sentiment);
 
         // TODO: Verify results
-        // assertNotNull(analysis);
-        // assertNotNull(themes);
-        // assertFalse(themes.isEmpty());
-        // assertTrue(sentiment >= 1 && sentiment <= 10);
+         assertNotNull(analysis);
+         assertNotNull(themes);
+         assertFalse(themes.isEmpty());
+         assertTrue(sentiment >= 1 && sentiment <= 10);
     }
 
     /**
@@ -215,33 +220,33 @@ class AiServicesTests {
     @Test
     void creativeWritingServiceWithVariables() {
         // TODO: Create OpenAI chat model
-        // ChatModel model = OpenAiChatModel.builder()
-        //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_1_NANO)
-        //         .build();
+         ChatModel model = OpenAiChatModel.builder()
+                 .apiKey(System.getenv("OPENAI_API_KEY"))
+                 .modelName(GPT_4_1_NANO)
+                 .build();
 
         // TODO: Create CreativeWritingService
-        // CreativeWritingService service = AiServices.builder(CreativeWritingService.class)
-        //         .chatModel(model)
-        //         .build();
+         CreativeWritingService service = AiServices.builder(CreativeWritingService.class)
+                 .chatModel(model)
+                 .build();
 
         // TODO: Test story generation
-        // String story = service.writeStory("science fiction", "time travel", 200);
-        // System.out.println("Generated Story: " + story);
+         String story = service.writeStory("science fiction", "time travel", 200);
+         System.out.println("Generated Story: " + story);
 
         // TODO: Test character name generation
-        // List<String> characterNames = service.generateCharacterNames("medieval fantasy", 5);
-        // System.out.println("Character Names: " + characterNames);
+         List<String> characterNames = service.generateCharacterNames("medieval fantasy", 5);
+         System.out.println("Character Names: " + characterNames);
 
         // TODO: Test creativity rating
-        // int creativity = service.rateCreativity(story);
-        // System.out.println("Creativity Rating: " + creativity);
+         int creativity = service.rateCreativity(story);
+         System.out.println("Creativity Rating: " + creativity);
 
         // TODO: Verify results
-        // assertNotNull(story);
-        // assertFalse(story.trim().isEmpty());
-        // assertNotNull(characterNames);
-        // assertEquals(5, characterNames.size());
-        // assertTrue(creativity >= 1 && creativity <= 10);
+         assertNotNull(story);
+         assertFalse(story.trim().isEmpty());
+         assertNotNull(characterNames);
+         assertEquals(5, characterNames.size());
+         assertTrue(creativity >= 1 && creativity <= 10);
     }
 }
