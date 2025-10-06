@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
+import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_5_NANO;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -41,37 +42,37 @@ class StructuredDataExtractionTests {
     @Test
     void extractActorFilms() throws JsonProcessingException {
         // TODO: Create OpenAI chat model with JSON response format
-        // ChatModel model = OpenAiChatModel.builder()
-        //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_1_NANO)
-        //         .responseFormat("json_object")
-        //         .build();
+         ChatModel model = OpenAiChatModel.builder()
+                 .apiKey(System.getenv("OPENAI_API_KEY"))
+                 .modelName(GPT_5_NANO)
+                 .responseFormat("json_object")
+                 .build();
 
         // TODO: Create prompt for structured JSON response
-        // String prompt = """
-        //         Generate the filmography for a random actor in the following JSON format:
-        //         {
-        //             "actor": "Actor Name",
-        //             "movies": ["Movie 1", "Movie 2", "Movie 3", "Movie 4", "Movie 5"]
-        //         }
-        //         """;
+         String prompt = """
+                 Generate the filmography for a random actor in the following JSON format:
+                 {
+                     "actor": "Actor Name",
+                     "movies": ["Movie 1", "Movie 2", "Movie 3", "Movie 4", "Movie 5"]
+                 }
+                 """;
 
         // TODO: Generate JSON response
-        // String response = model.chat(prompt);
-        // System.out.println("JSON Response: " + response);
+         String response = model.chat(prompt);
+         System.out.println("JSON Response: " + response);
 
         // TODO: Parse JSON manually using Jackson
-        // ObjectMapper objectMapper = new ObjectMapper();
-        // ActorFilms actorFilms = objectMapper.readValue(response, ActorFilms.class);
+         ObjectMapper objectMapper = new ObjectMapper();
+         ActorFilms actorFilms = objectMapper.readValue(response, ActorFilms.class);
 
         // TODO: Verify the parsed data
-        // assertNotNull(response, "Response should not be null");
-        // assertTrue(response.contains("actor"), "Response should contain 'actor' field");
-        // assertTrue(response.contains("movies"), "Response should contain 'movies' field");
-        // assertNotNull(actorFilms, "Parsed ActorFilms should not be null");
-        // assertNotNull(actorFilms.actor(), "Actor name should not be null");
-        // assertNotNull(actorFilms.movies(), "Movies list should not be null");
-        // assertEquals(5, actorFilms.movies().size(), "Should have exactly 5 movies");
+         assertNotNull(response, "Response should not be null");
+         assertTrue(response.contains("actor"), "Response should contain 'actor' field");
+         assertTrue(response.contains("movies"), "Response should contain 'movies' field");
+         assertNotNull(actorFilms, "Parsed ActorFilms should not be null");
+         assertNotNull(actorFilms.actor(), "Actor name should not be null");
+         assertNotNull(actorFilms.movies(), "Movies list should not be null");
+         assertEquals(5, actorFilms.movies().size(), "Should have exactly 5 movies");
     }
 
     /**
@@ -105,30 +106,30 @@ class StructuredDataExtractionTests {
     @Test
     void extractActorFilmsWithAiServices() {
         // TODO: Create OpenAI chat model
-        // ChatModel model = OpenAiChatModel.builder()
-        //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_1_NANO)
-        //         .build();
+         ChatModel model = OpenAiChatModel.builder()
+                 .apiKey(System.getenv("OPENAI_API_KEY"))
+                 .modelName(GPT_5_NANO)
+                 .build();
 
         // TODO: Create AiServices instance
-        // ActorService service = AiServices.builder(ActorService.class)
-        //         .chatModel(model)
-        //         .build();
+         ActorService service = AiServices.builder(ActorService.class)
+                 .chatModel(model)
+                 .build();
 
         // TODO: Extract structured data
-        // ActorFilms actorFilms = service.getActorFilmography(
-        //     "Generate filmography for a random famous actor with exactly 5 movies"
-        // );
+         ActorFilms actorFilms = service.getActorFilmography(
+             "Generate filmography for a random famous actor with exactly 5 movies"
+         );
 
         // TODO: Verify results
-        // assertNotNull(actorFilms, "ActorFilms should not be null");
-        // assertNotNull(actorFilms.actor(), "Actor name should not be null");
-        // assertNotNull(actorFilms.movies(), "Movies list should not be null");
-        // assertEquals(5, actorFilms.movies().size(), "Should have exactly 5 movies");
+         assertNotNull(actorFilms, "ActorFilms should not be null");
+         assertNotNull(actorFilms.actor(), "Actor name should not be null");
+         assertNotNull(actorFilms.movies(), "Movies list should not be null");
+         assertEquals(5, actorFilms.movies().size(), "Should have exactly 5 movies");
 
         // TODO: Print results
-        // System.out.println("Actor: " + actorFilms.actor());
-        // actorFilms.movies().forEach(movie -> System.out.println("- " + movie));
+         System.out.println("Actor: " + actorFilms.actor());
+         actorFilms.movies().forEach(movie -> System.out.println("- " + movie));
     }
 
     /**
@@ -143,33 +144,30 @@ class StructuredDataExtractionTests {
      */
     @Test
     void extractMultipleActorFilmographies() {
-        // TODO: Create OpenAI chat model
-        // ChatModel model = OpenAiChatModel.builder()
-        //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_1_NANO)
-        //         .build();
+         ChatModel model = OpenAiChatModel.builder()
+                 .apiKey(System.getenv("OPENAI_API_KEY"))
+                 .modelName(GPT_5_NANO)
+                 .logRequests(true)
+                 .logResponses(true)
+                 .build();
 
-        // TODO: Create AiServices instance
-        // ActorService service = AiServices.builder(ActorService.class)
-        //         .chatModel(model)
-        //         .build();
+         ActorService service = AiServices.builder(ActorService.class)
+                 .chatModel(model)
+                 .build();
 
-        // TODO: Extract multiple filmographies
-        // ActorFilmographies result = service.getMultipleActorFilmographies(
-        //     "Return filmographies for exactly 3 different famous actors with 4 movies each");
+         ActorFilmographies result = service.getMultipleActorFilmographies(
+             "Return filmographies for exactly 3 different famous actors with 4 movies each");
 
-        // TODO: Verify results
-        // List<ActorFilms> filmographies = result.filmographies();
-        // assertNotNull(result, "Result should not be null");
-        // assertNotNull(filmographies, "Filmographies list should not be null");
-        // assertEquals(3, filmographies.size(), "Should have exactly 3 actor filmographies");
+         List<ActorFilms> filmographies = result.filmographies();
+         assertNotNull(result, "Result should not be null");
+         assertNotNull(filmographies, "Filmographies list should not be null");
+         assertEquals(3, filmographies.size(), "Should have exactly 3 actor filmographies");
 
-        // TODO: Print results
-        // filmographies.forEach(actorFilms -> {
-        //     System.out.println("Actor: " + actorFilms.actor());
-        //     actorFilms.movies().forEach(movie -> System.out.println("  - " + movie));
-        //     System.out.println();
-        // });
+         filmographies.forEach(actorFilms -> {
+             System.out.println("Actor: " + actorFilms.actor());
+             actorFilms.movies().forEach(movie -> System.out.println("  - " + movie));
+             System.out.println();
+         });
     }
 
     /**
@@ -197,33 +195,28 @@ class StructuredDataExtractionTests {
      */
     @Test
     void advancedStructuredDataExtraction() {
-        // TODO: Create OpenAI chat model
-        // ChatModel model = OpenAiChatModel.builder()
-        //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_1_NANO)
-        //         .build();
+         ChatModel model = OpenAiChatModel.builder()
+                 .apiKey(System.getenv("OPENAI_API_KEY"))
+                 .modelName(GPT_5_NANO)
+                 .build();
 
-        // TODO: Create advanced AI service
-        // AdvancedActorService service = AiServices.builder(AdvancedActorService.class)
-        //         .chatModel(model)
-        //         .build();
+         AdvancedActorService service = AiServices.builder(AdvancedActorService.class)
+                 .chatModel(model)
+                 .build();
 
-        // TODO: Test with specific actor and movie count
-        // String actorName = "Tom Hanks";
-        // int movieCount = 6;
-        // ActorFilms actorFilms = service.getSpecificActorFilmography(actorName, movieCount);
+         String actorName = "Margot Robbie";
+         int movieCount = 6;
+         ActorFilms actorFilms = service.getSpecificActorFilmography(actorName, movieCount);
 
-        // TODO: Verify the extracted data
-        // assertNotNull(actorFilms, "ActorFilms should not be null");
-        // assertNotNull(actorFilms.actor(), "Actor name should not be null");
-        // assertTrue(actorFilms.actor().toLowerCase().contains("hanks"), "Actor should be Tom Hanks");
-        // assertEquals(movieCount, actorFilms.movies().size(), "Should have exactly " + movieCount + " movies");
+         assertNotNull(actorFilms, "ActorFilms should not be null");
+         assertNotNull(actorFilms.actor(), "Actor name should not be null");
+         assertTrue(actorFilms.actor().toLowerCase().contains("robbie"), "Actor should be Margot Robbie");
+         assertEquals(movieCount, actorFilms.movies().size(), "Should have exactly " + movieCount + " movies");
 
-        // TODO: Print results
-        // System.out.println("Advanced Extraction Result:");
-        // System.out.println("Requested actor: " + actorName);
-        // System.out.println("Actual actor: " + actorFilms.actor());
-        // System.out.println("Movie count: " + actorFilms.movies().size());
-        // actorFilms.movies().forEach(movie -> System.out.println("- " + movie));
+         System.out.println("Advanced Extraction Result:");
+         System.out.println("Requested actor: " + actorName);
+         System.out.println("Actual actor: " + actorFilms.actor());
+         System.out.println("Movie count: " + actorFilms.movies().size());
+         actorFilms.movies().forEach(movie -> System.out.println("- " + movie));
     }
 }
