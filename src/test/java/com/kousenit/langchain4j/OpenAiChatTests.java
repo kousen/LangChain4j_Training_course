@@ -5,6 +5,7 @@ import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.model.openai.OpenAiChatModelName;
 import org.junit.jupiter.api.Test;
 
 import static dev.langchain4j.model.openai.OpenAiChatModelName.*;
@@ -33,21 +34,21 @@ class OpenAiChatTests {
     @Test
     void simpleQuery() {
         // TODO: Create OpenAI chat model using builder pattern
-        // ChatModel model = OpenAiChatModel.builder()
-        //         .apiKey(System.getenv("OPENAI_API_KEY"))
-        //         .modelName(GPT_4_1_NANO)
-        //         .build();
+         ChatModel model = OpenAiChatModel.builder()
+                 .apiKey(System.getenv("OPENAI_API_KEY"))
+                 .modelName(GPT_5_NANO)
+                 .build();
         
         // TODO: Send a user message and get the response
-        // String response = model.chat("Why is the sky blue?");
+         String response = model.chat("Why is the sky blue?");
 
         // TODO: Print and verify the response
-        // System.out.println("Simple Query Response:");
-        // System.out.println(response);
-        // System.out.println("=".repeat(50));
-        // 
-        // assertNotNull(response, "Response should not be null");
-        // assertFalse(response.isEmpty(), "Response should not be empty");
+         System.out.println("Simple Query Response:");
+         System.out.println(response);
+         System.out.println("=".repeat(50));
+
+         assertNotNull(response, "Response should not be null");
+         assertFalse(response.isEmpty(), "Response should not be empty");
     }
 
     /**
