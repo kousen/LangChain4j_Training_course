@@ -7,10 +7,10 @@ group = "com.kousenit"
 version = "1.0-SNAPSHOT"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
 }
-
 repositories {
     mavenCentral()
 }
@@ -57,9 +57,6 @@ tasks.test {
 }
 
 spotless {
-    // Configure ratcheting to only format files changed from main branch
-    // ratchetFrom("origin/main")
-
     java {
         target("src/**/*.java")
         palantirJavaFormat("2.63.0")  // This is what langchain4j uses
