@@ -407,7 +407,7 @@ This pattern is **essential for production conversational AI applications**.
   - Shared MCP client pattern for optimal test performance
   - Tool name conflict resolution (avoid CalculatorTool with MCP servers)
   - Prerequisites: Node.js/npm (not Docker)
-  - **LangChain4j 1.7.1 Enhancement**: Adds Docker MCP transport support for containerized MCP servers
+  - **LangChain4j 1.10.0**: Adds Docker MCP transport support for containerized MCP servers
 
 ### Future Considerations
 - **Multimodal capabilities**: ✅ Lab 7 complete - includes:

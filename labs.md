@@ -833,7 +833,11 @@ Create a new test class `McpIntegrationTests.java` and implement the following e
 
 ## Lab 6.6: Multi-Agent Systems (AgenticServices)
 
-**NEW in LangChain4j 1.10.0**: Multi-agent orchestration allows you to build complex AI workflows by coordinating multiple specialized agents. This lab introduces the `AgenticServices` API for creating sequential, parallel, and conditional agent workflows.
+**NEW in LangChain4j 1.10.0**: The `langchain4j-agentic` module provides a powerful framework for orchestrating multi-agent AI workflows. This lab introduces the core concepts:
+
+- **`@Agent` annotation** - Marks methods as agent entry points with descriptions
+- **`AgenticServices`** - Builder factory for creating agents and workflows
+- **`UntypedAgent`** - Generic agent that accepts Map inputs for flexible orchestration
 
 **Prerequisites:**
 - Understanding of AI Services from Lab 4
@@ -841,156 +845,147 @@ Create a new test class `McpIntegrationTests.java` and implement the following e
 - OpenAI API key for testing agent interactions
 
 **Lab Overview:**
-This is an **introductory lab** that demonstrates the basics of multi-agent systems. For comprehensive coverage of sequential workflows, loops, parallel execution, supervisors, and human-in-the-loop patterns, see the official [LangChain4j Agentic Tutorial](https://github.com/langchain4j/langchain4j-examples/tree/main/agentic-tutorial/src/main/java).
+This is an **introductory lab** that demonstrates the basics of multi-agent systems. For comprehensive coverage of sequential workflows, loops, parallel execution, supervisors, and human-in-the-loop patterns, see the official [LangChain4j Agentic Tutorial](https://docs.langchain4j.dev/tutorials/agents/).
 
 **Lab Structure:**
 This lab includes 2 introductory exercises:
-1. **Basic Sequential Agent Workflow** - Chain multiple agents together
-2. **Agent with Different Output Types** - Structured agent outputs
+1. **Basic Agent with @Agent Annotation** - Create a single agent using the agentic module
+2. **Sequential Agent Workflow** - Chain multiple agents together
 
-### 6.6.1 Basic Sequential Agent Workflow
+### 6.6.1 Basic Agent with @Agent Annotation
 
-Create a test that demonstrates a simple multi-agent workflow where agents execute in sequence:
+Create agents using the `@Agent` annotation and `AgenticServices.agentBuilder()`:
 
 ```java
+// Define agent interface with @Agent annotation
+interface CreativeWriter {
+    @Agent("Generates creative stories based on the given topic")
+    @UserMessage("""
+        You are a creative writer with a vivid imagination.
+        Write a short, engaging story (2-3 paragraphs) about: {{topic}}
+        Make it creative and captivating.
+        """)
+    String generateStory(@V("topic") String topic);
+}
+
 @Test
-void basicSequentialAgentWorkflow() {
-    // Define specialized agents as interfaces
-    interface ResearchAgent {
-        @SystemMessage("You are a research specialist. Gather key facts about the topic.")
-        String research(@UserMessage String topic);
-    }
-
-    interface WriterAgent {
-        @SystemMessage("You are a creative writer. Write a brief summary based on the research.")
-        String write(@UserMessage String research);
-    }
-
-    // Create chat model
+void basicAgentWithAnnotation() {
+    // Create a ChatModel for the agent
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
             .modelName(GPT_5_NANO)
             .build();
 
-    // Build the research agent
-    ResearchAgent researcher = AiServices.builder(ResearchAgent.class)
+    // Build the CreativeWriter agent using AgenticServices
+    CreativeWriter writer = AgenticServices
+            .agentBuilder(CreativeWriter.class)
             .chatModel(model)
+            .outputKey("story")  // Output stored as "story" in AgenticScope
             .build();
 
-    // Build the writer agent
-    WriterAgent writer = AiServices.builder(WriterAgent.class)
-            .chatModel(model)
-            .build();
+    // Invoke the agent
+    String story = writer.generateStory("a robot learning to paint");
 
-    System.out.println("=== Sequential Agent Workflow ===");
+    // Print and verify the result
+    System.out.println("=== Basic Agent Output ===");
+    System.out.println(story);
 
-    // Execute agents in sequence
-    String topic = "LangChain4j multi-agent systems";
-    System.out.println("Topic: " + topic);
-
-    String research = researcher.research(topic);
-    System.out.println("\n--- Research Output ---");
-    System.out.println(research);
-
-    String article = writer.write(research);
-    System.out.println("\n--- Writer Output ---");
-    System.out.println(article);
-
-    // Verify outputs
-    assertAll("Sequential agent workflow",
-        () -> assertNotNull(research, "Research should not be null"),
-        () -> assertFalse(research.trim().isEmpty(), "Research should not be empty"),
-        () -> assertNotNull(article, "Article should not be null"),
-        () -> assertFalse(article.trim().isEmpty(), "Article should not be empty")
-    );
+    assertNotNull(story, "Story should not be null");
+    assertFalse(story.trim().isEmpty(), "Story should not be empty");
 }
 ```
 
-### 6.6.2 Agent with Structured Output
+### 6.6.2 Sequential Agent Workflow
 
-Create a test demonstrating agents that return structured data:
+Chain multiple agents together using `AgenticServices.sequenceBuilder()`:
 
 ```java
+// Define a second agent for editing content
+interface AudienceEditor {
+    @Agent("Adapts stories for specific target audiences")
+    @UserMessage("""
+        You are an expert editor who adapts content for different audiences.
+        Take this story and rewrite it for {{audience}}:
+
+        Original story:
+        {{story}}
+
+        Keep the core narrative but adjust vocabulary, tone, and complexity
+        to be appropriate for the target audience.
+        """)
+    String editForAudience(@V("story") String story, @V("audience") String audience);
+}
+
 @Test
-void agentWithStructuredOutput() {
-    // Define structured output types
-    record ResearchFindings(
-        String topic,
-        List<String> keyPoints,
-        String summary
-    ) {}
-
-    // Define agent with structured output
-    interface StructuredResearchAgent {
-        @SystemMessage("You are a research analyst. Extract key information about the topic.")
-        ResearchFindings analyze(@UserMessage String topic);
-    }
-
-    // Create chat model
+void sequentialAgentWorkflow() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
             .modelName(GPT_5_NANO)
             .build();
 
-    // Build agent
-    StructuredResearchAgent agent = AiServices.builder(StructuredResearchAgent.class)
+    // Build both agents
+    CreativeWriter writer = AgenticServices
+            .agentBuilder(CreativeWriter.class)
             .chatModel(model)
+            .outputKey("story")
             .build();
 
-    System.out.println("=== Structured Agent Output ===");
+    AudienceEditor editor = AgenticServices
+            .agentBuilder(AudienceEditor.class)
+            .chatModel(model)
+            .outputKey("story")  // Overwrites "story" with edited version
+            .build();
 
-    // Execute agent
-    String topic = "Benefits of multi-agent AI systems";
-    ResearchFindings findings = agent.analyze(topic);
+    // Create sequential workflow combining both agents
+    UntypedAgent pipeline = AgenticServices
+            .sequenceBuilder()
+            .subAgents(writer, editor)
+            .outputKey("story")
+            .build();
 
-    // Display structured output
-    System.out.println("Topic: " + findings.topic());
-    System.out.println("\nKey Points:");
-    findings.keyPoints().forEach(point -> System.out.println("  • " + point));
-    System.out.println("\nSummary: " + findings.summary());
-
-    // Verify structured output
-    assertAll("Structured agent output",
-        () -> assertNotNull(findings, "Findings should not be null"),
-        () -> assertNotNull(findings.topic(), "Topic should not be null"),
-        () -> assertNotNull(findings.keyPoints(), "Key points should not be null"),
-        () -> assertFalse(findings.keyPoints().isEmpty(), "Key points should not be empty"),
-        () -> assertNotNull(findings.summary(), "Summary should not be null")
+    // Invoke the workflow with initial inputs
+    Map<String, Object> inputs = Map.of(
+            "topic", "a space explorer discovering a new planet",
+            "audience", "children aged 6-8"
     );
+
+    String finalStory = (String) pipeline.invoke(inputs);
+
+    System.out.println("=== Sequential Workflow Output ===");
+    System.out.println("Topic: " + inputs.get("topic"));
+    System.out.println("Target Audience: " + inputs.get("audience"));
+    System.out.println("\n--- Final Story (edited for audience) ---");
+    System.out.println(finalStory);
+
+    assertNotNull(finalStory, "Final story should not be null");
+    assertFalse(finalStory.trim().isEmpty(), "Final story should not be empty");
 }
 ```
 
 ### TODO Exercises for Lab 6.6
 
-Create a new test class `MultiAgentTests.java` and implement the following exercises:
+Open `MultiAgentTests.java` and implement the following exercises:
 
-**Exercise 6.6.1:** Create `basicSequentialAgentWorkflow()` test method
-- Define two agent interfaces: ResearchAgent and WriterAgent with appropriate system messages
-- Create ChatModel using GPT-5-Nano
-- Build both agents using AiServices.builder()
-- Execute agents sequentially (research → write)
-- Print intermediate and final outputs
-- Verify all outputs are non-null and non-empty
+**Exercise 6.6.1:** Implement `basicAgentWithAnnotation()` test method
+- Uncomment the ChatModel creation using `OpenAiChatModel.builder()`
+- Uncomment the `AgenticServices.agentBuilder()` call for CreativeWriter
+- Uncomment the agent invocation and assertions
+- Run the test and observe the generated story
 
-**Exercise 6.6.2:** Create `agentWithStructuredOutput()` test method
-- Define a `ResearchFindings` record with topic, keyPoints (List<String>), and summary fields
-- Define StructuredResearchAgent interface returning ResearchFindings
-- Create ChatModel and build the agent
-- Execute agent and capture structured output
-- Print formatted results showing topic, bullet points, and summary
-- Verify all fields in the structured output
+**Exercise 6.6.2:** Implement `sequentialAgentWorkflow()` test method
+- Uncomment both agent builders (CreativeWriter and AudienceEditor)
+- Uncomment the `AgenticServices.sequenceBuilder()` to create the pipeline
+- Uncomment the `UntypedAgent.invoke()` call with the input Map
+- Run the test and observe how the story is first generated, then adapted for the audience
 
-**Important Notes:**
-- This lab demonstrates **basic agent patterns** using standard AiServices
-- For **advanced multi-agent orchestration** (parallel, loops, supervisors, etc.), see:
-  - [LangChain4j Agentic Tutorial](https://github.com/langchain4j/langchain4j-examples/tree/main/agentic-tutorial/src/main/java) - 15 comprehensive examples
-  - Topics covered: Sequential workflows, loops, parallel execution, conditional branching, supervisors, human-in-the-loop, and more
-- The official tutorial uses `AgenticServices` API for advanced orchestration patterns
-- Sequential execution shown here is the foundation for more complex workflows
-- Each agent in a workflow can have its own tools, memory, and specialized behavior
+**Key Concepts:**
+- **`@Agent` annotation** provides a description that helps orchestrators understand the agent's purpose
+- **`outputKey()`** specifies where results are stored in the shared `AgenticScope`
+- **`UntypedAgent`** accepts `Map<String, Object>` inputs for flexible workflow composition
+- **`sequenceBuilder()`** chains agents so output from one becomes input to the next
 
 **Advanced Topics (See Official Tutorial):**
-- **Sequential Workflows**: Typed and untyped agent chains
+For comprehensive coverage beyond this introduction, see the [LangChain4j Agentic Tutorial](https://docs.langchain4j.dev/tutorials/agents/):
 - **Loop Workflows**: Agents with exit conditions and state management
 - **Parallel Execution**: Running multiple agents concurrently
 - **Conditional Workflows**: Score-based branching and decision trees

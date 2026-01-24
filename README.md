@@ -14,7 +14,7 @@ This repository contains starter code for a comprehensive LangChain4j training c
 
 ### Prerequisites
 
-1. **Java 17+**
+1. **Java 17+** (current materials built with Java 21)
 2. **Environment Variables**:
    ```bash
    export OPENAI_API_KEY=your_openai_api_key
