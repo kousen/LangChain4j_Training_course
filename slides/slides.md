@@ -5,7 +5,7 @@ class: text-center
 highlighter: shiki
 lineNumbers: false
 info: |
-  ## LangChain4j 1.7.1 Training Course
+  ## LangChain4j 1.10.0 Training Course
 
   By Kenneth Kousen
 
@@ -13,7 +13,7 @@ info: |
 drawings:
   persist: false
 transition: slide-left
-title: "LangChain4j 1.7.1 Training Course"
+title: "LangChain4j 1.10.0 Training Course"
 mdc: true
 css: unocss
 ---
@@ -32,7 +32,7 @@ css: unocss
 }
 </style>
 
-# LangChain4j 1.7.1 Training Course
+# LangChain4j 1.10.0 Training Course
 
 ## Building AI-Powered Java Applications
 
@@ -234,7 +234,7 @@ Add LangChain4j to your project
 // build.gradle.kts
 dependencies {
     // BOM for version management
-    implementation(platform("dev.langchain4j:langchain4j-bom:1.7.1"))
+    implementation(platform("dev.langchain4j:langchain4j-bom:1.10.0"))
 
     // Core library
     implementation("dev.langchain4j:langchain4j")
@@ -851,7 +851,7 @@ Assistant ai = AiServices.builder(Assistant.class)
 ```
 
 <div v-click class="mt-2 text-sm text-gray-400">
-<p>🐳 Docker transport in 1.7.1</p>
+<p>🐳 Docker transport in 1.10.0</p>
 </div>
 
 ---
@@ -913,7 +913,7 @@ String response = assistant.chat(
 Containerized MCP servers
 
 ```java
-// NEW in 1.7.1 - Docker transport
+// NEW in 1.10.0 - Docker transport
 McpTransport dockerTransport = new DockerMcpTransport.Builder()
     .image("mcp-server:latest")
     .build();
@@ -940,7 +940,7 @@ backgroundSize: cover
     Agent Orchestration
   </h2>
   <p class="text-xl text-white bg-black bg-opacity-60 px-4 py-2 rounded mt-4">
-    NEW in 1.7.1
+    NEW in 1.10.0
   </p>
 </div>
 
@@ -1489,7 +1489,7 @@ backgroundSize: cover
 Production vector store
 
 ```java {all|1-4|6-9|11-14|all}
-// ChromaDB with API V2 support (1.7.1)
+// ChromaDB with API V2 support (1.10.0)
 EmbeddingStore<TextSegment> store =
     ChromaEmbeddingStore.builder()
         .baseUrl("http://localhost:8000")
@@ -1528,7 +1528,7 @@ curl http://localhost:8000/api/v1/heartbeat
 ```
 
 <div v-click class="mt-4 p-3 bg-blue-500 bg-opacity-20 rounded text-sm">
-💡 <strong>API V2:</strong> LangChain4j 1.7.1 supports ChromaDB API V2 for enhanced performance
+💡 <strong>API V2:</strong> LangChain4j 1.10.0 supports ChromaDB API V2 for enhanced performance
 </div>
 
 ---
@@ -1981,12 +1981,12 @@ Documentation and course materials
 </div>
 
 <div v-click class="bg-green-500 bg-opacity-20 p-3 rounded">
-<strong>🛠️ This Course (v1.7.1)</strong>
+<strong>🛠️ This Course (v1.10.0)</strong>
 <ul class="text-xs mt-1 space-y-1">
 <li>• Main branch: Starter code</li>
 <li>• Solutions branch: Complete implementations</li>
 <li>• Labs.md: Step-by-step guide</li>
-<li>• UPGRADE_NOTES_1.7.1.md: What's new</li>
+<li>• UPGRADE_NOTES_1.10.0.md: What's new</li>
 </ul>
 </div>
 
@@ -2019,7 +2019,7 @@ Tips for production use
 <li>• Read the JavaDocs</li>
 <li>• Check the examples repo</li>
 <li>• Join the community</li>
-<li>• Explore class-based agents (1.7.1)</li>
+<li>• Explore class-based agents (1.10.0)</li>
 <li>• Try Docker MCP transport</li>
 </ul>
 </div>

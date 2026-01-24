@@ -6,20 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **hands-on training course** for learning LangChain4j through progressive lab exercises. The repository is structured as a proper training course where students build functionality incrementally.
 
-### LangChain4j 1.7.1 New Features
+### LangChain4j 1.10.0 New Features
 
-This course has been updated to LangChain4j 1.7.1, which includes:
+This course has been updated to LangChain4j 1.10.0, which includes:
 
-1. **Class-Based Agents**: Create agents using classes in addition to interfaces, providing more flexibility in agent design
-2. **ChromaDB API V2**: Enhanced vector store support with improved performance and compatibility with newer Chroma versions
-3. **Docker MCP Transport**: New containerized approach for MCP server integration alongside existing npx/stdio transport
-4. **Enhanced AI Model Support**:
-   - OpenAI SDK upgraded to v4.0.0
-   - Custom parameter support for Anthropic models
-   - maxCompletionTokens support for Azure OpenAI
-5. **New Document Parsers**: YAML document parser and Oracle Document Loader
-6. **HuggingFace Deprecation**: HuggingFace chat/language models deprecated (use OpenAI, Anthropic, or Google AI instead)
-7. **GPU Support**: TornadoVM integration for GPU-accelerated operations
+1. **langchain4j-agentic Module**: New module for multi-agent workflows with `@Agent` annotation, `AgenticServices` builders, and workflow patterns (sequential, parallel, conditional, loops, supervisors)
+2. **Model Catalog Support**: Unified model selection for Anthropic, Gemini, OpenAI, and Mistral
+3. **AgentListener/AgentMonitor**: Observability and monitoring for agentic systems
+4. **Audio Transcription**: OpenAI audio transcription support
+5. **Hybrid Retrieval**: Combined retrieval strategies for RAG
+6. **Anthropic Enhancements**: Structured outputs, PDF input via URL, strict tools parameter
+7. **MCP Improvements**: WebSocket transport, client reconnection after network failures
+8. **Streaming Cancellation**: Ability to cancel ongoing streaming requests
 
 ### Repository Structure
 
@@ -28,10 +26,10 @@ This course has been updated to LangChain4j 1.7.1, which includes:
 - **Test classes**: Contain TODO comments guiding students through implementation
 - **Example classes**: Skeleton implementations with TODO instructions
 
-The course demonstrates integration of Large Language Models (LLMs) with Java applications using the LangChain4j library (version 1.7.1), covering:
+The course demonstrates integration of Large Language Models (LLMs) with Java applications using the LangChain4j library (version 1.10.0), covering:
 
 - Text generation and chat capabilities
-- Structured data extraction  
+- Structured data extraction
 - Prompt engineering with templates
 - Chat memory for maintaining conversation context
 - Function calling with local @Tool methods
@@ -151,7 +149,7 @@ git add .
 git commit -m "Complete Lab X: [Lab Title] implementation
 
 - Implement all working test methods
-- Add proper error handling and assertions  
+- Add proper error handling and assertions
 - Include educational logging and output
 - All tests pass with valid API keys
 
@@ -357,7 +355,7 @@ src/main/java/com/kousenit/langchain4j/
 **Benefits:**
 - **Reusability** across multiple test classes
 - **Proper separation of concerns** (tools vs tests)
-- **Professional code organization** 
+- **Professional code organization**
 - **Students can study tool implementation patterns**
 
 ### Testing Strategy: Hybrid JUnit 5 + AssertJ
@@ -411,7 +409,7 @@ This pattern is **essential for production conversational AI applications**.
   - Prerequisites: Node.js/npm (not Docker)
   - **LangChain4j 1.7.1 Enhancement**: Adds Docker MCP transport support for containerized MCP servers
 
-### Future Considerations  
+### Future Considerations
 - **Multimodal capabilities**: ✅ Lab 7 complete - includes:
   - Image analysis with GPT-4 Vision (local/remote images, structured data extraction)
   - Audio processing with Google Gemini 2.5 Flash Preview model

@@ -2,7 +2,7 @@
 
 This series of labs will guide you through building LangChain4j applications that use various capabilities of large language models. By the end of these exercises, you'll have hands-on experience with text generation, structured data extraction, prompt templates, chat memory, vision capabilities, and more.
 
-> **Note:** This project uses LangChain4j 1.7.1. LangChain4j 1.0+ includes significant API changes, including the new `ChatModel` interface (replacing `ChatLanguageModel`) and streamlined builder patterns. Version 1.7.1 adds support for class-based agents, ChromaDB API V2, enhanced MCP integration with Docker transport, and improved AI model integrations.
+> **Note:** This project uses LangChain4j 1.10.0. LangChain4j 1.0+ includes significant API changes, including the new `ChatModel` interface (replacing `ChatLanguageModel`) and streamlined builder patterns. Version 1.10.0 adds support for class-based agents, ChromaDB API V2, enhanced MCP integration with Docker transport, and improved AI model integrations.
 
 ## Table of Contents
 
@@ -833,7 +833,7 @@ Create a new test class `McpIntegrationTests.java` and implement the following e
 
 ## Lab 6.6: Multi-Agent Systems (AgenticServices)
 
-**NEW in LangChain4j 1.7.1**: Multi-agent orchestration allows you to build complex AI workflows by coordinating multiple specialized agents. This lab introduces the `AgenticServices` API for creating sequential, parallel, and conditional agent workflows.
+**NEW in LangChain4j 1.10.0**: Multi-agent orchestration allows you to build complex AI workflows by coordinating multiple specialized agents. This lab introduces the `AgenticServices` API for creating sequential, parallel, and conditional agent workflows.
 
 **Prerequisites:**
 - Understanding of AI Services from Lab 4
@@ -1564,7 +1564,7 @@ implementation("dev.langchain4j:langchain4j-google-ai-gemini")
 
 If this dependency is missing, add it and run `./gradlew build` to refresh dependencies.
 
-> **Note on Model Providers**: As of LangChain4j 1.7.1, HuggingFace chat and language models have been deprecated. Use OpenAI, Anthropic (Claude), or Google AI (Gemini) for production applications.
+> **Note on Model Providers**: As of LangChain4j 1.10.0, HuggingFace chat and language models have been deprecated. Use OpenAI, Anthropic (Claude), or Google AI (Gemini) for production applications.
 
 ### 9.1 Basic Document Loading and Embedding
 
@@ -1824,7 +1824,7 @@ To use Chroma as a vector store, you need a running Chroma instance:
 docker run -p 8000:8000 chromadb/chroma:0.5.4
 ```
 
-**Important**: LangChain4j 1.7.1 supports ChromaDB API V2, providing enhanced compatibility with newer Chroma versions. While Chroma 0.5.4 remains stable and tested, you may also use newer Chroma versions that support API V2 for additional features and improvements.
+**Important**: LangChain4j 1.10.0 supports ChromaDB API V2, providing enhanced compatibility with newer Chroma versions. While Chroma 0.5.4 remains stable and tested, you may also use newer Chroma versions that support API V2 for additional features and improvements.
 
 ### 10.1 Basic Chroma Vector Store Operations
 
@@ -2139,8 +2139,8 @@ private boolean isChromaAvailable() {
 ```
 
 **Important Notes for Lab 10:**
-- **Updated for LangChain4j 1.7.1**: Now supports ChromaDB API V2 for improved performance and features
-- Recommended Chroma version: 0.5.4+ (or latest stable) for compatibility with LangChain4j 1.7.1
+- **Updated for LangChain4j 1.10.0**: Now supports ChromaDB API V2 for improved performance and features
+- Recommended Chroma version: 0.5.4+ (or latest stable) for compatibility with LangChain4j 1.10.0
 - Chroma provides excellent persistence without complex setup
 - Collection names use `randomUUID()` to avoid conflicts between test runs
 - The `isChromaAvailable()` helper method ensures tests only run when Chroma is accessible

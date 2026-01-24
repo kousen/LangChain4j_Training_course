@@ -1,6 +1,5 @@
 plugins {
     id("java")
-    id("com.diffplug.spotless") version "6.25.0"
 }
 
 group = "com.kousenit"
@@ -17,7 +16,7 @@ repositories {
 
 dependencies {
     // LangChain4j BOM for version management
-    implementation(platform("dev.langchain4j:langchain4j-bom:1.7.1"))
+    implementation(platform("dev.langchain4j:langchain4j-bom:1.10.0"))
 
     // Core LangChain4j
     implementation("dev.langchain4j:langchain4j")
@@ -26,6 +25,9 @@ dependencies {
     implementation("dev.langchain4j:langchain4j-open-ai")
     implementation("dev.langchain4j:langchain4j-anthropic")
     implementation("dev.langchain4j:langchain4j-google-ai-gemini")
+
+    // Agentic module for multi-agent workflows
+    implementation("dev.langchain4j:langchain4j-agentic")
 
     // Document processing and RAG
     implementation("dev.langchain4j:langchain4j-document-parser-apache-tika")
@@ -54,31 +56,4 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
-}
-
-spotless {
-    java {
-        target("src/**/*.java")
-        palantirJavaFormat("2.63.0")  // This is what langchain4j uses
-    }
-
-    // If you have Kotlin files
-    kotlin {
-        target("src/**/*.kt")
-        ktlint()
-    }
-
-    // If you have Groovy files
-    groovy {
-        target("src/**/*.groovy")
-        greclipse()
-    }
-
-    // Format build files and other misc files
-    format("misc") {
-        target("*.gradle", "*.gradle.kts", "*.md", ".gitignore")
-        trimTrailingWhitespace()
-        indentWithSpaces(4)
-        endWithNewline()
-    }
 }

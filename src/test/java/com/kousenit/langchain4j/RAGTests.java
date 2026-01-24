@@ -1,5 +1,8 @@
 package com.kousenit.langchain4j;
 
+import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
+import static org.junit.jupiter.api.Assertions.*;
+
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentSplitter;
 import dev.langchain4j.data.document.loader.FileSystemDocumentLoader;
@@ -18,175 +21,171 @@ import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.inmemory.InMemoryEmbeddingStore;
-import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
-import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 /**
  * Lab 9: Retrieval-Augmented Generation (RAG)
- * <p>
- * This lab demonstrates how to build RAG systems with LangChain4j.
- * You'll learn how to:
- * - Load and embed documents for semantic search
- * - Create an embedding store for vector similarity search
- * - Implement content retrieval for augmenting AI responses
- * - Build RAG-enabled AI services
- * - Use Redis as a persistent vector store for production
- * <p>
- * Prerequisites:
- * - Understanding of embeddings and vector similarity
- * - Basic knowledge of document processing
- * - For Lab 10: Docker with Redis Stack (optional)
+ *
+ * <p>This lab demonstrates how to build RAG systems with LangChain4j. You'll learn how to: - Load
+ * and embed documents for semantic search - Create an embedding store for vector similarity search
+ * - Implement content retrieval for augmenting AI responses - Build RAG-enabled AI services - Use
+ * Redis as a persistent vector store for production
+ *
+ * <p>Prerequisites: - Understanding of embeddings and vector similarity - Basic knowledge of
+ * document processing - For Lab 10: Docker with Redis Stack (optional)
  */
 class RAGTests {
 
-    /**
-     * Test 9.1: Basic Document Loading and Embedding
-     * <p>
-     * Demonstrates the fundamentals of document processing:
-     * - Creating an embedding model
-     * - Setting up an in-memory embedding store
-     * - Processing documents into embeddings
-     * - Performing similarity search
-     */
-    @Test
-    void basicDocumentEmbedding() {
-        // Create embedding model
-        EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
-        
-        // Create in-memory embedding store
-        EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
+  /**
+   * Test 9.1: Basic Document Loading and Embedding
+   *
+   * <p>Demonstrates the fundamentals of document processing: - Creating an embedding model -
+   * Setting up an in-memory embedding store - Processing documents into embeddings - Performing
+   * similarity search
+   */
+  @Test
+  void basicDocumentEmbedding() {
+    // Create embedding model
+    EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
 
-        // Create some sample documents
-        List<Document> documents = List.of(
+    // Create in-memory embedding store
+    EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
+
+    // Create some sample documents
+    List<Document> documents =
+        List.of(
             Document.from("LangChain4j is a Java library for building AI applications."),
-            Document.from("It provides integration with various language models like OpenAI and Anthropic."),
+            Document.from(
+                "It provides integration with various language models like OpenAI and Anthropic."),
             Document.from("LangChain4j supports RAG, tools, memory, and streaming responses."),
-            Document.from("The library uses a builder pattern for configuration.")
-        );
+            Document.from("The library uses a builder pattern for configuration."));
 
-        // Split documents into segments
-        DocumentSplitter splitter = DocumentSplitters.recursive(100, 20);
-        List<TextSegment> segments = splitter.splitAll(documents);
+    // Split documents into segments
+    DocumentSplitter splitter = DocumentSplitters.recursive(100, 20);
+    List<TextSegment> segments = splitter.splitAll(documents);
 
-        // Embed and store segments
-        List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
-        embeddingStore.addAll(embeddings, segments);
+    // Embed and store segments
+    List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
+    embeddingStore.addAll(embeddings, segments);
 
-        System.out.printf("Embedded %d document segments%n", segments.size());
-        
-        // Test similarity search
-        String query = "What is LangChain4j?";
-        Embedding queryEmbedding = embeddingModel.embed(query).content();
-        
-        List<EmbeddingMatch<TextSegment>> matches =
-                embeddingStore.search(EmbeddingSearchRequest.builder()
-                        .queryEmbedding(queryEmbedding)
-                        .maxResults(2)
-                        .build()).matches();
+    System.out.printf("Embedded %d document segments%n", segments.size());
 
-        System.out.printf("Found %d relevant segments:%n", matches.size());
-        matches.forEach(match ->
-                System.out.printf("- %s (score: %s)%n", match.embedded().text(), match.score())
-        );
+    // Test similarity search
+    String query = "What is LangChain4j?";
+    Embedding queryEmbedding = embeddingModel.embed(query).content();
 
-        assertFalse(matches.isEmpty());
-    }
+    List<EmbeddingMatch<TextSegment>> matches =
+        embeddingStore
+            .search(
+                EmbeddingSearchRequest.builder()
+                    .queryEmbedding(queryEmbedding)
+                    .maxResults(2)
+                    .build())
+            .matches();
 
-    /**
-     * Test 9.2: RAG with ContentRetriever
-     * <p>
-     * Demonstrates building a complete RAG system:
-     * - Setting up chat and embedding models
-     * - Creating a content retriever
-     * - Building a RAG-enabled AI service
-     * - Testing knowledge-augmented responses
-     */
-    @Test
-    void ragWithContentRetriever() {
-        // Set up models
-        ChatModel chatModel = OpenAiChatModel.builder()
-                .apiKey(System.getenv("OPENAI_API_KEY"))
-                .modelName(GPT_4_1_NANO)
-                .build();
+    System.out.printf("Found %d relevant segments:%n", matches.size());
+    matches.forEach(
+        match -> System.out.printf("- %s (score: %s)%n", match.embedded().text(), match.score()));
 
-        EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
-        EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
+    assertFalse(matches.isEmpty());
+  }
 
-        // Load and process documents
-        List<Document> documents = List.of(
-            Document.from("""
+  /**
+   * Test 9.2: RAG with ContentRetriever
+   *
+   * <p>Demonstrates building a complete RAG system: - Setting up chat and embedding models -
+   * Creating a content retriever - Building a RAG-enabled AI service - Testing knowledge-augmented
+   * responses
+   */
+  @Test
+  void ragWithContentRetriever() {
+    // Set up models
+    ChatModel chatModel =
+        OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .build();
+
+    EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
+    EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
+
+    // Load and process documents
+    List<Document> documents =
+        List.of(
+            Document.from(
+                """
                 Java is a programming language and computing platform
                 first released by Sun Microsystems in 1995."""),
-            Document.from("""
+            Document.from(
+                """
                 Java is object-oriented, class-based, and designed to
                 have as few implementation dependencies as possible."""),
-            Document.from("""
+            Document.from(
+                """
                 Java applications are typically compiled to bytecode
                 that can run on any Java virtual machine (JVM)."""),
-            Document.from("""
+            Document.from(
+                """
             Java is one of the most popular programming languages in use,
-            particularly for client-server web applications.""")
-        );
+            particularly for client-server web applications."""));
 
-        DocumentSplitter splitter = DocumentSplitters.recursive(200, 50);
-        List<TextSegment> segments = splitter.splitAll(documents);
-        
-        List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
-        embeddingStore.addAll(embeddings, segments);
+    DocumentSplitter splitter = DocumentSplitters.recursive(200, 50);
+    List<TextSegment> segments = splitter.splitAll(documents);
 
-        // Create content retriever
-        ContentRetriever retriever = EmbeddingStoreContentRetriever.builder()
-                .embeddingStore(embeddingStore)
-                .embeddingModel(embeddingModel)
-                .maxResults(2)
-                .minScore(0.5)
-                .build();
+    List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
+    embeddingStore.addAll(embeddings, segments);
 
-        // Create RAG-enabled assistant
-        interface RagAssistant {
-            String answer(String question);
-        }
+    // Create content retriever
+    ContentRetriever retriever =
+        EmbeddingStoreContentRetriever.builder()
+            .embeddingStore(embeddingStore)
+            .embeddingModel(embeddingModel)
+            .maxResults(2)
+            .minScore(0.5)
+            .build();
 
-        RagAssistant assistant = AiServices.builder(RagAssistant.class)
-                .chatModel(chatModel)
-                .contentRetriever(retriever)
-                .build();
-
-        // Test RAG
-        String question = "When was Java first released?";
-        String answer = assistant.answer(question);
-        
-        System.out.println("Question: " + question);
-        System.out.println("Answer: " + answer);
-
-        assertNotNull(answer);
-        assertTrue(answer.contains("1995"));
+    // Create RAG-enabled assistant
+    interface RagAssistant {
+      String answer(String question);
     }
 
-    /**
-     * Test 9.3: RAG with File Documents
-     * <p>
-     * Demonstrates loading documents from files:
-     * - Creating and loading text files
-     * - Processing file content for RAG
-     * - Building a document-based assistant
-     * - Handling file I/O operations
-     */
-    @Test
-    void ragWithFileDocuments() throws IOException {
-        // Create a sample text file for testing
-        Path tempFile = Files.createTempFile("sample", ".txt");
-        Files.writeString(tempFile, """
+    RagAssistant assistant =
+        AiServices.builder(RagAssistant.class)
+            .chatModel(chatModel)
+            .contentRetriever(retriever)
+            .build();
+
+    // Test RAG
+    String question = "When was Java first released?";
+    String answer = assistant.answer(question);
+
+    System.out.println("Question: " + question);
+    System.out.println("Answer: " + answer);
+
+    assertNotNull(answer);
+    assertTrue(answer.contains("1995"));
+  }
+
+  /**
+   * Test 9.3: RAG with File Documents
+   *
+   * <p>Demonstrates loading documents from files: - Creating and loading text files - Processing
+   * file content for RAG - Building a document-based assistant - Handling file I/O operations
+   */
+  @Test
+  void ragWithFileDocuments() throws IOException {
+    // Create a sample text file for testing
+    Path tempFile = Files.createTempFile("sample", ".txt");
+    Files.writeString(
+        tempFile,
+        """
             LangChain4j is a powerful Java library for building applications with Large Language Models (LLMs).
-            
+
             Key features include:
             - Integration with multiple AI providers (OpenAI, Anthropic, etc.)
             - Support for chat memory and conversation context
@@ -194,120 +193,125 @@ class RAGTests {
             - Retrieval-Augmented Generation (RAG)
             - Streaming responses
             - Image and audio processing
-            
+
             The library follows modern Java practices and uses builder patterns for configuration.
             It provides both low-level and high-level APIs for different use cases.
             """);
 
-        try {
-            ChatModel chatModel = OpenAiChatModel.builder()
-                    .apiKey(System.getenv("OPENAI_API_KEY"))
-                    .modelName(GPT_4_1_NANO)
-                    .build();
+    try {
+      ChatModel chatModel =
+          OpenAiChatModel.builder()
+              .apiKey(System.getenv("OPENAI_API_KEY"))
+              .modelName(GPT_4_1_NANO)
+              .build();
 
-            EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
-            EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
+      EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
+      EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
 
-            // Load document from file
-            Document document = FileSystemDocumentLoader.loadDocument(tempFile);
-            
-            DocumentSplitter splitter = DocumentSplitters.recursive(300, 50);
-            List<TextSegment> segments = splitter.split(document);
-            
-            List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
-            embeddingStore.addAll(embeddings, segments);
+      // Load document from file
+      Document document = FileSystemDocumentLoader.loadDocument(tempFile);
 
-            ContentRetriever retriever = EmbeddingStoreContentRetriever.builder()
-                    .embeddingStore(embeddingStore)
-                    .embeddingModel(embeddingModel)
-                    .maxResults(3)
-                    .build();
+      DocumentSplitter splitter = DocumentSplitters.recursive(300, 50);
+      List<TextSegment> segments = splitter.split(document);
 
-            interface DocumentAssistant {
-                String answer(String question);
-            }
+      List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
+      embeddingStore.addAll(embeddings, segments);
 
-            DocumentAssistant assistant = AiServices.builder(DocumentAssistant.class)
-                    .chatModel(chatModel)
-                    .contentRetriever(retriever)
-                    .build();
+      ContentRetriever retriever =
+          EmbeddingStoreContentRetriever.builder()
+              .embeddingStore(embeddingStore)
+              .embeddingModel(embeddingModel)
+              .maxResults(3)
+              .build();
 
-            String answer = assistant.answer("What are the key features of LangChain4j?");
-            
-            System.out.println("Answer based on document: " + answer);
-            
-            assertNotNull(answer);
-            assertTrue(answer.toLowerCase().contains("langchain4j") || 
-                      answer.toLowerCase().contains("feature"));
+      interface DocumentAssistant {
+        String answer(String question);
+      }
 
-        } finally {
-            Files.deleteIfExists(tempFile);
-        }
+      DocumentAssistant assistant =
+          AiServices.builder(DocumentAssistant.class)
+              .chatModel(chatModel)
+              .contentRetriever(retriever)
+              .build();
+
+      String answer = assistant.answer("What are the key features of LangChain4j?");
+
+      System.out.println("Answer based on document: " + answer);
+
+      assertNotNull(answer);
+      assertTrue(
+          answer.toLowerCase().contains("langchain4j") || answer.toLowerCase().contains("feature"));
+
+    } finally {
+      Files.deleteIfExists(tempFile);
     }
+  }
 
-    /**
-     * Test 9.4: Advanced RAG with Metadata Filtering
-     * <p>
-     * Demonstrates advanced RAG features:
-     * - Adding metadata to documents
-     * - Creating documents about different topics
-     * - Using metadata for filtering (if supported)
-     * - Building topic-specific assistants
-     */
-    @Test
-    void ragWithMetadataFiltering() {
-        ChatModel chatModel = OpenAiChatModel.builder()
-                .apiKey(System.getenv("OPENAI_API_KEY"))
-                .modelName(GPT_4_1_NANO)
-                .build();
+  /**
+   * Test 9.4: Advanced RAG with Metadata Filtering
+   *
+   * <p>Demonstrates advanced RAG features: - Adding metadata to documents - Creating documents
+   * about different topics - Using metadata for filtering (if supported) - Building topic-specific
+   * assistants
+   */
+  @Test
+  void ragWithMetadataFiltering() {
+    ChatModel chatModel =
+        OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .build();
 
-        EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
-        EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
+    EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
+    EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
 
-        // Create documents with metadata
-        List<Document> javaDocs = List.of(
+    // Create documents with metadata
+    List<Document> javaDocs =
+        List.of(
             Document.from("Java was created by James Gosling at Sun Microsystems."),
-            Document.from("Java uses automatic memory management with garbage collection.")
-        );
+            Document.from("Java uses automatic memory management with garbage collection."));
 
-        List<Document> pythonDocs = List.of(
+    List<Document> pythonDocs =
+        List.of(
             Document.from("Python was created by Guido van Rossum in 1991."),
-            Document.from("Python uses reference counting for memory management.")
-        );
+            Document.from("Python uses reference counting for memory management."));
 
-        List<Document> allDocs = new ArrayList<>();
-        allDocs.addAll(javaDocs);
-        allDocs.addAll(pythonDocs);
+    List<Document> allDocs = new ArrayList<>();
+    allDocs.addAll(javaDocs);
+    allDocs.addAll(pythonDocs);
 
-        DocumentSplitter splitter = DocumentSplitters.recursive(200, 50);
-        List<TextSegment> segments = splitter.splitAll(allDocs);
-        
-        List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
-        embeddingStore.addAll(embeddings, segments);
+    DocumentSplitter splitter = DocumentSplitters.recursive(200, 50);
+    List<TextSegment> segments = splitter.splitAll(allDocs);
 
-        // Create retriever with metadata filtering
-        ContentRetriever retriever = EmbeddingStoreContentRetriever.builder()
-                .embeddingStore(embeddingStore)
-                .embeddingModel(embeddingModel)
-                .maxResults(2)
-                // Note: Metadata filtering implementation depends on the specific embedding store
-                .build();
+    List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
+    embeddingStore.addAll(embeddings, segments);
 
-        interface LanguageAssistant {
-            @SystemMessage("Answer questions based only on the provided context about programming languages.")
-            String answerAboutLanguage(String question);
-        }
+    // Create retriever with metadata filtering
+    ContentRetriever retriever =
+        EmbeddingStoreContentRetriever.builder()
+            .embeddingStore(embeddingStore)
+            .embeddingModel(embeddingModel)
+            .maxResults(2)
+            // Note: Metadata filtering implementation depends on the specific embedding store
+            .build();
 
-        LanguageAssistant assistant = AiServices.builder(LanguageAssistant.class)
-                .chatModel(chatModel)
-                .contentRetriever(retriever)
-                .build();
-
-        String answer = assistant.answerAboutLanguage("Who created Java and when?");
-        
-        System.out.println("Answer: " + answer);
-        assertNotNull(answer);
-        assertTrue(answer.toLowerCase().contains("james gosling") || answer.toLowerCase().contains("sun"));
+    interface LanguageAssistant {
+      @SystemMessage(
+          "Answer questions based only on the provided context about programming languages.")
+      String answerAboutLanguage(String question);
     }
 
+    LanguageAssistant assistant =
+        AiServices.builder(LanguageAssistant.class)
+            .chatModel(chatModel)
+            .contentRetriever(retriever)
+            .build();
+
+    String answer = assistant.answerAboutLanguage("Who created Java and when?");
+
+    System.out.println("Answer: " + answer);
+    assertNotNull(answer);
+    assertTrue(
+        answer.toLowerCase().contains("james gosling") || answer.toLowerCase().contains("sun"));
+  }
 }
