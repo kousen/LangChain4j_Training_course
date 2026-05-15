@@ -44,8 +44,7 @@ class StructuredDataExtractionTests {
                 .build();
 
         // Create prompt requesting JSON format
-        String prompt =
-                """
+        String prompt = """
                 Generate the filmography for a random actor in the following JSON format:
                 {
                     "actor": "Actor Name",
@@ -164,8 +163,7 @@ class StructuredDataExtractionTests {
                 AiServices.builder(ActorService.class).chatModel(model).build();
 
         // Request filmographies for multiple actors
-        ActorFilmographies result = service.getMultipleActorFilmographies(
-                """
+        ActorFilmographies result = service.getMultipleActorFilmographies("""
             Return a JSON object with a 'filmographies' field containing
             an array of exactly 3 different famous actors. Each actor
             should have exactly 4 movies. Format each actor as an object

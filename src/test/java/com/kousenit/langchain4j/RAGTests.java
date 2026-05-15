@@ -37,12 +37,12 @@ import org.junit.jupiter.api.Test;
  * - Create an embedding store for vector similarity search
  * - Implement content retrieval for augmenting AI responses
  * - Build RAG-enabled AI services
- * - Use Redis as a persistent vector store for production
+ * - Use Chroma as a persistent vector store in Lab 10
  * <p>
  * Prerequisites:
  * - Understanding of embeddings and vector similarity
  * - Basic knowledge of document processing
- * - For Lab 10: Docker with Redis Stack (optional)
+ * - For Lab 10: Docker with Chroma (optional)
  */
 class RAGTests {
 
@@ -119,21 +119,14 @@ class RAGTests {
         EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
 
         // Load and process documents
-        List<Document> documents = List.of(
-                Document.from(
-                        """
+        List<Document> documents =
+                List.of(Document.from("""
                 Java is a programming language and computing platform
-                first released by Sun Microsystems in 1995."""),
-                Document.from(
-                        """
+                first released by Sun Microsystems in 1995."""), Document.from("""
                 Java is object-oriented, class-based, and designed to
-                have as few implementation dependencies as possible."""),
-                Document.from(
-                        """
+                have as few implementation dependencies as possible."""), Document.from("""
                 Java applications are typically compiled to bytecode
-                that can run on any Java virtual machine (JVM)."""),
-                Document.from(
-                        """
+                that can run on any Java virtual machine (JVM)."""), Document.from("""
             Java is one of the most popular programming languages in use,
             particularly for client-server web applications."""));
 
@@ -185,9 +178,7 @@ class RAGTests {
     void ragWithFileDocuments() throws IOException {
         // Create a sample text file for testing
         Path tempFile = Files.createTempFile("sample", ".txt");
-        Files.writeString(
-                tempFile,
-                """
+        Files.writeString(tempFile, """
             LangChain4j is a powerful Java library for building applications with Large Language Models (LLMs).
 
             Key features include:

@@ -5,15 +5,15 @@ class: text-center
 highlighter: shiki
 lineNumbers: false
 info: |
-  ## LangChain4j 1.7.1 Training Course
-  Learn to build AI-powered Java applications with LangChain4j 1.7.1
+  ## LangChain4j Training Course
+  Learn to build AI-powered Java applications with LangChain4j
 drawings:
   persist: false
 transition: slide-left
-title: LangChain4j 1.7.1 Training Course
+title: LangChain4j Training Course
 ---
 
-# LangChain4j 1.7.1 Training Course
+# LangChain4j Training Course
 
 Building AI-Powered Java Applications
 
@@ -29,7 +29,7 @@ transition: fade-out
 
 # What is LangChain4j?
 
-LangChain4j 1.7.1 is a Java library for building applications with Large Language Models (LLMs)
+A Java library for building applications with Large Language Models (LLMs)
 
 <div class="grid grid-cols-2 gap-4">
 
@@ -37,12 +37,14 @@ LangChain4j 1.7.1 is a Java library for building applications with Large Languag
 
 ## Key Features
 
-- 🤖 **AI Model Integration** - OpenAI, Google AI, and more
-- 💬 **Chat & Conversations** - With memory management
+- 🤖 **Model Integration** - OpenAI, Anthropic, Google AI, and more
+- 💬 **Chat & Memory** - With conversation context
 - 🛠️ **Tool Calling** - Connect AI to your Java methods
+- 🤝 **Agentic API** - Compose agents into workflows
 - 📚 **RAG Support** - Augment AI with your data
-- 🌊 **Streaming** - Real-time AI responses
-- 🖼️ **Multimodal** - Process images and audio
+- 🌊 **Streaming** - Real-time responses, with cancellation
+- 🖼️ **Multimodal** - Images, audio (transcription), video
+- 🔌 **MCP Client** - External tools via Model Context Protocol
 
 </div>
 
@@ -67,7 +69,7 @@ layout: two-cols
 
 # Simple Chat Example
 
-Basic interaction with OpenAI's GPT model (LangChain4j 1.0+)
+Basic interaction with OpenAI's GPT model
 
 ::right::
 
@@ -89,7 +91,7 @@ void simpleQuery() {
 ```
 
 <div v-after class="text-sm mt-4 text-gray-400">
-<p v-click="4">✨ ChatModel interface (LangChain4j 1.0+)</p>
+<p v-click="4">✨ ChatModel interface</p>
 <p v-click="5">✨ Simple chat() method</p>
 <p v-click="6">✨ GPT_4_1_NANO constant</p>
 </div>
@@ -357,14 +359,14 @@ Assistant assistant = AiServices.builder(Assistant.class)
 layout: two-cols
 ---
 
-# ChromaDB (API V2)
+# ChromaDB
 
 Production vector store
 
 ::right::
 
 ```java {all|1-4|6-9|11-14|all}
-// ChromaDB with API V2 support (1.7.1)
+// ChromaDB API V2 client
 EmbeddingStore<TextSegment> store =
     ChromaEmbeddingStore.builder()
         .baseUrl("http://localhost:8000")
@@ -385,7 +387,7 @@ List<EmbeddingMatch<TextSegment>> matches =
 ```
 
 <div v-click class="mt-2 text-sm text-gray-400">
-<p>🚀 API V2: Better performance</p>
+<p>🚀 Chroma teaches pure-vector search; PgVector & Elasticsearch add hybrid search</p>
 </div>
 
 ---
@@ -401,7 +403,7 @@ Process images with AI
 ```java {all|1-3|5-9|all}
 // Vision model
 ChatModel model = OpenAiChatModel.builder()
-    .modelName(GPT_4_1_MINI)
+    .modelName(GPT_5_1)
     .build();
 
 // Analyze image
@@ -413,7 +415,7 @@ String response = model.chat(msg).aiMessage().text();
 ```
 
 <div v-click class="mt-2 text-sm text-gray-400">
-<p>🖼️ GPT-4 Mini for vision</p>
+<p>🖼️ GPT-5.1 for vision</p>
 </div>
 
 ---
@@ -422,28 +424,33 @@ layout: two-cols
 
 # Multimodal: Audio
 
-Speech-to-text with Gemini
+Speech-to-text with OpenAI's transcription model
 
 ::right::
 
-```java {all|1-4|6-10|all}
-// Gemini for audio
-ChatModel model = GoogleAiGeminiChatModel.builder()
-    .apiKey(System.getenv("GOOGLEAI_API_KEY"))
-    .modelName("gemini-2.5-flash-preview-05-20")
+```java {all|1-4|6-9|11-13|all}
+// Dedicated transcription model
+OpenAiAudioTranscriptionModel transcribe =
+    OpenAiAudioTranscriptionModel.builder()
+        .apiKey(System.getenv("OPENAI_API_KEY"))
+        .modelName("gpt-4o-transcribe")
+        .build();
+
+Audio audio = Audio.builder()
+    .binaryData(audioBytes)
+    .mimeType("audio/mp3")
     .build();
 
-// Transcribe audio
-AudioContent audio = AudioContent.from(
-    readAudioData(), "audio/mp3");
-UserMessage msg = UserMessage.from(
-    TextContent.from("Transcribe:"), audio);
+AudioTranscriptionResponse response =
+    transcribe.transcribe(
+        AudioTranscriptionRequest.builder()
+            .audio(audio).build());
 
-String text = model.chat(msg).aiMessage().text();
+String transcript = response.text();
 ```
 
 <div v-click class="mt-2 text-sm text-gray-400">
-<p>🎵 MP3, WAV support</p>
+<p>🎵 whisper-1, gpt-4o-transcribe, gpt-4o-transcribe-diarize</p>
 </div>
 
 ---
@@ -452,27 +459,29 @@ layout: two-cols
 
 # Image Generation
 
-Create images with DALL-E
+Create images with gpt-image-2
 
 ::right::
 
-```java {all|1-4|6-9|all}
-// DALL-E model
+```java {all|1-4|6-9|11-13|all}
+// gpt-image-2 model
 ImageModel imageModel = OpenAiImageModel.builder()
-    .modelName(DALL_E_3)
-    .quality("hd")
+    .apiKey(System.getenv("OPENAI_API_KEY"))
+    .modelName("gpt-image-2")
+    .quality("high") // low | medium | high | auto
     .build();
 
 // Generate from prompt
 Response<Image> response = imageModel.generate(
     "A coffee cup on a desk, photorealistic");
 
-Image img = response.content();
-String url = img.url();
+// GPT Image returns base64, not a URL
+byte[] bytes = Base64.getDecoder().decode(
+    response.content().base64Data());
 ```
 
 <div v-click class="mt-2 text-sm text-gray-400">
-<p>🎨 DALL-E 3 support</p>
+<p>🎨 DALL-E 3 was deprecated 2026-05-12; GPT Image models are the replacement</p>
 </div>
 
 ---
@@ -490,7 +499,8 @@ External tool protocol
 McpTransport transport =
     new StdioMcpTransport.Builder()
         .command(List.of("npx", "-y",
-            "@modelcontextprotocol/server-everything"))
+            "@modelcontextprotocol/server-everything",
+            "stdio"))
         .build();
 
 // Use with AI
@@ -504,7 +514,104 @@ Assistant ai = AiServices.builder(Assistant.class)
 ```
 
 <div v-click class="mt-2 text-sm text-gray-400">
-<p>🐳 Docker transport in 1.7.1</p>
+<p>🚇 Standard: stdio + Streamable HTTP; LangChain4j also supports Docker stdio + WebSocket</p>
+</div>
+
+---
+layout: center
+class: text-center
+---
+
+# Agentic API
+
+Compose multiple LLM-backed agents into workflows
+
+```mermaid
+graph LR
+    A[Input] --> B[Writer Agent]
+    B --> C{Score &gt; 0.7?}
+    C -->|No| D[Editor Agent]
+    D --> C
+    C -->|Yes| E[Output]
+```
+
+<div v-click class="text-left inline-block mt-4">
+
+The `langchain4j-agentic` module composes agents into:
+
+- **Sequence** — fan-in: writer → editor → publisher
+- **Loop** — iterate until exit condition met
+- **Parallel** — fan-out and merge
+- **Conditional** — branch on shared state
+- **Supervisor** — LLM picks the next sub-agent
+
+</div>
+
+---
+layout: two-cols
+---
+
+# Defining an Agent
+
+`@Agent` annotation + `AgenticServices.agentBuilder`
+
+::right::
+
+```java {all|1-7|9-12|all}
+interface CreativeWriter {
+    @SystemMessage("You write short stories.")
+    @UserMessage("Write a story about {{topic}}.")
+    @Agent("Generate a short story")
+    String writeStoryAbout(
+        @V("topic") String topic);
+}
+
+CreativeWriter writer =
+    AgenticServices.agentBuilder(CreativeWriter.class)
+        .chatModel(model)
+        .outputKey("story")
+        .build();
+
+String story = writer.writeStoryAbout("dragons");
+```
+
+<div v-click class="mt-4 text-sm text-gray-400">
+<p>💡 outputKey publishes results to a shared AgenticScope</p>
+</div>
+
+---
+layout: two-cols
+---
+
+# Composing Agents
+
+Build a sequence or a loop
+
+::right::
+
+```java {all|1-5|7-12|all}
+// Sequence: writer then editor
+UntypedAgent novelist =
+    AgenticServices.sequenceBuilder()
+        .subAgents(writer, editor)
+        .outputKey("story")
+        .build();
+
+// Loop: edit until score >= 0.7
+UntypedAgent reviewLoop =
+    AgenticServices.loopBuilder()
+        .subAgents(scorer, styleEditor)
+        .maxIterations(3)
+        .exitCondition(scope ->
+            scope.readState("score", 0.0) >= 0.7)
+        .build();
+
+Object result = novelist.invoke(
+    Map.of("topic", "lighthouse keeper"));
+```
+
+<div v-click class="mt-4 text-sm text-gray-400">
+<p>🤝 Each agent reads/writes the shared scope by key</p>
 </div>
 
 ---
@@ -513,7 +620,7 @@ layout: two-cols
 
 # Production Considerations
 
-Real-world deployment best practices (LangChain4j 1.7.1)
+Real-world deployment best practices
 
 ::right::
 
@@ -535,7 +642,7 @@ System.out.println("Output tokens: " + usage.outputTokenCount());
 System.out.println("Total cost: $" +
     calculateCost(usage.totalTokenCount()));
 
-// Vector stores: ChromaDB (API V2 in 1.7.1)
+// Vector store: Chroma shown here for pure vector search
 EmbeddingStore<TextSegment> store = ChromaEmbeddingStore.builder()
     .baseUrl("http://localhost:8000")
     .collectionName("production-embeddings")
@@ -547,8 +654,8 @@ EmbeddingStore<TextSegment> store = ChromaEmbeddingStore.builder()
 ⚠️ <strong>Security:</strong> Never log API keys, validate inputs, rate limit
 </div>
 
-<div v-click class="mt-2 p-3 bg-yellow-500 bg-opacity-20 rounded text-sm">
-⚠️ <strong>Deprecated:</strong> HuggingFace models - use OpenAI/Anthropic/Google AI
+<div v-click class="mt-2 p-3 bg-blue-500 bg-opacity-20 rounded text-sm">
+📊 <strong>Observability:</strong> Micrometer metrics + Observation API (1.12)
 </div>
 
 ---
@@ -557,7 +664,7 @@ layout: two-cols
 
 # Lab Progression
 
-10 hands-on labs
+11 hands-on labs
 
 ::right::
 
@@ -575,12 +682,17 @@ layout: two-cols
 
 <div v-click class="bg-purple-500 bg-opacity-20 p-2 rounded">
 <strong>🛠️ Tools & Integration</strong>
-<p class="text-xs">Labs 6-8: Function Calling, MCP, Multimodal</p>
+<p class="text-xs">Labs 6, 6.5, 7-8: Function Calling, MCP, Multimodal, Image Gen</p>
 </div>
 
 <div v-click class="bg-orange-500 bg-opacity-20 p-2 rounded">
 <strong>📚 RAG Implementation</strong>
 <p class="text-xs">Labs 9-10: RAG, Vector Stores</p>
+</div>
+
+<div v-click class="bg-pink-500 bg-opacity-20 p-2 rounded">
+<strong>🤝 Agentic Workflows</strong>
+<p class="text-xs">Lab 11: Sequence, Loop, Composition</p>
 </div>
 
 </div>
@@ -607,12 +719,12 @@ Documentation and course materials
 </div>
 
 <div v-click class="bg-green-500 bg-opacity-20 p-3 rounded">
-<strong>🛠️ This Course (v1.7.1)</strong>
+<strong>🛠️ This Course</strong>
 <ul class="text-xs mt-1 space-y-1">
 <li>• Main branch: Starter code</li>
 <li>• Solutions branch: Complete implementations</li>
 <li>• Labs.md: Step-by-step guide</li>
-<li>• UPGRADE_NOTES_1.7.1.md: What's new</li>
+<li>• Pinned to LangChain4j 1.14.1</li>
 </ul>
 </div>
 
@@ -635,10 +747,10 @@ Tips for production use
 <ul class="text-xs mt-1 space-y-1">
 <li>• Use environment variables for API keys</li>
 <li>• Implement proper error handling</li>
-<li>• Monitor token usage</li>
+<li>• Monitor token usage and add Micrometer metrics</li>
 <li>• Cache embeddings when possible</li>
 <li>• Test with different models</li>
-<li>• Use ChromaDB API V2 for production</li>
+<li>• Use hybrid search when lexical recall matters</li>
 </ul>
 </div>
 
@@ -649,8 +761,8 @@ Tips for production use
 <li>• Read the JavaDocs</li>
 <li>• Check the examples repo</li>
 <li>• Join the community</li>
-<li>• Explore class-based agents (1.7.1)</li>
-<li>• Try Docker MCP transport</li>
+<li>• Explore the agentic API for multi-step workflows</li>
+<li>• Use the Observation API for tracing</li>
 </ul>
 </div>
 

@@ -8,6 +8,8 @@ import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.chat.response.PartialResponse;
+import dev.langchain4j.model.chat.response.PartialResponseContext;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import java.util.Arrays;
@@ -300,5 +302,74 @@ class StreamingResponseTests {
                 () -> assertThat(tokenCount[0]).as("Token count").isPositive().isGreaterThan(5));
 
         System.out.println("✅ Advanced streaming test completed successfully");
+    }
+
+    /**
+     * Test 2.5: Cancelling a Streaming Response
+     * <p>
+     * LangChain4j 1.8 added the ability to cancel an in-flight streaming
+     * response via {@code context.streamingHandle().cancel()}. Useful when
+     * the user navigates away, when an early result is good enough, or to
+     * cap runaway responses.
+     */
+    @Test
+    void cancellingStreaming() throws InterruptedException {
+        StreamingChatModel model = OpenAiStreamingChatModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName(GPT_4_1_NANO)
+                .build();
+
+        CountDownLatch latch = new CountDownLatch(1);
+        StringBuilder collected = new StringBuilder();
+        final boolean[] cancelled = {false};
+        final boolean[] completedNormally = {false};
+
+        System.out.println("\nCancelling Streaming:");
+        System.out.println("=".repeat(50));
+
+        // Cancel after collecting ~100 characters — enough to prove we
+        // got partial output, far less than the model would produce on
+        // its own for an essay-length prompt.
+        model.chat(
+                "Write a 500-word essay about the history of programming languages.",
+                new StreamingChatResponseHandler() {
+                    @Override
+                    public void onPartialResponse(PartialResponse partialResponse, PartialResponseContext context) {
+                        String text = partialResponse.text();
+                        System.out.print(text);
+                        collected.append(text);
+                        if (collected.length() > 100 && !cancelled[0]) {
+                            cancelled[0] = true;
+                            System.out.println("\n[CANCELLING after " + collected.length() + " chars]");
+                            context.streamingHandle().cancel();
+                            latch.countDown();
+                        }
+                    }
+
+                    @Override
+                    public void onCompleteResponse(ChatResponse response) {
+                        completedNormally[0] = true;
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void onError(Throwable error) {
+                        System.err.println("Error: " + error.getMessage());
+                        latch.countDown();
+                    }
+                });
+
+        boolean done = latch.await(30, TimeUnit.SECONDS);
+
+        assertAll(
+                "Streaming cancellation validation",
+                () -> assertTrue(done, "Cancellation path should signal latch within 30 seconds"),
+                () -> assertTrue(cancelled[0], "We should have triggered cancel()"),
+                () -> assertThat(collected.toString())
+                        .as("Partial output collected before cancel")
+                        .isNotBlank());
+
+        System.out.println("✅ Cancellation test completed (cancelled=" + cancelled[0] + ", completedNormally="
+                + completedNormally[0] + ")");
     }
 }

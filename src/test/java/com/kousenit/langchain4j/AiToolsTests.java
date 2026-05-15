@@ -257,7 +257,35 @@ class AiToolsTests {
     }
 
     /**
-     * Test 6.5: Tool Error Handling
+     * Test 6.5: Optional Tool Parameters
+     * <p>
+     * LangChain4j 1.12 added {@code Optional<T>} support for tool
+     * parameters. Use it when the absence of a value is meaningful and
+     * should be handled inside the tool method.
+     */
+    @Test
+    void optionalToolParameters() {
+        ChatModel model = OpenAiChatModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName(GPT_4_1_NANO)
+                .build();
+
+        Assistant assistant = AiServices.builder(Assistant.class)
+                .chatModel(model)
+                .tools(new WeatherTool())
+                .build();
+
+        System.out.println("=== Optional Tool Parameters Test ===");
+
+        String response = assistant.chat("What's the weather in Berlin? I don't care about units.");
+        System.out.println("Response: " + response);
+
+        assertNotNull(response, "Response should not be null");
+        assertThat(response).as("Optional units response").containsIgnoringCase("berlin");
+    }
+
+    /**
+     * Test 6.6: Tool Error Handling
      * <p>
      * Demonstrates how tools handle errors and edge cases gracefully.
      */

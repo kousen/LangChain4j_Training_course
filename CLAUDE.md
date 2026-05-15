@@ -6,20 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **hands-on training course** for learning LangChain4j through progressive lab exercises. The repository is structured as a proper training course where students build functionality incrementally.
 
-### LangChain4j 1.7.1 New Features
+### Pinned LangChain4j Version
 
-This course has been updated to LangChain4j 1.7.1, which includes:
-
-1. **Class-Based Agents**: Create agents using classes in addition to interfaces, providing more flexibility in agent design
-2. **ChromaDB API V2**: Enhanced vector store support with improved performance and compatibility with newer Chroma versions
-3. **Docker MCP Transport**: New containerized approach for MCP server integration alongside existing npx/stdio transport
-4. **Enhanced AI Model Support**:
-   - OpenAI SDK upgraded to v4.0.0
-   - Custom parameter support for Anthropic models
-   - maxCompletionTokens support for Azure OpenAI
-5. **New Document Parsers**: YAML document parser and Oracle Document Loader
-6. **HuggingFace Deprecation**: HuggingFace chat/language models deprecated (use OpenAI, Anthropic, or Google AI instead)
-7. **GPU Support**: TornadoVM integration for GPU-accelerated operations
+Pinned to **LangChain4j 1.14.1**. See the [release notes](https://github.com/langchain4j/langchain4j/releases) for the per-version history. Recent additions exercised in this course: agentic API (1.8 → 1.14), MCP spec 2025-11-25, OpenAI transcription model, `gpt-image-2` image generation, `ChatMemory.set()`, `Optional` tool parameters, per-call `ChatRequestParameters`, streaming cancellation, hybrid search in PgVector / Elasticsearch.
 
 ### Repository Structure
 
@@ -28,17 +17,18 @@ This course has been updated to LangChain4j 1.7.1, which includes:
 - **Test classes**: Contain TODO comments guiding students through implementation
 - **Example classes**: Skeleton implementations with TODO instructions
 
-The course demonstrates integration of Large Language Models (LLMs) with Java applications using the LangChain4j library (version 1.7.1), covering:
+The course demonstrates integration of Large Language Models (LLMs) with Java applications using the LangChain4j library (1.14.1), covering:
 
 - Text generation and chat capabilities
 - Structured data extraction
 - Prompt engineering with templates
-- Chat memory for maintaining conversation context
-- Function calling with local @Tool methods
-- External tool integration via Model Context Protocol (MCP)
-- Vision capabilities for image understanding and generation
-- Audio processing (text-to-speech and speech-to-text)
+- Chat memory (single-user, multi-user, and `set()`-based replacement)
+- Function calling with local @Tool methods (incl. `Optional` parameters)
+- External tool integration via Model Context Protocol (MCP) — spec 2025-11-25
+- Vision capabilities for image understanding and `gpt-image-2` generation
+- Audio transcription via OpenAI's dedicated transcription model
 - Retrieval-Augmented Generation (RAG) with PDF and web content
+- Agentic API: composing multi-step LLM workflows (sequence, loop, conditional, parallel)
 
 ## Common Commands
 
@@ -67,7 +57,22 @@ This project uses [Spotless](https://github.com/diffplug/spotless) with [Palanti
 ./gradlew spotlessApply
 ```
 
-The formatting is automatically configured in `build.gradle.kts` and uses the same style as the LangChain4j project (Palantir Java Format 2.63.0). This ensures consistency when contributing code or following LangChain4j patterns.
+The formatting is automatically configured in `build.gradle.kts` and uses Palantir Java Format 2.90.0, which is compatible with Java 25.
+
+### Slides PDF Publishing
+
+The published PDF is **not committed to the repo**. `.github/workflows/build-slides-pdf.yml` auto-builds on pushes to `main` or `solutions` that touch `slides/slides.md`, `package.json`, `pnpm-lock.yaml`, or the workflow itself, then attaches `slides-export.pdf` to a rolling `slides-latest` release. Stable URL:
+
+```text
+https://github.com/kousen/LangChain4j_Training_course/releases/latest/download/slides-export.pdf
+```
+
+Local commands:
+
+```bash
+pnpm install
+pnpm export
+```
 
 ### Testing
 
@@ -88,11 +93,11 @@ git checkout solutions
 ./gradlew test
 ```
 
-### Redis Setup (for RAG with Redis vector store)
+### Chroma Setup (for Lab 10 vector storage)
 
 ```bash
-# Start Redis Stack container
-docker run -p 6379:6379 redis/redis-stack:latest
+# Start Chroma for the vector-store lab
+docker run -p 8000:8000 chromadb/chroma:0.5.4
 ```
 
 ### Issue Management
@@ -292,7 +297,7 @@ This pattern is useful for any long tutorial or exercise file to improve navigat
    - `@Tool` - Annotation for defining AI-callable functions
 
 3. **RAG System**
-   - `EmbeddingStore` - Stores document embeddings (In-memory or Redis)
+   - `EmbeddingStore` - Stores document embeddings (in-memory or Chroma)
    - Document loaders for various sources (PDF, web)
    - Text splitters for chunking documents
    - Embedding models for semantic search
@@ -315,10 +320,10 @@ The project supports multiple vector store implementations:
    - Simple in-memory vector store
    - Good for development and testing
 
-2. **Redis EmbeddingStore**
-   - Persistent vector store using Redis
-   - Requires a running Redis Stack instance
-   - Better for production use cases
+2. **Chroma EmbeddingStore**
+   - Persistent vector store using Chroma
+   - Requires a running Chroma instance for Lab 10
+   - Good for demonstrating vector-store integration without complex setup
 
 ## Training Course Structure
 
@@ -333,16 +338,17 @@ This is a **hands-on training course** where students implement LangChain4j func
 ### Lab Progression
 The course follows a structured progression documented in `labs.md`:
 1. **Basic chat interactions** - Simple AI conversations
-2. **Streaming responses** - Real-time AI communication
+2. **Streaming responses** - Real-time AI communication, with cancellation
 3. **Structured data extraction** - AI-powered data parsing
-4. **AI Services interface** - High-level AI integration patterns
-5. **Chat memory** - Conversation context and multi-user memory isolation
-6. **AI Tools** - Function calling with @Tool annotation (IMPLEMENTED)
-6.5. **MCP Integration** - External tool integration via Model Context Protocol (IMPLEMENTED)
-7. **Multimodal capabilities** - Image analysis with GPT-4 Vision, audio with Google Gemini
-8. **Image generation** - AI-created images with DALL-E
+4. **AI Services interface** - High-level AI integration; per-call `ChatRequestParameters`
+5. **Chat memory** - Single-user, multi-user, and `ChatMemory.set()`
+6. **AI Tools** - Function calling with @Tool, incl. `Optional` parameters
+6.5. **MCP Integration** - External tools via MCP (spec 2025-11-25; stdio/Docker/WebSocket)
+7. **Multimodal capabilities** - GPT-5.1 Vision; OpenAI transcription
+8. **Image generation** - `gpt-image-2` (DALL-E 3 was deprecated 2026-05-12)
 9. **RAG implementation** - Knowledge-augmented AI
-10. **Vector store optimization** - Production-ready RAG with Redis
+10. **Vector store integration** - Chroma; mention PgVector/Elasticsearch hybrid search
+11. **Agentic API** - sequence / loop / conditional / parallel composition
 
 **Note**: Lab ordering was optimized for pedagogical flow - tools before vision/image generation.
 
@@ -415,23 +421,27 @@ interface MultiUserAssistant {
 
 This pattern is **essential for production conversational AI applications**.
 
-### Lab 6.5: MCP Integration (IMPLEMENTED)
-- **MCP Integration**: ✅ Lab 6.5 complete - LangChain4j provides MCP client support (not server)
-  - Uses npx command: `npx -y @modelcontextprotocol/server-everything`
-  - Shared MCP client pattern for optimal test performance
-  - Tool name conflict resolution (avoid CalculatorTool with MCP servers)
-  - Prerequisites: Node.js/npm (not Docker)
-  - **LangChain4j 1.7.1 Enhancement**: Adds Docker MCP transport support for containerized MCP servers
+### Lab 6.5: MCP Integration
+- LangChain4j provides MCP client support (not server)
+- Uses npx command: `npx -y @modelcontextprotocol/server-everything stdio`
+- Shared MCP client pattern for optimal test performance
+- Tool name conflict resolution (avoid CalculatorTool with MCP servers — its `add` collides with the MCP server's)
+- Spec transports: stdio and Streamable HTTP; LangChain4j also supports Docker stdio and WebSocket. Legacy HTTP/SSE is deprecated.
 
-### Future Considerations
-- **Multimodal capabilities**: ✅ Lab 7 complete - includes:
-  - Image analysis with GPT-4 Vision (local/remote images, structured data extraction)
-  - Audio processing with Google Gemini 2.5 Flash Preview model
-- **Error handling patterns**: Include division by zero, invalid inputs in tool examples
+### Audio Processing (Lab 7.3)
+- **Model**: OpenAI `gpt-4o-transcribe` (also `whisper-1`, `gpt-4o-mini-transcribe`)
+- **API Key**: `OPENAI_API_KEY` (no `GOOGLEAI_API_KEY` needed anymore)
+- **Audio Format**: MP3 binary data via `Audio.builder().binaryData(...).mimeType("audio/mp3")`
+- **Pattern**: `OpenAiAudioTranscriptionModel` → `transcribe(AudioTranscriptionRequest)` → `AudioTranscriptionResponse.text()`
 
-### Audio Processing Update (Lab 7.3)
-- **Model**: Google Gemini 2.5 Flash Preview (`gemini-2.5-flash-preview-05-20`)
-- **API Key**: Requires `GOOGLEAI_API_KEY` environment variable
-- **Audio Format**: MP3 files, Base64 encoded
-- **Test Annotation**: Uses `@EnabledIfEnvironmentVariable` for conditional execution
-- **Method Update**: `readSimpleAudioData()` loads and encodes audio from resources
+### Image Generation (Lab 8)
+- **Model**: `gpt-image-2` — DALL-E 3 was deprecated 2026-05-12
+- **Response shape**: base64-encoded data via `image.base64Data()`, no URL
+- **Quality values**: `low`, `medium`, `high`, `auto` (NOT `standard`/`hd`)
+- **No `style` builder option** — express style in the prompt
+
+### Lab 11: Agentic API
+- **Module**: `langchain4j-agentic` (separate dependency)
+- **Building blocks**: `@Agent` annotation + `AgenticServices.agentBuilder/sequenceBuilder/loopBuilder/conditionalBuilder/parallelBuilder/supervisorBuilder`
+- **Dataflow**: `outputKey` publishes results to a shared `AgenticScope` keyed by name; downstream agents read via `@V`
+- **API status**: experimental but stable across 1.13 → 1.14

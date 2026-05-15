@@ -43,4 +43,9 @@ bin/
 
 ### Slides ###
 # slides/ - Uncommented to track slides in git again
+slides/dist/
 slides/node_modules/
+node_modules/
+.pnpm-store/
+slides-export.pdf
+slides-export.pptx

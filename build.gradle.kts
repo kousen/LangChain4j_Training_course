@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
     // LangChain4j BOM for version management
-    implementation(platform("dev.langchain4j:langchain4j-bom:1.7.1"))
+    implementation(platform("dev.langchain4j:langchain4j-bom:1.14.1"))
 
     // Core LangChain4j
     implementation("dev.langchain4j:langchain4j")
@@ -37,6 +37,9 @@ dependencies {
 
     // MCP (Model Context Protocol) support
     implementation("dev.langchain4j:langchain4j-mcp")
+
+    // Agentic API (Lab 11): workflows, sequence/loop/conditional/parallel composition
+    implementation("dev.langchain4j:langchain4j-agentic")
 
     // Security fix: override vulnerable transitive dependency
     implementation("org.apache.poi:poi-ooxml:5.4.0")
@@ -61,7 +64,7 @@ spotless {
 
     java {
         target("src/**/*.java")
-        palantirJavaFormat("2.63.0")  // This is what langchain4j uses
+        palantirJavaFormat("2.90.0")
     }
 
     // If you have Kotlin files

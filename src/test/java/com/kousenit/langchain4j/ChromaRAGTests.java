@@ -52,7 +52,7 @@ import org.junit.jupiter.api.Test;
  * - Chroma will persist data between test runs
  * - Access to Chroma web UI at <a href="http://localhost:8000">...</a>
  * <p>
- * IMPORTANT: Use Chroma version 0.5.4 for compatibility with LangChain4j 1.0.1
+ * IMPORTANT: Chroma 0.5.4 is a stable tested baseline for LangChain4j 1.14's API V2 client.
  * <p>
  * Benefits of Chroma:
  * - Simple setup with single Docker command

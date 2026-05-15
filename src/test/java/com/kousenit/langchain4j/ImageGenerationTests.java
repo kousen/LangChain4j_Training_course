@@ -1,6 +1,5 @@
 package com.kousenit.langchain4j;
 
-import static dev.langchain4j.model.openai.OpenAiImageModelName.DALL_E_3;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -17,186 +16,135 @@ import org.junit.jupiter.api.Test;
 /**
  * Lab 8: Image Generation
  * <p>
- * This lab demonstrates how to use LangChain4j with OpenAI's DALL-E for image generation.
- * You'll learn how to:
- * - Generate images using OpenAI's DALL-E model
- * - Configure image generation options (size, quality, style)
- * - Use image generation with AiServices for structured approaches
- * - Handle and process generated images
+ * Demonstrates image generation with OpenAI's GPT Image family. DALL-E 3 was
+ * deprecated on May 12, 2026; gpt-image-2 is the current course model and
+ * returns base64-encoded image data instead of URLs.
  */
 class ImageGenerationTests {
+
+    private static final String GPT_IMAGE_2 = "gpt-image-2";
 
     /**
      * Test 8.1: Basic Image Generation
      * <p>
-     * Demonstrates how to generate a simple image using OpenAI's DALL-E model.
+     * Generate a single image with default settings.
      */
     @Test
     void basicImageGeneration() {
-        // Create OpenAI ImageModel
         ImageModel model = OpenAiImageModel.builder()
                 .apiKey(System.getenv("OPENAI_API_KEY"))
-                .modelName(DALL_E_3)
+                .modelName(GPT_IMAGE_2)
                 .build();
 
-        // Define a creative prompt for image generation
         String prompt = "A majestic dragon soaring over a crystal castle at sunset, fantasy art style";
 
         System.out.println("=== Basic Image Generation Test ===");
         System.out.println("Prompt: " + prompt);
 
-        // Generate the image
         Response<Image> response = model.generate(prompt);
 
-        // Extract and verify the generated image
         assertNotNull(response, "Response should not be null");
         assertNotNull(response.content(), "Response content should not be null");
 
         Image image = response.content();
-        System.out.println("Generated image URL: " + image.url());
-        System.out.println("Revised prompt: " + image.revisedPrompt());
-        System.out.println("=" + "=".repeat(50));
+        String base64 = image.base64Data();
+        assertNotNull(base64, "Base64 image data should not be null");
 
-        // Verify the image was generated successfully
-        assertNotNull(image.url(), "Image URL should not be null");
-        assertThat(image.url().toString())
-                .as("Generated image URL")
-                .isNotBlank()
-                .startsWith("https://");
+        System.out.println("Base64 data length: " + base64.length() + " characters");
+        System.out.println("=".repeat(50));
 
-        // Verify revised prompt is provided
-        if (image.revisedPrompt() != null) {
-            assertThat(image.revisedPrompt()).as("Revised prompt").isNotBlank();
-        }
+        assertThat(base64).as("Base64 image data").isNotBlank().hasSizeGreaterThan(100);
     }
 
     /**
      * Test 8.2: Image Generation with Options
      * <p>
-     * Demonstrates how to generate images with specific configuration options.
+     * Configure size and quality. Valid quality values for GPT Image models are
+     * "low", "medium", "high", and "auto" (different from DALL-E 3's
+     * "standard" / "hd").
      */
     @Test
     void imageGenerationWithOptions() {
-        // Create OpenAI ImageModel with specific options
         ImageModel model = OpenAiImageModel.builder()
                 .apiKey(System.getenv("OPENAI_API_KEY"))
-                .modelName(DALL_E_3)
+                .modelName(GPT_IMAGE_2)
                 .size("1024x1024")
-                .quality("hd")
-                .style("vivid")
+                .quality("high")
                 .build();
 
-        // Define a detailed prompt for high-quality generation
-        String prompt =
-                """
-            A futuristic cityscape at dawn with flying vehicles,
-            neon lights reflecting on wet streets, cyberpunk aesthetic""";
+        String prompt = """
+                A futuristic cityscape at dawn with flying vehicles,
+                neon lights reflecting on wet streets, cyberpunk aesthetic
+                """;
 
         System.out.println("=== Image Generation with Options Test ===");
-        System.out.println("Prompt: " + prompt);
-        System.out.println("Configuration: 1024x1024, HD quality, vivid style");
+        System.out.println("Configuration: 1024x1024, high quality");
 
-        // Generate the image with enhanced settings
         Response<Image> response = model.generate(prompt);
         Image image = response.content();
+        String base64 = image.base64Data();
 
-        // Display results and verify
-        System.out.println("High-quality generated image URL: " + image.url());
-        System.out.println("Revised prompt: " + image.revisedPrompt());
+        assertNotNull(base64, "Base64 image data should not be null");
+        System.out.println("High-quality image base64 length: " + base64.length());
+        System.out.println("=".repeat(50));
 
-        // Optional - demonstrate successful generation
-        if (image.url() != null) {
-            System.out.println("Image generated successfully with HD quality!");
-        }
-        System.out.println("=" + "=".repeat(50));
-
-        // Verify the image generation
-        assertNotNull(image.url(), "HD image URL should not be null");
-        assertThat(image.url().toString())
-                .as("HD generated image URL")
-                .isNotBlank()
-                .startsWith("https://");
+        assertThat(base64).as("HD image base64").isNotBlank().hasSizeGreaterThan(1000);
     }
 
     /**
-     * Test 8.3: Advanced Image Generation Configuration
+     * Test 8.3: Artistic Style Variations
      * <p>
-     * Demonstrates generating images with different artistic styles and detailed prompts.
+     * Generate the same scene in different artistic styles by varying only
+     * the prompt — GPT Image models have no `style` builder parameter (DALL-E 3
+     * had `style("vivid")` / `style("natural")`); style is now expressed in
+     * the prompt itself.
      */
     @Test
-    void advancedImageGeneration() {
-        // Create OpenAI ImageModel with production settings
+    void artisticStyleVariations() {
         ImageModel model = OpenAiImageModel.builder()
                 .apiKey(System.getenv("OPENAI_API_KEY"))
-                .modelName(DALL_E_3)
+                .modelName(GPT_IMAGE_2)
                 .size("1024x1024")
-                .quality("standard")
                 .build();
 
-        System.out.println("=== Advanced Image Generation Test ===");
+        System.out.println("=== Artistic Style Variations Test ===");
 
-        // Test artistic style variation
-        String artisticPrompt =
-                """
-            A serene Japanese garden with cherry blossoms,
-            traditional architecture, and a koi pond,
-            watercolor painting style""";
-        Response<Image> artisticResponse = model.generate(artisticPrompt);
-        Image artisticImage = artisticResponse.content();
+        String watercolorPrompt = """
+                A serene Japanese garden with cherry blossoms, traditional
+                architecture, and a koi pond, watercolor painting style
+                """;
+        Response<Image> watercolor = model.generate(watercolorPrompt);
+        assertNotNull(watercolor.content().base64Data(), "Watercolor image should have base64 data");
+        System.out.println(
+                "Watercolor base64 length: " + watercolor.content().base64Data().length());
 
-        System.out.println("Artistic prompt: " + artisticPrompt);
-        System.out.println("Generated artistic image: " + artisticImage.url());
-        if (artisticImage.revisedPrompt() != null) {
-            System.out.println("Revised artistic prompt: " + artisticImage.revisedPrompt());
-        }
-        System.out.println();
+        String technicalPrompt = """
+                A detailed cross-section of a mechanical watch showing
+                gears, springs, and intricate components, technical
+                illustration style
+                """;
+        Response<Image> technical = model.generate(technicalPrompt);
+        assertNotNull(technical.content().base64Data(), "Technical image should have base64 data");
+        System.out.println(
+                "Technical base64 length: " + technical.content().base64Data().length());
 
-        // Test technical/detailed prompt
-        String technicalPrompt =
-                """
-            A detailed cross-section of a mechanical watch
-            showing gears, springs, and intricate components,
-            technical illustration style""";
-        Response<Image> technicalResponse = model.generate(technicalPrompt);
-        Image technicalImage = technicalResponse.content();
-
-        System.out.println("Technical prompt: " + technicalPrompt);
-        System.out.println("Generated technical image: " + technicalImage.url());
-        if (technicalImage.revisedPrompt() != null) {
-            System.out.println("Revised technical prompt: " + technicalImage.revisedPrompt());
-        }
-        System.out.println("=" + "=".repeat(50));
-
-        // Verify both images were generated successfully
-        assertNotNull(artisticImage.url(), "Artistic image URL should not be null");
-        assertNotNull(technicalImage.url(), "Technical image URL should not be null");
-
-        assertThat(artisticImage.url().toString())
-                .as("Artistic image URL")
-                .isNotBlank()
-                .startsWith("https://");
-
-        assertThat(technicalImage.url().toString())
-                .as("Technical image URL")
-                .isNotBlank()
-                .startsWith("https://");
+        System.out.println("=".repeat(50));
     }
 
     /**
-     * Test 8.4: Creative Image Generation Variations
+     * Test 8.4: Multiple Variations
      * <p>
-     * Demonstrates generating multiple variations of images with different prompts.
+     * Iterate through several prompts to see how prompt phrasing affects
+     * the model's output.
      */
     @Test
     void creativeImageVariations() {
-        // Create OpenAI ImageModel
         ImageModel model = OpenAiImageModel.builder()
                 .apiKey(System.getenv("OPENAI_API_KEY"))
-                .modelName(DALL_E_3)
+                .modelName(GPT_IMAGE_2)
                 .size("1024x1024")
                 .build();
 
-        // Define different artistic prompts
         String[] prompts = {
             "A steampunk robot playing chess, detailed mechanical parts, brass and copper tones",
             "A minimalist abstract representation of music, flowing lines and geometric shapes",
@@ -205,110 +153,63 @@ class ImageGenerationTests {
 
         System.out.println("=== Creative Image Variations Test ===");
 
-        // Generate and display multiple image variations
         for (int i = 0; i < prompts.length; i++) {
             Response<Image> response = model.generate(prompts[i]);
-            Image image = response.content();
+            String base64 = response.content().base64Data();
 
-            System.out.println("=== Variation " + (i + 1) + " ===");
-            System.out.println("Original prompt: " + prompts[i]);
-            System.out.println("Generated image URL: " + image.url());
-
-            if (image.revisedPrompt() != null) {
-                System.out.println("Revised prompt: " + image.revisedPrompt());
-            }
-            System.out.println();
-
-            // Verify each image generation
-            assertNotNull(image.url(), "Image " + (i + 1) + " URL should not be null");
-            assertThat(image.url().toString())
-                    .as("Variation " + (i + 1) + " image URL")
+            assertNotNull(base64, "Variation " + (i + 1) + " base64 should not be null");
+            System.out.println("Variation " + (i + 1) + " base64 length: " + base64.length());
+            assertThat(base64)
+                    .as("Variation " + (i + 1) + " base64")
                     .isNotBlank()
-                    .startsWith("https://");
+                    .hasSizeGreaterThan(1000);
         }
 
         System.out.println("All variations generated successfully!");
-        System.out.println("=" + "=".repeat(50));
+        System.out.println("=".repeat(50));
     }
 
     /**
-     * Test 8.5: Base64 Image Generation with GPT-Image-1 Model
+     * Test 8.5: Save Generated Image to File
      * <p>
-     * Demonstrates using the new "gpt-image-1" model which returns base64-encoded images
-     * instead of URLs, and saves the decoded image to a file.
+     * Decode the base64 response and write a PNG to disk so the result is
+     * easy to inspect.
      */
     @Test
-    void base64ImageGeneration() throws IOException {
-        // Create OpenAI ImageModel using the new gpt-image-1 model
-        // Note: No constant available yet for this new model
+    void saveGeneratedImageToFile() throws IOException {
         ImageModel model = OpenAiImageModel.builder()
                 .apiKey(System.getenv("OPENAI_API_KEY"))
-                .modelName("gpt-image-1")
+                .modelName(GPT_IMAGE_2)
                 .build();
 
-        // Define a creative prompt
-        String prompt = """
-            A warrior cat rides a dragon into battle""";
+        String prompt = "A warrior cat rides a dragon into battle";
 
-        System.out.println("=== Base64 Image Generation Test ===");
+        System.out.println("=== Save Generated Image Test ===");
         System.out.println("Prompt: " + prompt);
-        System.out.println("Model: gpt-image-1 (returns base64-encoded images)");
 
-        // Generate the image
         Response<Image> response = model.generate(prompt);
-        Image image = response.content();
+        String base64 = response.content().base64Data();
+        assertNotNull(base64, "Base64 image data should not be null");
 
-        // Verify the response
-        assertNotNull(response, "Response should not be null");
-        assertNotNull(image, "Image should not be null");
+        byte[] imageBytes = Base64.getDecoder().decode(base64);
 
-        // The gpt-image-1 model returns base64-encoded images instead of URLs
-        // Check if we have base64 data instead of a URL
-        String base64Data = null;
-        if (image.base64Data() != null) {
-            base64Data = image.base64Data();
-        } else if (image.url() != null && image.url().toString().startsWith("data:")) {
-            // Some implementations might return data URLs
-            base64Data = image.url().toString().split(",")[1];
-        }
-
-        assertNotNull(base64Data, "Base64 image data should not be null");
-        assertThat(base64Data)
-                .as("Base64 image data")
-                .isNotBlank()
-                .hasSizeGreaterThan(100); // Should be substantial data
-
-        System.out.println("Base64 data length: " + base64Data.length() + " characters");
-
-        // Decode the base64 to bytes
-        byte[] imageBytes = Base64.getDecoder().decode(base64Data);
-
-        // Create output directory if it doesn't exist
-        Path outputDir = Path.of("src/main/resources");
+        Path outputDir = Path.of("build", "generated-images");
         if (!Files.exists(outputDir)) {
             Files.createDirectories(outputDir);
         }
 
-        // Write to file (PNG format)
         Path outputPath = outputDir.resolve("generated_image.png");
         Files.write(outputPath, imageBytes);
 
         System.out.println("Image saved as: " + outputPath);
         System.out.println("File size: " + imageBytes.length + " bytes");
+        System.out.println("=".repeat(50));
 
-        // Verify the file was created and has content
         assertThat(Files.exists(outputPath))
                 .as("Generated image file should exist")
                 .isTrue();
-
         assertThat(Files.size(outputPath))
                 .as("Generated image file should have content")
                 .isGreaterThan(0);
-
-        System.out.println("=" + "=".repeat(50));
-
-        // Note: The generated image file can be opened with any image viewer
-        // or used in web applications. The gpt-image-1 model provides more
-        // control over the image data compared to URL-based responses.
     }
 }

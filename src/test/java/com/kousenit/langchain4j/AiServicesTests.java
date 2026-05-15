@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.request.ChatRequestParameters;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.SystemMessage;
@@ -65,8 +66,7 @@ class AiServicesTests {
         System.out.println("Meryl Streep analysis: " + analysis);
 
         // Test structured data return
-        ActorFilms fullFilmography = service.getFullFilmography(
-                """
+        ActorFilms fullFilmography = service.getFullFilmography("""
                 Generate filmography for Leonardo DiCaprio with 5 movies""");
         System.out.printf(
                 "Full filmography: %s - %d movies%n",
@@ -161,8 +161,7 @@ class AiServicesTests {
                 AiServices.builder(DocumentAnalyzer.class).chatModel(model).build();
 
         // Test document with various data types
-        String sampleContent =
-                """
+        String sampleContent = """
             The quarterly earnings report shows strong growth in the technology sector,
             with cloud computing services leading the way. Customer satisfaction remains high,
             though there are concerns about increasing competition and market saturation.
@@ -254,5 +253,50 @@ class AiServicesTests {
 
         // Verify each genre is not blank
         genres.forEach(genre -> assertThat(genre).as("Individual genre").isNotBlank());
+    }
+
+    /**
+     * Test 4.5: Per-Call ChatRequestParameters
+     * <p>
+     * LangChain4j 1.10 added support for declaring a
+     * {@link ChatRequestParameters} argument directly on an AI service
+     * method. The framework merges those parameters into the request,
+     * letting callers override defaults like temperature on a per-call
+     * basis without rebuilding the whole service.
+     */
+    @Test
+    void perCallChatRequestParameters() {
+        ChatModel model = OpenAiChatModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName(GPT_4_1_NANO)
+                .temperature(0.7)
+                .build();
+
+        interface Composer {
+            String write(@UserMessage String prompt, ChatRequestParameters params);
+        }
+
+        Composer composer = AiServices.builder(Composer.class).chatModel(model).build();
+
+        ChatRequestParameters deterministic =
+                ChatRequestParameters.builder().temperature(0.0).build();
+
+        ChatRequestParameters creative =
+                ChatRequestParameters.builder().temperature(1.2).build();
+
+        System.out.println("=== Per-Call ChatRequestParameters Test ===");
+
+        String prompt = "Write a one-sentence tagline for a coffee shop.";
+        String safe = composer.write(prompt, deterministic);
+        String wild = composer.write(prompt, creative);
+
+        System.out.println("Deterministic (temp=0.0): " + safe);
+        System.out.println("Creative      (temp=1.2): " + wild);
+        System.out.println("=".repeat(50));
+
+        assertAll(
+                "Per-call parameters validation",
+                () -> assertThat(safe).as("Deterministic tagline").isNotBlank(),
+                () -> assertThat(wild).as("Creative tagline").isNotBlank());
     }
 }

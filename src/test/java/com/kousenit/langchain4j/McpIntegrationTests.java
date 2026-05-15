@@ -11,25 +11,26 @@ import dev.langchain4j.mcp.client.transport.stdio.StdioMcpTransport;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
+import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
  * Lab 6.5: MCP (Model Context Protocol) Integration
  * <p>
- * This lab demonstrates how to integrate external tools via the Model Context Protocol (MCP).
- * You'll learn how to:
- * - Connect to external MCP servers using LangChain4j MCP client
- * - Use the official MCP "everything" demo server
- * - Integrate external MCP tools with LangChain4j AiServices
- * - Understand the difference between local @Tool methods and external MCP tools
+ * Demonstrates how to integrate external tools via the Model Context
+ * Protocol (MCP). LangChain4j 1.14 ships with MCP client support against
+ * the 2025-11-25 spec. MCP-standard transports are stdio and Streamable
+ * HTTP; LangChain4j also supports Docker stdio and a non-standard WebSocket
+ * transport. This lab uses stdio for simplicity.
  * <p>
  * Prerequisites:
  * - Understanding of @Tool annotation from Lab 6
  * - Node.js and npm installed for running the MCP "everything" server
- * - MCP "everything" server accessed via: npx -y @modelcontextprotocol/server-everything
+ * - MCP "everything" server accessed via: npx -y @modelcontextprotocol/server-everything stdio
  * <p>
  * Key Concepts:
  * - MCP allows AI applications to access tools from external services
@@ -46,24 +47,30 @@ class McpIntegrationTests {
         // Create single stdio transport for MCP "everything" server via npx
         // Reduce noise across multiple tests
         // Shared MCP client across all tests for efficiency
-        McpTransport sharedTransport = new StdioMcpTransport.Builder()
-                .command(List.of("npx", "-y", "@modelcontextprotocol/server-everything"))
-                .logEvents(false) // Reduce noise across multiple tests
-                .build();
+        try {
+            McpTransport sharedTransport = new StdioMcpTransport.Builder()
+                    .command(List.of("npx", "-y", "@modelcontextprotocol/server-everything", "stdio"))
+                    .logEvents(false) // Reduce noise across multiple tests
+                    .build();
 
-        // Create shared MCP client
-        sharedMcpClient = new DefaultMcpClient.Builder()
-                .key("SharedMcpClient")
-                .transport(sharedTransport)
-                .build();
+            // Create shared MCP client
+            sharedMcpClient = new DefaultMcpClient.Builder()
+                    .key("SharedMcpClient")
+                    .transport(sharedTransport)
+                    .initializationTimeout(Duration.ofSeconds(60))
+                    .build();
+        } catch (RuntimeException e) {
+            Assumptions.assumeTrue(false, "MCP everything server unavailable: " + e.getMessage());
+        }
 
         System.out.println("Shared MCP client initialized for all tests");
     }
 
     @AfterAll
-    static void teardownSharedMcpClient() {
+    static void teardownSharedMcpClient() throws Exception {
         // The transport will automatically clean up the npx process
         if (sharedMcpClient != null) {
+            sharedMcpClient.close();
             System.out.println("Shared MCP client cleanup completed");
         }
     }

@@ -13,6 +13,7 @@ import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.MemoryId;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -409,5 +410,57 @@ class ChatMemoryTests {
         assertThat(user1Response3).as("User 1 cross-check response").isNotBlank();
 
         System.out.println("✅ Multi-user memory isolation verified successfully");
+    }
+
+    /**
+     * Test 5.7: Replacing Memory Contents with set()
+     * <p>
+     * LangChain4j 1.11 added {@link ChatMemory#set(Iterable)}, which
+     * replaces the entire message history rather than appending. This is
+     * useful for memory compaction (summarising older turns into a single
+     * system message) or for restoring conversation state from persistent
+     * storage.
+     */
+    @Test
+    void replaceMemoryContentsWithSet() {
+        ChatModel model = OpenAiChatModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName(GPT_4_1_NANO)
+                .build();
+
+        ChatMemory memory = MessageWindowChatMemory.withMaxMessages(20);
+
+        memory.add(UserMessage.from("My name is Alice and I love Java programming."));
+        memory.add(AiMessage.from("Nice to meet you, Alice! Java is a great language."));
+        memory.add(UserMessage.from("I work on backend microservices with Spring Boot."));
+        memory.add(AiMessage.from("Spring Boot is excellent for building production-ready microservices."));
+
+        System.out.println("=== Replace Memory with set() ===");
+        System.out.println("Original memory size: " + memory.messages().size());
+
+        // Compact the four messages into a single summary message that
+        // captures the same context with a smaller token footprint.
+        UserMessage summary = UserMessage.from(
+                "Summary of prior conversation: Alice is a backend developer who works on Java/Spring Boot microservices.");
+        memory.set(List.of(summary));
+
+        System.out.println("After set(), memory size: " + memory.messages().size());
+
+        memory.add(UserMessage.from("Based on what you know about me, what should I learn next?"));
+        ChatResponse response = model.chat(memory.messages());
+        memory.add(response.aiMessage());
+
+        String reply = response.aiMessage().text();
+        System.out.println("Recommendation: " + reply);
+        System.out.println("=".repeat(50));
+
+        assertAll(
+                "ChatMemory.set() validation",
+                () -> assertEquals(3, memory.messages().size(), "After set+add+aiMessage, should be 3"),
+                () -> assertNotNull(reply, "Reply should not be null"));
+
+        assertThat(reply.toLowerCase())
+                .as("Recommendation should reflect compacted context")
+                .containsAnyOf("spring", "java", "microservice", "backend", "developer");
     }
 }
