@@ -41,7 +41,11 @@ bin/
 ### Claude Code ###
 .claude/
 
-### Node.js (for slides) ###
+### Slides ###
+# slides/ - Uncommented to track slides in git again
+slides/dist/
+slides/node_modules/
 node_modules/
-slides/package-lock.json
-slides/package.json
+.pnpm-store/
+slides-export.pdf
+slides-export.pptx

@@ -2,7 +2,7 @@
 
 This series of labs will guide you through building LangChain4j applications that use various capabilities of large language models. By the end of these exercises, you'll have hands-on experience with text generation, structured data extraction, prompt templates, chat memory, vision capabilities, and more.
 
-> **Note:** This project uses LangChain4j 1.10.0. LangChain4j 1.0+ includes significant API changes, including the new `ChatModel` interface (replacing `ChatLanguageModel`) and streamlined builder patterns. Version 1.10.0 adds support for class-based agents, ChromaDB API V2, enhanced MCP integration with Docker transport, and improved AI model integrations.
+> **Note:** This project is pinned to LangChain4j 1.14.1. The `ChatModel` interface (and the rest of the LangChain4j 1.x surface) is stable here. The course covers the agentic API, MCP client (spec 2025-11-25), built-in OpenAI transcription, gpt-image-2 image generation, and the now-built-in hybrid search support in PgVector / Elasticsearch.
 
 ## Table of Contents
 
@@ -14,17 +14,17 @@ This series of labs will guide you through building LangChain4j applications tha
 - [Lab 5: Chat Memory](#lab-5-chat-memory)
 - [Lab 6: AI Tools](#lab-6-ai-tools)
 - [Lab 6.5: MCP Integration](#lab-65-mcp-integration)
-- [Lab 6.6: Multi-Agent Systems (AgenticServices)](#lab-66-multi-agent-systems-agenticservices)
 - [Lab 7: Multimodal Capabilities](#lab-7-multimodal-capabilities)
 - [Lab 8: Image Generation](#lab-8-image-generation)
 - [Lab 9: Retrieval-Augmented Generation (RAG)](#lab-9-retrieval-augmented-generation-rag)
 - [Lab 10: Chroma Vector Store for RAG](#lab-10-chroma-vector-store-for-rag)
+- [Lab 11: Agentic API](#lab-11-agentic-api)
 - [Conclusion](#conclusion)
 
 ## Setup
 
 1. Make sure you have the following prerequisites:
-   - Java 17+
+   - Java 17+ (the Gradle wrapper is 9.1+, so Java 25 is supported)
    - An IDE (IntelliJ IDEA, Eclipse, VS Code)
    - API key for OpenAI
 
@@ -50,7 +50,7 @@ void simpleQuery() {
     // Create OpenAI chat model using builder pattern
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     // Send a user message and get the response
@@ -71,7 +71,7 @@ Modify the previous test to include a system message that changes the model's be
 void simpleQueryWithSystemMessage() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     // Create system and user messages
@@ -94,7 +94,7 @@ Create a test that retrieves and displays the full `ChatResponse` object with me
 void simpleQueryWithMetadata() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     UserMessage userMessage = UserMessage.from("Why is the sky blue?");
@@ -122,11 +122,11 @@ Create a test that streams the response using LangChain4j's streaming capabiliti
 void streamingChat() throws InterruptedException {
     StreamingChatModel model = OpenAiStreamingChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     String userMessage = "Tell me a story about a brave robot.";
-    
+
     CountDownLatch latch = new CountDownLatch(1);
     StringBuilder fullResponse = new StringBuilder();
 
@@ -164,15 +164,15 @@ Create a test that demonstrates streaming with conversation context:
 void streamingWithContext() throws InterruptedException {
     StreamingChatModel model = OpenAiStreamingChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     SystemMessage systemMessage = SystemMessage.from("You are a helpful coding assistant.");
     UserMessage userMessage = UserMessage.from("Explain recursion in simple terms.");
-    
+
     CountDownLatch latch = new CountDownLatch(1);
 
-    model.chat(Arrays.asList(systemMessage, userMessage), 
+    model.chat(Arrays.asList(systemMessage, userMessage),
         new StreamingChatResponseHandler() {
             @Override
             public void onPartialResponse(String token) {
@@ -219,7 +219,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 void extractActorFilms() throws JsonProcessingException {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .responseFormat("json_object")
             .build();
 
@@ -260,7 +260,7 @@ record ActorFilmographies(List<ActorFilms> filmographies) {}
 interface ActorService {
     @SystemMessage("You are a movie database expert.")
     ActorFilms getActorFilmography(@UserMessage String actorName);
-    
+
     @SystemMessage("You are a comprehensive movie database expert. Provide accurate filmographies.")
     ActorFilmographies getMultipleActorFilmographies(@UserMessage String actors);
 }
@@ -269,7 +269,7 @@ interface ActorService {
 void extractActorFilmsWithAiServices() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     ActorService service = AiServices.builder(ActorService.class)
@@ -297,7 +297,7 @@ Test extracting multiple structured entities using the wrapper record pattern:
 void extractMultipleActorFilmographies() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     ActorService service = AiServices.builder(ActorService.class)
@@ -309,11 +309,11 @@ void extractMultipleActorFilmographies() {
     );
 
     List<ActorFilms> filmographies = result.filmographies();
-    
+
     assertNotNull(result);
     assertNotNull(filmographies);
     assertEquals(3, filmographies.size());
-    
+
     // Verify each filmography has exactly 4 movies
     filmographies.forEach(actorFilms -> {
         assertNotNull(actorFilms.actor());
@@ -332,7 +332,7 @@ interface AdvancedActorService {
     @SystemMessage("You are an expert movie database assistant specializing in actor filmographies.")
     @UserMessage("Generate filmography for {{actorName}} with exactly {{movieCount}} of their most famous movies")
     ActorFilms getSpecificActorFilmography(
-        @V("actorName") String actorName, 
+        @V("actorName") String actorName,
         @V("movieCount") int movieCount
     );
 }
@@ -341,7 +341,7 @@ interface AdvancedActorService {
 void advancedStructuredDataExtraction() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     AdvancedActorService service = AiServices.builder(AdvancedActorService.class)
@@ -372,13 +372,13 @@ Define a high-level service interface for your AI application:
 
 ```java
 interface FilmographyService {
-    
+
     @SystemMessage("You are a helpful assistant that provides accurate information about actors and their movies.")
     List<String> getMovies(@UserMessage String actor);
-    
+
     @SystemMessage("You are a movie expert. Provide detailed analysis.")
     String analyzeActor(@UserMessage String actorName);
-    
+
     ActorFilms getFullFilmography(String actorName);
 }
 ```
@@ -392,7 +392,7 @@ Create a test that uses the `AiServices` to implement the interface:
 void useFilmographyService() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     FilmographyService service = AiServices.builder(FilmographyService.class)
@@ -402,7 +402,7 @@ void useFilmographyService() {
     // Test simple movie list
     List<String> tomHanksMovies = service.getMovies("Tom Hanks");
     System.out.println("Tom Hanks movies: " + tomHanksMovies);
-    
+
     // Test actor analysis
     String analysis = service.analyzeActor("Meryl Streep");
     System.out.println("Meryl Streep analysis: " + analysis);
@@ -426,7 +426,7 @@ interface PersonalAssistant {
 void personalAssistantWithMemoryAndTools() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
@@ -459,10 +459,10 @@ interface DocumentAnalyzer {
     @SystemMessage("You are an expert document analyzer. Provide concise, accurate analysis.")
     @UserMessage("Analyze this document content and provide key insights: {{content}}")
     String analyzeDocument(@V("content") String documentContent);
-    
+
     @UserMessage("Extract the main themes from: {{content}}")
     List<String> extractThemes(@V("content") String documentContent);
-    
+
     @UserMessage("Rate the sentiment of this content from 1-10: {{content}}")
     int analyzeSentiment(@V("content") String documentContent);
 }
@@ -471,7 +471,8 @@ interface DocumentAnalyzer {
 void advancedServiceConfiguration() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
+            .temperature(0.3)  // Lower temperature for more consistent analysis
             .build();
 
     DocumentAnalyzer analyzer = AiServices.builder(DocumentAnalyzer.class)
@@ -512,7 +513,7 @@ All requests to AI models are stateless by default. Create a test that demonstra
 void defaultRequestsAreStateless() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     System.out.println("First interaction:");
@@ -538,7 +539,7 @@ Use LangChain4j's `ChatMemory` to maintain conversation state:
 void requestsWithMemory() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
@@ -546,7 +547,7 @@ void requestsWithMemory() {
     System.out.println("First interaction with memory:");
     UserMessage firstMessage = UserMessage.from("My name is Inigo Montoya. You killed my father. Prepare to die.");
     memory.add(firstMessage);
-    
+
     ChatResponse response1 = model.chat(memory.messages());
     memory.add(response1.content());
     System.out.println(response1.aiMessage().text());
@@ -554,7 +555,7 @@ void requestsWithMemory() {
     System.out.println("\nSecond interaction with memory:");
     UserMessage secondMessage = UserMessage.from("Who am I?");
     memory.add(secondMessage);
-    
+
     ChatResponse response2 = model.chat(memory.messages());
     memory.add(response2.content());
     System.out.println(response2.aiMessage().text());
@@ -574,12 +575,12 @@ LangChain4j provides different memory implementations:
 void differentMemoryTypes() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     // Token-based memory - limits based on token count
-    ChatMemory tokenMemory = TokenWindowChatMemory.withMaxTokens(1000, new OpenAiTokenizer(GPT_5_NANO));
-    
+    ChatMemory tokenMemory = TokenWindowChatMemory.withMaxTokens(1000, new OpenAiTokenizer(GPT_4_1_NANO));
+
     // Message-based memory - limits based on message count
     ChatMemory messageMemory = MessageWindowChatMemory.withMaxMessages(5);
 
@@ -590,10 +591,10 @@ void differentMemoryTypes() {
     // Test with token memory
     UserMessage newMessage = UserMessage.from("What did I just tell you about myself?");
     tokenMemory.add(newMessage);
-    
+
     ChatResponse response = model.chat(tokenMemory.messages());
     System.out.println("Token memory response: " + response.aiMessage().text());
-    
+
     assertNotNull(response.aiMessage().text());
 }
 ```
@@ -611,7 +612,7 @@ interface AssistantWithMemory {
 void aiServicesWithMemory() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     ChatMemory memory = MessageWindowChatMemory.withMaxMessages(10);
@@ -701,7 +702,7 @@ interface Assistant {
 void useToolsWithAiServices() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     Assistant assistant = AiServices.builder(Assistant.class)
@@ -732,7 +733,7 @@ Use the provided `WeatherTool` to demonstrate how tools can accept parameters:
 void useWeatherTool() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     Assistant assistant = AiServices.builder(Assistant.class)
@@ -756,7 +757,7 @@ Use multiple provided tools together (`DateTimeTool`, `CalculatorTool`, and `Wea
 void useMultipleTools() {
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     Assistant assistant = AiServices.builder(Assistant.class)
@@ -773,16 +774,53 @@ void useMultipleTools() {
 }
 ```
 
+### 6.5 Optional Tool Parameters
+
+LangChain4j 1.12 added `Optional<T>` support for tool parameters. Use it when the absence of a value is meaningful and the tool itself should decide how to handle the gap. The same effect is available via `@P(required = false)`; pick `Optional<T>` when the type itself should communicate the optionality.
+
+`WeatherTool.getWeatherWithDefault` demonstrates the pattern:
+
+```java
+@Tool("Get the current weather; units defaults to metric if not specified")
+public String getWeatherWithDefault(
+        @P("City name") String city,
+        @P("Unit system: metric or imperial") Optional<String> units) {
+    return getCurrentWeather(city, units.orElse("metric"));
+}
+```
+
+Test it from `AiToolsTests`:
+
+```java
+@Test
+void optionalToolParameters() {
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .build();
+
+    Assistant assistant = AiServices.builder(Assistant.class)
+            .chatModel(model)
+            .tools(new WeatherTool())
+            .build();
+
+    String response = assistant.chat("What's the weather in Berlin? I don't care about units.");
+    System.out.println("Response: " + response);
+
+    assertThat(response).containsIgnoringCase("berlin");
+}
+```
+
 [↑ Back to table of contents](#table-of-contents)
 
 ## Lab 6.5: MCP Integration
 
-Model Context Protocol (MCP) allows AI applications to access tools and resources from external services. This lab demonstrates how to use LangChain4j's MCP client to connect to external MCP servers and integrate their tools with your AI applications.
+Model Context Protocol (MCP) lets AI applications consume tools and resources hosted by external services. LangChain4j 1.14 ships an MCP client against the **2025-11-25 spec**. The standard transports are **stdio** and **Streamable HTTP**; LangChain4j also supports Docker stdio and a non-standard WebSocket transport. This lab uses stdio for simplicity (no extra infrastructure beyond `npx`). Legacy HTTP/SSE exists for older servers but is deprecated.
 
 **Prerequisites:**
 - Understanding of @Tool annotation from Lab 6
 - Node.js and npm installed for running the MCP "everything" server
-- MCP "everything" server accessed via: `npx -y @modelcontextprotocol/server-everything`
+- MCP "everything" server accessed via: `npx -y @modelcontextprotocol/server-everything stdio`
 
 **Lab Structure:**
 This lab includes 4 progressive MCP integration tests:
@@ -791,225 +829,238 @@ This lab includes 4 progressive MCP integration tests:
 3. **Combining Local and MCP Tools** - Use both local @Tool and external MCP tools
 4. **MCP Tool Provider Configuration** - Configure MCP tool providers
 
-### TODO Exercises for Lab 6.5
+### 6.5.1 Optimized Test Setup with Shared MCP Client
 
-Create a new test class `McpIntegrationTests.java` and implement the following exercises:
-
-**Exercise 6.5.1:** Create `basicMcpClientSetup()` test method
-- Create `StdioMcpTransport` with npx command for "everything" server
-- Build `DefaultMcpClient` with unique key and the transport
-- Create `McpToolProvider` using the MCP client
-- Verify both client and tool provider are created successfully
-- No need for server availability checks - npx handles this
-
-**Exercise 6.5.2:** Create `mcpToolsWithAiServices()` test method  
-- Set up ChatModel with OpenAI GPT-5-Nano
-- Create MCP client using stdio transport approach
-- Build `McpToolProvider` from the MCP client
-- Create AI assistant interface and build service with `.toolProvider()`
-- Test asking about available tools and verify responses
-
-**Exercise 6.5.3:** Create `combiningLocalAndMcpTools()` test method
-- Configure ChatModel and create MCP client with stdio transport
-- Build AI service with both `.tools()` (DateTimeTool only - avoid CalculatorTool conflicts) and `.toolProvider()` 
-- Test questions that use both local tools (date/time) and MCP tools
-- Verify responses demonstrate both tool types working together
-
-**Exercise 6.5.4:** Create `mcpToolProviderConfiguration()` test method
-- Set up ChatModel and MCP client using stdio approach
-- Create `McpToolProvider` with configuration options
-- Build AI service with the configured tool provider
-- Test the tool provider functionality and verify responses
-
-**Important Notes:**
-- Use `StdioMcpTransport` with npx commands - no HTTP endpoints needed
-- Use `DefaultMcpClient.Builder().key().transport().build()` pattern
-- Use `McpToolProvider.builder().mcpClients().build()` for tool providers
-- MCP enables access to external tools beyond local @Tool methods
-- The "everything" server provides various demo tools via npx stdio
-- **Tool Name Conflicts**: Avoid using CalculatorTool with MCP servers as they may provide conflicting tool names (e.g., "add"). Use DateTimeTool instead for hybrid testing.
-
-[↑ Back to table of contents](#table-of-contents)
-
-## Lab 6.6: Multi-Agent Systems (AgenticServices)
-
-**NEW in LangChain4j 1.10.0**: The `langchain4j-agentic` module provides a powerful framework for orchestrating multi-agent AI workflows. This lab introduces the core concepts:
-
-- **`@Agent` annotation** - Marks methods as agent entry points with descriptions
-- **`AgenticServices`** - Builder factory for creating agents and workflows
-- **`UntypedAgent`** - Generic agent that accepts Map inputs for flexible orchestration
-
-**Prerequisites:**
-- Understanding of AI Services from Lab 4
-- Understanding of Tools from Lab 6
-- OpenAI API key for testing agent interactions
-
-**Lab Overview:**
-This is an **introductory lab** that demonstrates the basics of multi-agent systems. For comprehensive coverage of sequential workflows, loops, parallel execution, supervisors, and human-in-the-loop patterns, see the official [LangChain4j Agentic Tutorial](https://docs.langchain4j.dev/tutorials/agents/).
-
-**Lab Structure:**
-This lab includes 2 introductory exercises:
-1. **Basic Agent with @Agent Annotation** - Create a single agent using the agentic module
-2. **Sequential Agent Workflow** - Chain multiple agents together
-
-### 6.6.1 Basic Agent with @Agent Annotation
-
-Create agents using the `@Agent` annotation and `AgenticServices.agentBuilder()`:
+The implementation uses a shared MCP client across all tests for better performance:
 
 ```java
-// Define agent interface with @Agent annotation
-interface CreativeWriter {
-    @Agent("Generates creative stories based on the given topic")
-    @UserMessage("""
-        You are a creative writer with a vivid imagination.
-        Write a short, engaging story (2-3 paragraphs) about: {{topic}}
-        Make it creative and captivating.
-        """)
-    String generateStory(@V("topic") String topic);
-}
+class McpIntegrationTests {
 
-@Test
-void basicAgentWithAnnotation() {
-    // Create a ChatModel for the agent
-    ChatModel model = OpenAiChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
-            .build();
+    // Shared MCP client across all tests for efficiency
+    private static McpClient sharedMcpClient;
 
-    // Build the CreativeWriter agent using AgenticServices
-    CreativeWriter writer = AgenticServices
-            .agentBuilder(CreativeWriter.class)
-            .chatModel(model)
-            .outputKey("story")  // Output stored as "story" in AgenticScope
-            .build();
+    @BeforeAll
+    static void setupSharedMcpClient() {
+        // Create single stdio transport for MCP "everything" server via npx
+        McpTransport sharedTransport = new StdioMcpTransport.Builder()
+                .command(List.of("npx", "-y", "@modelcontextprotocol/server-everything", "stdio"))
+                .logEvents(false) // Reduce noise across multiple tests
+                .build();
 
-    // Invoke the agent
-    String story = writer.generateStory("a robot learning to paint");
+        // Create shared MCP client
+        sharedMcpClient = new DefaultMcpClient.Builder()
+                .key("SharedMcpClient")
+                .transport(sharedTransport)
+                .initializationTimeout(Duration.ofSeconds(60))
+                .build();
 
-    // Print and verify the result
-    System.out.println("=== Basic Agent Output ===");
-    System.out.println(story);
+        System.out.println("Shared MCP client initialized for all tests");
+    }
 
-    assertNotNull(story, "Story should not be null");
-    assertFalse(story.trim().isEmpty(), "Story should not be empty");
+    @AfterAll
+    static void teardownSharedMcpClient() throws Exception {
+        // The transport will automatically clean up the npx process
+        if (sharedMcpClient != null) {
+            sharedMcpClient.close();
+            System.out.println("Shared MCP client cleanup completed");
+        }
+    }
+
+    @Test
+    void basicMcpClientSetup() {
+        // Use shared MCP client for efficiency (initialized in @BeforeAll)
+        // This demonstrates the basic setup process that was used to create the shared client
+
+        // Create MCP tool provider using the shared client
+        McpToolProvider toolProvider = McpToolProvider.builder()
+                .mcpClients(sharedMcpClient)
+                .build();
+
+        System.out.println("Successfully created MCP tool provider using shared client");
+
+        // Verify tool provider was created
+        assertNotNull(toolProvider, "MCP tool provider should be created");
+        assertNotNull(sharedMcpClient, "Shared MCP client should be available");
+
+        System.out.println("MCP setup verification completed successfully!");
+
+        // Note: The actual transport/client setup is demonstrated in @BeforeAll method
+        // This pattern avoids creating multiple npx processes and improves test performance
+    }
 }
 ```
 
-### 6.6.2 Sequential Agent Workflow
+### 6.5.2 MCP Tools with AiServices
 
-Chain multiple agents together using `AgenticServices.sequenceBuilder()`:
+Integrate MCP tools with LangChain4j AiServices using the shared client:
 
 ```java
-// Define a second agent for editing content
-interface AudienceEditor {
-    @Agent("Adapts stories for specific target audiences")
-    @UserMessage("""
-        You are an expert editor who adapts content for different audiences.
-        Take this story and rewrite it for {{audience}}:
-
-        Original story:
-        {{story}}
-
-        Keep the core narrative but adjust vocabulary, tone, and complexity
-        to be appropriate for the target audience.
-        """)
-    String editForAudience(@V("story") String story, @V("audience") String audience);
-}
-
 @Test
-void sequentialAgentWorkflow() {
-    ChatModel model = OpenAiChatModel.builder()
+void mcpToolsWithAiServices() {
+    // Configure chat model
+    ChatModel chatModel = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
+            .temperature(0.3)
             .build();
 
-    // Build both agents
-    CreativeWriter writer = AgenticServices
-            .agentBuilder(CreativeWriter.class)
-            .chatModel(model)
-            .outputKey("story")
+    // Create MCP tool provider using shared client for efficiency
+    McpToolProvider mcpToolProvider = McpToolProvider.builder()
+            .mcpClients(sharedMcpClient)
             .build();
 
-    AudienceEditor editor = AgenticServices
-            .agentBuilder(AudienceEditor.class)
-            .chatModel(model)
-            .outputKey("story")  // Overwrites "story" with edited version
+    // Define AI assistant interface
+    interface McpAssistant {
+        String chat(String message);
+    }
+
+    // Build AI service with MCP tools
+    McpAssistant assistant = AiServices.builder(McpAssistant.class)
+            .chatModel(chatModel)
+            .toolProvider(mcpToolProvider)
             .build();
 
-    // Create sequential workflow combining both agents
-    UntypedAgent pipeline = AgenticServices
-            .sequenceBuilder()
-            .subAgents(writer, editor)
-            .outputKey("story")
-            .build();
+    // Test using MCP tools through the assistant
+    System.out.println("\n=== Testing MCP Tool Integration ===");
 
-    // Invoke the workflow with initial inputs
-    Map<String, Object> inputs = Map.of(
-            "topic", "a space explorer discovering a new planet",
-            "audience", "children aged 6-8"
-    );
+    String response1 = assistant.chat("What tools are available to you from the MCP server?");
+    System.out.println("Available tools response: " + response1);
 
-    String finalStory = (String) pipeline.invoke(inputs);
+    String response2 = assistant.chat("Can you use any filesystem or utility tools to help me?");
+    System.out.println("Tool capabilities response: " + response2);
 
-    System.out.println("=== Sequential Workflow Output ===");
-    System.out.println("Topic: " + inputs.get("topic"));
-    System.out.println("Target Audience: " + inputs.get("audience"));
-    System.out.println("\n--- Final Story (edited for audience) ---");
-    System.out.println(finalStory);
+    // Verify responses
+    assertNotNull(response1, "Response about available tools should not be null");
+    assertNotNull(response2, "Response about tool capabilities should not be null");
+    assertFalse(response1.trim().isEmpty(), "Response should contain information about tools");
 
-    assertNotNull(finalStory, "Final story should not be null");
-    assertFalse(finalStory.trim().isEmpty(), "Final story should not be empty");
+    System.out.println("MCP tool integration test completed successfully!");
 }
 ```
 
-### TODO Exercises for Lab 6.6
+### 6.5.3 Combining Local Tools and MCP Tools
 
-Open `MultiAgentTests.java` and implement the following exercises:
+Use both local @Tool methods and external MCP tools together (avoiding tool name conflicts):
 
-**Exercise 6.6.1:** Implement `basicAgentWithAnnotation()` test method
-- Uncomment the ChatModel creation using `OpenAiChatModel.builder()`
-- Uncomment the `AgenticServices.agentBuilder()` call for CreativeWriter
-- Uncomment the agent invocation and assertions
-- Run the test and observe the generated story
+```java
+@Test
+void combiningLocalAndMcpTools() {
+    // Configure chat model
+    ChatModel chatModel = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .temperature(0.2)
+            .build();
 
-**Exercise 6.6.2:** Implement `sequentialAgentWorkflow()` test method
-- Uncomment both agent builders (CreativeWriter and AudienceEditor)
-- Uncomment the `AgenticServices.sequenceBuilder()` to create the pipeline
-- Uncomment the `UntypedAgent.invoke()` call with the input Map
-- Run the test and observe how the story is first generated, then adapted for the audience
+    // Create MCP tool provider using shared client for efficiency
+    McpToolProvider mcpToolProvider = McpToolProvider.builder()
+            .mcpClients(sharedMcpClient)
+            .build();
 
-**Key Concepts:**
-- **`@Agent` annotation** provides a description that helps orchestrators understand the agent's purpose
-- **`outputKey()`** specifies where results are stored in the shared `AgenticScope`
-- **`UntypedAgent`** accepts `Map<String, Object>` inputs for flexible workflow composition
-- **`sequenceBuilder()`** chains agents so output from one becomes input to the next
+    // Define AI assistant interface
+    interface HybridAssistant {
+        String chat(String message);
+    }
 
-**Advanced Topics (See Official Tutorial):**
-For comprehensive coverage beyond this introduction, see the [LangChain4j Agentic Tutorial](https://docs.langchain4j.dev/tutorials/agents/):
-- **Loop Workflows**: Agents with exit conditions and state management
-- **Parallel Execution**: Running multiple agents concurrently
-- **Conditional Workflows**: Score-based branching and decision trees
-- **Supervisor Orchestration**: Meta-agents coordinating sub-agents
-- **Non-AI Agents**: Deterministic operations in agent workflows
-- **Human-in-the-Loop**: Interactive validation and chatbots with memory
+    // Build AI service with both local tools and MCP tools
+    // Note: Using only DateTimeTool to avoid conflicts with MCP server tools (e.g., "add" function)
+    HybridAssistant assistant = AiServices.builder(HybridAssistant.class)
+            .chatModel(chatModel)
+            .tools(new DateTimeTool()) // Local tools - avoiding CalculatorTool due to potential conflicts
+            .toolProvider(mcpToolProvider) // External MCP tools
+            .build();
+
+    System.out.println("\n=== Testing Hybrid Tool Integration ===");
+
+    // Test combining local and external tools
+    String response1 = assistant.chat("What's the current date and time, and what tools do you have available?");
+    System.out.println("Hybrid tools response: " + response1);
+
+    String response2 = assistant.chat("What's the current date, and can you also tell me what MCP tools you can access?");
+    System.out.println("Mixed tool usage response: " + response2);
+
+    // Verify responses demonstrate both tool types
+    assertNotNull(response1, "Hybrid response should not be null");
+    assertNotNull(response2, "Mixed tool response should not be null");
+    assertTrue(response1.length() > 20, "Response should be substantive");
+    assertTrue(response2.length() > 20, "Response should be substantive");
+
+    System.out.println("\nSuccessfully demonstrated hybrid local + MCP tool integration!");
+}
+```
+
+### 6.5.4 MCP Tool Provider Configuration
+
+Demonstrate MCP tool provider configuration options:
+
+```java
+@Test
+void mcpToolProviderWithFiltering() {
+    // Configure chat model
+    ChatModel chatModel = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .temperature(0.3)
+            .build();
+
+    // Create MCP tool provider using shared client for efficiency
+    // Note: filterToolNames might be available depending on LangChain4j version
+    McpToolProvider toolProvider = McpToolProvider.builder()
+            .mcpClients(sharedMcpClient)
+            // .filterToolNames("specific_tool_name") // Example of potential filtering
+            .build();
+
+    // Define AI assistant interface
+    interface FilteredAssistant {
+        String chat(String message);
+    }
+
+    // Build AI service with MCP tool provider
+    FilteredAssistant assistant = AiServices.builder(FilteredAssistant.class)
+            .chatModel(chatModel)
+            .toolProvider(toolProvider)
+            .build();
+
+    System.out.println("\n=== Testing MCP Tool Provider ===");
+
+    String response = assistant.chat("What tools do you have available from the MCP server?");
+    System.out.println("MCP tools response: " + response);
+
+    // Verify response
+    assertNotNull(response, "MCP response should not be null");
+    assertFalse(response.trim().isEmpty(), "Response should contain tool information");
+
+    System.out.println("\nSuccessfully demonstrated MCP tool provider setup!");
+}
+
+```
+
+**Important Notes for Lab 6.5:**
+- LangChain4j provides MCP **client** support (connects to external MCP servers)
+- The "everything" server is a demo MCP server showcasing various tool types
+- Uses **shared MCP client** pattern for better test performance (single npx process)
+- MCP tools integrate seamlessly with local @Tool methods via `.toolProvider()`
+- **Tool Name Conflicts**: Avoid CalculatorTool with MCP servers as they may provide conflicting tool names (e.g., "add"). Use DateTimeTool instead.
+- The `@BeforeAll`/`@AfterAll` pattern demonstrates proper resource management
+- MCP enables distributed tool ecosystems beyond single-application boundaries
+- The npx command automatically handles MCP server lifecycle during testing
 
 [↑ Back to table of contents](#table-of-contents)
 
 ## Lab 7: Multimodal Capabilities
 
-Multimodal capabilities allow AI models to analyze and understand both images and audio. This lab demonstrates how to use GPT-5 with multimodal content to process images and audio files using LangChain4j.
+Multimodal capabilities allow AI models to analyze images and transcribe audio. This lab uses GPT-5.1 for vision tasks and OpenAI's dedicated transcription model for audio.
 
-**Prerequisites:** 
+**Prerequisites:**
 - An image file `bowl_of_fruit.jpg` in `src/main/resources/`
 - An audio file `tftjs.mp3` in `src/main/resources/`
-- OpenAI API key with access to GPT-5 vision models
-- Google AI API key for audio processing with Gemini models
+- OpenAI API key with access to vision and transcription models
 
 **Lab Structure:**
 This lab includes 4 progressive multimodal tests:
 1. **Local Image Analysis** - Analyze images from local resources
-2. **Remote Image Analysis** - Analyze images from URLs  
-3. **Audio Transcription** - Process audio content with AudioContent
+2. **Remote Image Analysis** - Analyze images from URLs
+3. **Audio Transcription** - Transcribe audio with OpenAI's transcription API
 4. **Structured Image Analysis** - Extract structured data from images
 
 ### 7.1 Local Image Analysis
@@ -1019,10 +1070,10 @@ Create a test that analyzes a local image file:
 ```java
 @Test
 void localImageAnalysis() throws IOException {
-    // Create GPT-5 model with vision capabilities
+    // Create GPT-5.1 model with vision capabilities
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5)
+            .modelName(GPT_5_1)
             .build();
 
     // Load image from resources with null check
@@ -1040,14 +1091,14 @@ void localImageAnalysis() throws IOException {
     // Create image and text content for the message
     ImageContent imageContent = ImageContent.from(imageString, "image/jpeg");
     TextContent textContent = TextContent.from("What do you see in this image? Describe it in detail.");
-    
+
     UserMessage userMessage = UserMessage.from(textContent, imageContent);
-    
+
     System.out.println("=== Local Image Analysis Test ===");
     String response = model.chat(userMessage).aiMessage().text();
     System.out.println("Analysis: " + response);
     System.out.println("=".repeat(50));
-    
+
     // Verify response quality
     assertAll("Local image analysis validation",
         () -> assertNotNull(response, "Response should not be null"),
@@ -1069,27 +1120,27 @@ Create a test that analyzes an image from a remote URL:
 ```java
 @Test
 void remoteImageAnalysis() {
-    // Create GPT-5 Vision model
+    // Create GPT-5.1 vision model
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5)
+            .modelName(GPT_5_1)
             .build();
 
     // Use a publicly available image URL
-    String imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg";
-    
+    String imageUrl = "https://upload.wikimedia.org/wikipedia/commons/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg";
+
     // Create image and text content for the message
     ImageContent imageContent = ImageContent.from(imageUrl);
     TextContent textContent = TextContent.from("Describe this natural landscape in detail. What can you see?");
-    
+
     UserMessage userMessage = UserMessage.from(textContent, imageContent);
-    
+
     System.out.println("=== Remote Image Analysis Test ===");
     String response = model.chat(userMessage).aiMessage().text();
     System.out.println("URL: " + imageUrl);
     System.out.println("Analysis: " + response);
     System.out.println("=".repeat(50));
-    
+
     // Verify response quality
     assertAll("Remote image analysis validation",
         () -> assertNotNull(response, "Response should not be null"),
@@ -1104,67 +1155,46 @@ void remoteImageAnalysis() {
 }
 ```
 
-### 7.3 Audio Transcription and Analysis
+### 7.3 Audio Transcription
 
-Demonstrate audio processing using AudioContent with Google's Gemini model:
+LangChain4j 1.10 added a dedicated OpenAI transcription model. Use it directly instead of routing audio through a multimodal chat endpoint:
 
 ```java
 @Test
-@EnabledIfEnvironmentVariable(named = "GOOGLEAI_API_KEY", matches = ".*")
-void audioTranscriptionAnalysis() throws IOException {
-    // Create Google Gemini model for audio processing
-    ChatModel model = GoogleAiGeminiChatModel.builder()
-            .apiKey(System.getenv("GOOGLEAI_API_KEY"))
-            .modelName("gemini-2.5-flash-preview-05-20")
+void audioTranscription() throws IOException {
+    OpenAiAudioTranscriptionModel transcriptionModel = OpenAiAudioTranscriptionModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName("gpt-4o-transcribe")  // also: "whisper-1", "gpt-4o-mini-transcribe"
             .build();
 
-    // Create audio and text content for the message
-    TextContent textContent = TextContent.from("Please transcribe and analyze the content of this audio file.");
-    AudioContent audioContent = AudioContent.from(readSimpleAudioData(), "audio/mp3");
-    
-    UserMessage userMessage = UserMessage.from(textContent, audioContent);
-    
-    System.out.println("=== Audio Transcription and Analysis Test ===");
-    
-    // Process the audio with Gemini
-    try {
-        String response = model.chat(userMessage).aiMessage().text();
-        System.out.println("Transcription/Analysis: " + response);
-        
-        // Verify response quality
-        assertAll("Audio analysis validation",
-            () -> assertNotNull(response, "Response should not be null"),
-            () -> assertFalse(response.trim().isEmpty(), "Response should not be empty"),
-            () -> assertTrue(response.length() > 10, "Response should contain content")
-        );
-
-        System.out.println("=" + "=".repeat(50));
-        
-    } catch (Exception e) {
-        // Handle gracefully if audio processing is not supported
-        System.out.println("Audio processing issue: " + e.getMessage());
-        e.printStackTrace();
-        System.out.println("=" + "=".repeat(50));
-        
-        // Verify AudioContent was created successfully
-        assertNotNull(audioContent, "AudioContent should be created successfully");
-    }
-}
-
-/**
- * Load an audio file from resources and Base64 encode it.
- */
-private String readSimpleAudioData() throws IOException {
-    // Load actual audio file from resources
-    try (var inputStream = getClass().getClassLoader()
-            .getResourceAsStream("tftjs.mp3")) {
+    byte[] audioBytes;
+    try (var inputStream = getClass().getClassLoader().getResourceAsStream("tftjs.mp3")) {
         if (inputStream == null) {
             throw new RuntimeException("Could not find tftjs.mp3 in resources");
         }
-        return Base64.getEncoder().encodeToString(inputStream.readAllBytes());
+        audioBytes = inputStream.readAllBytes();
     }
+
+    Audio audio = Audio.builder()
+            .binaryData(audioBytes)
+            .mimeType("audio/mp3")
+            .build();
+
+    AudioTranscriptionRequest request = AudioTranscriptionRequest.builder()
+            .audio(audio)
+            .build();
+
+    AudioTranscriptionResponse response = transcriptionModel.transcribe(request);
+    String transcript = response.text();
+    System.out.println("Transcript: " + transcript);
+
+    assertAll("Audio transcription validation",
+        () -> assertNotNull(transcript, "Transcript should not be null"),
+        () -> assertFalse(transcript.trim().isEmpty(), "Transcript should not be empty"));
 }
 ```
+
+Note: this replaces the earlier Gemini-based audio path. The dedicated transcription model is simpler and avoids the `GOOGLEAI_API_KEY` requirement.
 
 ### 7.4 Structured Image Analysis
 
@@ -1193,10 +1223,10 @@ record ImageAnalysisResult(
 
 @Test
 void structuredImageAnalysis() throws IOException {
-    // Create GPT-5 Vision model
+    // Create GPT-5.1 vision model
     ChatModel model = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5)
+            .modelName(GPT_5_1)
             .build();
 
     // Create detailed analyst service
@@ -1216,17 +1246,17 @@ void structuredImageAnalysis() throws IOException {
     ImageContent image = ImageContent.from(imageString, "image/jpeg");
 
     System.out.println("=== Structured Image Analysis Test ===");
-    
+
     // Get comprehensive structured analysis
     ImageAnalysisResult result = analyst.analyzeComprehensively(image);
-    
+
     System.out.println("Description: " + result.description());
     System.out.println("Objects: " + result.objects());
     System.out.println("Colors: " + result.colors());
     System.out.println("Composition: " + result.composition());
     System.out.println("Mood: " + result.mood());
     System.out.println("Text Content: " + result.textContent());
-    
+
     System.out.println("=".repeat(50));
 
     // Verify structured analysis
@@ -1245,13 +1275,13 @@ void structuredImageAnalysis() throws IOException {
             .as("Image description")
             .isNotBlank()
             .hasSizeGreaterThan(20);
-            
+
     if (!result.objects().isEmpty()) {
         assertThat(result.objects())
                 .as("Identified objects")
                 .allSatisfy(object -> assertThat(object).isNotBlank());
     }
-    
+
     if (!result.colors().isEmpty()) {
         assertThat(result.colors())
                 .as("Identified colors")
@@ -1261,14 +1291,13 @@ void structuredImageAnalysis() throws IOException {
 ```
 
 **Important Notes for Lab 7:**
-- Uses GPT-5 model for vision capabilities (Tests 7.1, 7.2, 7.4)
-- Uses Google Gemini model for audio processing (Test 7.3)
-- Demonstrates both ImageContent and AudioContent classes for multimodal processing
+- Uses GPT-5.1 for vision capabilities (Tests 7.1, 7.2, 7.4)
+- Uses OpenAI's dedicated transcription model for audio processing (Test 7.3)
+- Demonstrates ImageContent for vision and Audio / AudioTranscriptionRequest for audio
 - Includes proper null checks for resource loading to avoid NullPointerException
-- Uses Base64 encoding for local images and direct URLs for remote images  
-- Audio processing requires Google AI API key and uses Gemini 2.5 Flash Preview model
+- Uses Base64 encoding for local images and direct URLs for remote images
 - Audio file (`tftjs.mp3`) must be present in `src/main/resources/`
-- Audio test uses `@EnabledIfEnvironmentVariable` to run only when GOOGLEAI_API_KEY is set
+- Audio transcription uses `OPENAI_API_KEY`; no `GOOGLEAI_API_KEY` is required
 - Demonstrates both simple string responses and structured data extraction
 - Uses AssertJ and JUnit 5 assertAll() for comprehensive testing
 - Rate limiting: Consider adding delays between API calls if running multiple multimodal tests
@@ -1277,289 +1306,158 @@ void structuredImageAnalysis() throws IOException {
 
 ## Lab 8: Image Generation
 
-Image generation capabilities allow AI models to create images from text prompts. This lab demonstrates how to use OpenAI's DALL-E with LangChain4j for generating high-quality images.
+Generate images from text prompts using OpenAI's `gpt-image-2` model. **DALL-E 3 was deprecated on May 12, 2026**; GPT Image models are its replacement and return base64-encoded image data rather than URLs.
 
 **Prerequisites:**
-- OpenAI API key with access to DALL-E models
+- OpenAI API key
 - Understanding of prompt engineering for image generation
 
 **Lab Structure:**
-This lab includes 5 progressive image generation tests:
-1. **Basic Image Generation** - Simple image creation with DALL-E
-2. **Image Generation with Options** - Configuration options for quality and style  
-3. **Advanced Image Generation** - Different artistic and technical styles
-4. **Creative Image Variations** - Multiple images with varied prompts
-5. **Base64 Image Generation** - Using gpt-image-1 model with base64-encoded images
+This lab includes 5 image generation tests:
+1. **Basic Image Generation** - Default settings
+2. **Image Generation with Options** - size and quality (note: quality values changed from DALL-E)
+3. **Artistic Style Variations** - styles are now expressed in the prompt (no `style` builder option)
+4. **Multiple Variations** - Loop through several prompts
+5. **Save to File** - Decode base64 and write a PNG to disk
 
 ### 8.1 Basic Image Generation
 
-Create a test that generates an image using OpenAI's DALL-E:
-
 ```java
+private static final String GPT_IMAGE_2 = "gpt-image-2";
+
 @Test
 void basicImageGeneration() {
-    // Create OpenAI ImageModel
     ImageModel model = OpenAiImageModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(DALL_E_3)
+            .modelName(GPT_IMAGE_2)
             .build();
 
-    // Define a creative prompt for image generation
     String prompt = "A majestic dragon soaring over a crystal castle at sunset, fantasy art style";
-    
-    System.out.println("=== Basic Image Generation Test ===");
-    System.out.println("Prompt: " + prompt);
-    
-    // Generate the image
+
     Response<Image> response = model.generate(prompt);
-    
-    // Extract and verify the generated image
-    assertNotNull(response, "Response should not be null");
-    assertNotNull(response.content(), "Response content should not be null");
-    
-    Image image = response.content();
-    System.out.println("Generated image URL: " + image.url());
-    System.out.println("Revised prompt: " + image.revisedPrompt());
-    
-    // Verify the image was generated successfully
-    assertNotNull(image.url(), "Image URL should not be null");
-    assertThat(image.url().toString())
-            .as("Generated image URL")
-            .isNotBlank()
-            .startsWith("https://");
+    String base64 = response.content().base64Data();
+
+    assertNotNull(base64, "Base64 image data should not be null");
+    assertThat(base64).as("Base64 image data").isNotBlank().hasSizeGreaterThan(100);
 }
 ```
 
 ### 8.2 Image Generation with Options
 
-Create a test with more specific generation options:
+GPT Image models accept `size` and `quality`. Quality values are `low`, `medium`, `high`, `auto` (different from DALL-E 3's `standard`/`hd`):
 
 ```java
 @Test
-void imageGenerationWithOptions() throws IOException {
-    // Create OpenAI ImageModel with specific options
+void imageGenerationWithOptions() {
     ImageModel model = OpenAiImageModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(DALL_E_3)
+            .modelName(GPT_IMAGE_2)
             .size("1024x1024")
-            .quality("hd")
-            .style("vivid")
+            .quality("high")
             .build();
 
-    // Define a detailed prompt for high-quality generation
-    String prompt = "A futuristic cityscape at dawn with flying vehicles, neon lights reflecting on wet streets, cyberpunk aesthetic";
-    
-    System.out.println("=== Image Generation with Options Test ===");
-    System.out.println("Prompt: " + prompt);
-    System.out.println("Configuration: 1024x1024, HD quality, vivid style");
-    
-    // Generate the image with enhanced settings
+    String prompt = "A futuristic cityscape at dawn with flying vehicles, neon lights, cyberpunk aesthetic";
+
     Response<Image> response = model.generate(prompt);
-    Image image = response.content();
-    
-    // Display results and verify
-    System.out.println("High-quality generated image URL: " + image.url());
-    System.out.println("Revised prompt: " + image.revisedPrompt());
-    
-    if (image.url() != null) {
-        System.out.println("Image generated successfully with HD quality!");
-    }
-    
-    // Verify the image generation
-    assertNotNull(image.url(), "HD image URL should not be null");
-    assertThat(image.url().toString())
-            .as("HD generated image URL")
-            .isNotBlank()
-            .startsWith("https://");
+    String base64 = response.content().base64Data();
+
+    assertNotNull(base64, "Base64 image data should not be null");
+    assertThat(base64).hasSizeGreaterThan(1000);
 }
 ```
 
-### 8.3 Advanced Image Generation Configuration
+### 8.3 Artistic Style Variations
 
-Demonstrate generating images with different artistic styles and detailed prompts:
+GPT Image models have no `style` builder parameter. Express style in the prompt:
 
 ```java
 @Test
-void advancedImageGeneration() {
-    // Create OpenAI ImageModel with production settings
+void artisticStyleVariations() {
     ImageModel model = OpenAiImageModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(DALL_E_3)
+            .modelName(GPT_IMAGE_2)
             .size("1024x1024")
-            .quality("standard")
             .build();
 
-    System.out.println("=== Advanced Image Generation Test ===");
-    
-    // Test artistic style variation
-    String artisticPrompt = "A serene Japanese garden with cherry blossoms, traditional architecture, and a koi pond, watercolor painting style";
-    Response<Image> artisticResponse = model.generate(artisticPrompt);
-    Image artisticImage = artisticResponse.content();
-    
-    System.out.println("Artistic prompt: " + artisticPrompt);
-    System.out.println("Generated artistic image: " + artisticImage.url());
-    
-    // Test technical/detailed prompt
-    String technicalPrompt = "A detailed cross-section of a mechanical watch showing gears, springs, and intricate components, technical illustration style";
-    Response<Image> technicalResponse = model.generate(technicalPrompt);
-    Image technicalImage = technicalResponse.content();
-    
-    System.out.println("Technical prompt: " + technicalPrompt);
-    System.out.println("Generated technical image: " + technicalImage.url());
-    
-    // Verify both images were generated successfully
-    assertNotNull(artisticImage.url(), "Artistic image URL should not be null");
-    assertNotNull(technicalImage.url(), "Technical image URL should not be null");
-    
-    assertThat(artisticImage.url().toString())
-            .as("Artistic image URL")
-            .isNotBlank()
-            .startsWith("https://");
-            
-    assertThat(technicalImage.url().toString())
-            .as("Technical image URL")
-            .isNotBlank()
-            .startsWith("https://");
+    Response<Image> watercolor = model.generate(
+        "A serene Japanese garden with cherry blossoms, watercolor painting style");
+    Response<Image> technical = model.generate(
+        "A detailed cross-section of a mechanical watch, technical illustration style");
+
+    assertNotNull(watercolor.content().base64Data());
+    assertNotNull(technical.content().base64Data());
 }
 ```
 
-### 8.4 Creative Image Generation Variations
-
-Generate multiple variations of images with different prompts:
+### 8.4 Multiple Variations
 
 ```java
 @Test
 void creativeImageVariations() {
-    // Create OpenAI ImageModel
     ImageModel model = OpenAiImageModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(DALL_E_3)
+            .modelName(GPT_IMAGE_2)
             .size("1024x1024")
             .build();
 
-    // Define different artistic prompts
     String[] prompts = {
-        "A steampunk robot playing chess, detailed mechanical parts, brass and copper tones",
-        "A minimalist abstract representation of music, flowing lines and geometric shapes",
+        "A steampunk robot playing chess, brass and copper tones",
+        "A minimalist abstract representation of music, flowing lines",
         "A cozy library in a treehouse, warm lighting, books floating magically"
     };
-    
-    System.out.println("=== Creative Image Variations Test ===");
-    
-    // Generate and display multiple image variations
-    for (int i = 0; i < prompts.length; i++) {
-        Response<Image> response = model.generate(prompts[i]);
-        Image image = response.content();
-        
-        System.out.println("=== Variation " + (i + 1) + " ===");
-        System.out.println("Original prompt: " + prompts[i]);
-        System.out.println("Generated image URL: " + image.url());
-        
-        if (image.revisedPrompt() != null) {
-            System.out.println("Revised prompt: " + image.revisedPrompt());
-        }
-        
-        // Verify each image generation
-        assertNotNull(image.url(), "Image " + (i + 1) + " URL should not be null");
-        assertThat(image.url().toString())
-                .as("Variation " + (i + 1) + " image URL")
-                .isNotBlank()
-                .startsWith("https://");
+
+    for (String prompt : prompts) {
+        Response<Image> response = model.generate(prompt);
+        assertThat(response.content().base64Data()).hasSizeGreaterThan(1000);
     }
-    
-    System.out.println("All variations generated successfully!");
 }
 ```
 
-### 8.5 Base64 Image Generation with GPT-Image-1
+### 8.5 Save Generated Image to File
 
-Demonstrate using the new OpenAI "gpt-image-1" model that returns base64-encoded images:
+Decode the base64 response and write a PNG to disk:
 
 ```java
 @Test
-void base64ImageGeneration() throws IOException {
-    // Create OpenAI ImageModel using the new gpt-image-1 model
-    // Note: No constant available yet for this new model
+void saveGeneratedImageToFile() throws IOException {
     ImageModel model = OpenAiImageModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName("gpt-image-1")
+            .modelName(GPT_IMAGE_2)
             .build();
 
-    // Define a creative prompt
-    String prompt = "A warrior cat rides a dragon into battle";
-    
-    System.out.println("=== Base64 Image Generation Test ===");
-    System.out.println("Prompt: " + prompt);
-    System.out.println("Model: gpt-image-1 (returns base64-encoded images)");
-    
-    // Generate the image
-    Response<Image> response = model.generate(prompt);
-    Image image = response.content();
-    
-    // The gpt-image-1 model returns base64-encoded images instead of URLs
-    String base64Data = null;
-    if (image.base64Data() != null) {
-        base64Data = image.base64Data();
-    } else if (image.url() != null && image.url().toString().startsWith("data:")) {
-        // Fallback: parse from data URL format
-        base64Data = image.url().toString().split(",")[1];
-    }
-    
-    assertNotNull(base64Data, "Base64 image data should not be null");
-    System.out.println("Base64 data length: " + base64Data.length() + " characters");
-    
-    // Decode the base64 to bytes using Java's built-in decoder
-    byte[] imageBytes = Base64.getDecoder().decode(base64Data);
-    
-    // Create output directory if it doesn't exist
-    Path outputDir = Path.of("src/main/resources");
+    Response<Image> response = model.generate("A warrior cat rides a dragon into battle");
+    byte[] imageBytes = Base64.getDecoder().decode(response.content().base64Data());
+
+    Path outputDir = Path.of("build", "generated-images");
     if (!Files.exists(outputDir)) {
         Files.createDirectories(outputDir);
     }
-    
-    // Write to file (PNG format)
     Path outputPath = outputDir.resolve("generated_image.png");
     Files.write(outputPath, imageBytes);
-    
-    System.out.println("Image saved as: " + outputPath);
-    System.out.println("File size: " + imageBytes.length + " bytes");
-    
-    // Verify the file was created and has content
-    assertTrue(Files.exists(outputPath), "Generated image file should exist");
-    assertTrue(Files.size(outputPath) > 0, "Generated image file should have content");
-    
-    // Note: The generated image file can be opened with any image viewer
-    // This approach provides more control over image data compared to URL-based responses
+
+    assertTrue(Files.exists(outputPath));
+    assertTrue(Files.size(outputPath) > 0);
 }
 ```
 
-**Important Notes for Lab 8:**
-- Uses DALL_E_3 model constant which provides the latest DALL-E capabilities
-- The new "gpt-image-1" model uses OpenAI's Responses API and returns base64-encoded images instead of URLs
-- Image generation can be expensive - consider costs when running multiple tests
-- DALL-E may revise prompts for safety and quality - check the `revisedPrompt()` field
-- DALL-E generated images are returned as URLs that expire after a certain time
-- Base64 images from gpt-image-1 provide more control and don't expire like URLs
-- Different quality settings ("standard" vs "hd") affect both cost and generation time
-- Style settings ("vivid" vs "natural") affect the artistic interpretation
-- Use Java's `Base64.getDecoder()` for decoding base64 image data to files
+**Notes for Lab 8:**
+- GPT Image models return base64 through this LangChain4j path; there is no URL response shape.
+- Image generation is metered separately from chat — watch costs when iterating.
+- LangChain4j 1.14's `OpenAiImageModelName` enum does not yet include GPT Image constants, so this lab passes the model ID as a string.
 
 [↑ Back to table of contents](#table-of-contents)
 
 ## Lab 9: Retrieval-Augmented Generation (RAG)
 
-**Prerequisites**: Ensure your `build.gradle.kts` includes the Google Gemini dependency (added in Lab 7.3 for audio processing):
+**Prerequisites:** Make sure your `build.gradle.kts` includes the embedding/RAG modules:
 
 ```kotlin
-// LangChain4j model integrations
-implementation("dev.langchain4j:langchain4j-open-ai")
-implementation("dev.langchain4j:langchain4j-anthropic")
-implementation("dev.langchain4j:langchain4j-google-ai-gemini")
+implementation("dev.langchain4j:langchain4j-embeddings-all-minilm-l6-v2-q")
+implementation("dev.langchain4j:langchain4j-easy-rag")
+implementation("dev.langchain4j:langchain4j-document-parser-apache-tika")
 ```
 
-If this dependency is missing, add it and run `./gradlew build` to refresh dependencies.
-
-> **Note on Model Providers**: As of LangChain4j 1.10.0, HuggingFace chat and language models have been deprecated. Use OpenAI, Anthropic (Claude), or Google AI (Gemini) for production applications.
+> **Hybrid search:** As of LangChain4j 1.11, hybrid (vector + keyword) search is built into the PgVector and Elasticsearch stores. The Chroma examples below still teach the pure-vector fundamentals; switch to PgVector / Elasticsearch when you need lexical recall in addition to semantic similarity.
 
 ### 9.1 Basic Document Loading and Embedding
 
@@ -1570,7 +1468,7 @@ Create a test that demonstrates document loading and embedding:
 void basicDocumentEmbedding() {
     // Create embedding model
     EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
-    
+
     // Create in-memory embedding store
     EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
 
@@ -1591,15 +1489,15 @@ void basicDocumentEmbedding() {
     embeddingStore.addAll(embeddings, segments);
 
     System.out.println("Embedded " + segments.size() + " document segments");
-    
+
     // Test similarity search
     String query = "What is LangChain4j?";
     Embedding queryEmbedding = embeddingModel.embed(query).content();
-    
+
     List<EmbeddingMatch<TextSegment>> matches = embeddingStore.search(EmbeddingSearchRequest.builder().queryEmbedding(queryEmbedding).maxResults(2).build()).matches();
-    
+
     System.out.println("Found " + matches.size() + " relevant segments:");
-    matches.forEach(match -> 
+    matches.forEach(match ->
         System.out.println("- " + match.embedded().text() + " (score: " + match.score() + ")")
     );
 
@@ -1617,7 +1515,7 @@ void ragWithContentRetriever() {
     // Set up models
     ChatModel chatModel = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
@@ -1633,7 +1531,7 @@ void ragWithContentRetriever() {
 
     DocumentSplitter splitter = DocumentSplitters.recursive(200, 50);
     List<TextSegment> segments = splitter.splitAll(documents);
-    
+
     List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
     embeddingStore.addAll(embeddings, segments);
 
@@ -1658,7 +1556,7 @@ void ragWithContentRetriever() {
     // Test RAG
     String question = "When was Java first released?";
     String answer = assistant.answer(question);
-    
+
     System.out.println("Question: " + question);
     System.out.println("Answer: " + answer);
 
@@ -1678,7 +1576,7 @@ void ragWithFileDocuments() throws IOException {
     Path tempFile = Files.createTempFile("sample", ".txt");
     Files.writeString(tempFile, """
         LangChain4j is a powerful Java library for building applications with Large Language Models (LLMs).
-        
+
         Key features include:
         - Integration with multiple AI providers (OpenAI, Google AI, etc.)
         - Support for chat memory and conversation context
@@ -1686,7 +1584,7 @@ void ragWithFileDocuments() throws IOException {
         - Retrieval-Augmented Generation (RAG)
         - Streaming responses
         - Image and audio processing
-        
+
         The library follows modern Java practices and uses builder patterns for configuration.
         It provides both low-level and high-level APIs for different use cases.
         """);
@@ -1694,7 +1592,7 @@ void ragWithFileDocuments() throws IOException {
     try {
         ChatModel chatModel = OpenAiChatModel.builder()
                 .apiKey(System.getenv("OPENAI_API_KEY"))
-                .modelName(GPT_5_NANO)
+                .modelName(GPT_4_1_NANO)
                 .build();
 
         EmbeddingModel embeddingModel = AllMiniLmL6V2EmbeddingModel.builder().build();
@@ -1702,10 +1600,10 @@ void ragWithFileDocuments() throws IOException {
 
         // Load document from file
         Document document = FileSystemDocumentLoader.loadDocument(tempFile);
-        
+
         DocumentSplitter splitter = DocumentSplitters.recursive(300, 50);
         List<TextSegment> segments = splitter.split(document);
-        
+
         List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
         embeddingStore.addAll(embeddings, segments);
 
@@ -1725,11 +1623,11 @@ void ragWithFileDocuments() throws IOException {
                 .build();
 
         String answer = assistant.answer("What are the key features of LangChain4j?");
-        
+
         System.out.println("Answer based on document: " + answer);
-        
+
         assertNotNull(answer);
-        assertTrue(answer.toLowerCase().contains("langchain4j") || 
+        assertTrue(answer.toLowerCase().contains("langchain4j") ||
                   answer.toLowerCase().contains("feature"));
 
     } finally {
@@ -1747,7 +1645,7 @@ Create a more advanced RAG system that uses metadata for filtering:
 void ragWithMetadataFiltering() {
     ChatModel chatModel = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
             .build();
 
     EmbeddingModel embeddingModel = AllMiniLmL6V2EmbeddingModel.builder().build();
@@ -1774,7 +1672,7 @@ void ragWithMetadataFiltering() {
 
     DocumentSplitter splitter = DocumentSplitters.recursive(200, 50);
     List<TextSegment> segments = splitter.splitAll(allDocs);
-    
+
     List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
     embeddingStore.addAll(embeddings, segments);
 
@@ -1797,7 +1695,7 @@ void ragWithMetadataFiltering() {
             .build();
 
     String answer = assistant.answerAboutLanguage("Who created Java and when?");
-    
+
     System.out.println("Answer: " + answer);
     assertNotNull(answer);
     assertTrue(answer.toLowerCase().contains("james gosling") || answer.toLowerCase().contains("sun"));
@@ -1808,7 +1706,7 @@ void ragWithMetadataFiltering() {
 
 ## Lab 10: Chroma Vector Store for RAG
 
-> **Note**: Lab 10 has been updated to use Chroma instead of Redis for better compatibility and stability. 
+> **Note**: Lab 10 has been updated to use Chroma instead of Redis for better compatibility and stability.
 > The complete working implementation is available in `ChromaRAGTests.java` on the solutions branch.
 
 ### Prerequisites
@@ -1819,7 +1717,7 @@ To use Chroma as a vector store, you need a running Chroma instance:
 docker run -p 8000:8000 chromadb/chroma:0.5.4
 ```
 
-**Important**: LangChain4j 1.10.0 supports ChromaDB API V2, providing enhanced compatibility with newer Chroma versions. While Chroma 0.5.4 remains stable and tested, you may also use newer Chroma versions that support API V2 for additional features and improvements.
+**Important**: LangChain4j 1.14 uses ChromaDB's API V2 client. Chroma 0.5.4 remains a stable tested baseline, and newer Chroma versions that support API V2 should work as well.
 
 ### 10.1 Basic Chroma Vector Store Operations
 
@@ -1832,7 +1730,7 @@ void chromaVectorStoreOperations() {
     assumeTrue(isChromaAvailable(), "Chroma is not available");
 
     EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
-    
+
     // Create Chroma embedding store with unique collection name
     EmbeddingStore<TextSegment> embeddingStore = ChromaEmbeddingStore.builder()
             .baseUrl("http://localhost:8000")
@@ -1852,7 +1750,7 @@ void chromaVectorStoreOperations() {
 
     DocumentSplitter splitter = DocumentSplitters.recursive(100, 20);
     List<TextSegment> segments = splitter.splitAll(documents);
-    
+
     List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
     embeddingStore.addAll(embeddings, segments);
 
@@ -1867,16 +1765,16 @@ void chromaVectorStoreOperations() {
 
     for (String query : queries) {
         Embedding queryEmbedding = embeddingModel.embed(query).content();
-        
+
         List<EmbeddingMatch<TextSegment>> matches = embeddingStore.search(
             EmbeddingSearchRequest.builder()
                     .queryEmbedding(queryEmbedding)
                     .maxResults(2)
                     .build()
         ).matches();
-        
+
         System.out.println("\nSearch: " + query);
-        matches.forEach(match -> 
+        matches.forEach(match ->
             System.out.printf("- %.3f: %s%n", match.score(), match.embedded().text())
         );
 
@@ -1893,10 +1791,10 @@ private boolean isChromaAvailable() {
         var request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8000/api/v1/heartbeat"))
                 .build();
-        
+
         HttpResponse<String> response = client.send(request,
                 HttpResponse.BodyHandlers.ofString());
-        
+
         return response.statusCode() == 200;
     } catch (Exception e) {
         System.out.println("Chroma not available: " + e.getMessage());
@@ -1918,12 +1816,13 @@ void productionRagSystem() {
     // Configure models with production settings
     ChatModel chatModel = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
+            .temperature(0.1) // Lower temperature for consistent responses
             .maxTokens(500)
             .build();
 
     EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
-    
+
     // Create Chroma embedding store
     EmbeddingStore<TextSegment> embeddingStore = ChromaEmbeddingStore.builder()
             .baseUrl("http://localhost:8000")
@@ -1945,7 +1844,7 @@ void productionRagSystem() {
     // Process documents with metadata for better retrieval
     DocumentSplitter splitter = DocumentSplitters.recursive(150, 30);
     List<TextSegment> segments = splitter.splitAll(documents);
-    
+
     // Add metadata for production use cases
     for (int i = 0; i < segments.size(); i++) {
         TextSegment segment = segments.get(i);
@@ -1953,7 +1852,7 @@ void productionRagSystem() {
         segment.metadata().put("source", "langchain4j_docs");
         segment.metadata().put("created_at", LocalDateTime.now().toString());
     }
-    
+
     // Store embeddings in Chroma
     List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
     embeddingStore.addAll(embeddings, segments);
@@ -1995,13 +1894,13 @@ void productionRagSystem() {
         String answer = assistant.answer(question);
         System.out.println("\nQ: " + question);
         System.out.println("A: " + answer);
-        
+
         // Verify response quality
         assertNotNull(answer, "Answer should not be null");
         assertFalse(answer.trim().isEmpty(), "Answer should not be empty");
         assertTrue(answer.length() > 20, "Answer should be substantive");
     }
-    
+
     System.out.println("\n" + "=".repeat(50));
     System.out.println("Production RAG system test completed successfully!");
 }
@@ -2020,12 +1919,13 @@ void ragWithDocumentParsing() {
     // Configure models for document processing
     ChatModel chatModel = OpenAiChatModel.builder()
             .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_5_NANO)
+            .modelName(GPT_4_1_NANO)
+            .temperature(0.2) // Slightly higher for more natural responses
             .maxTokens(600)
             .build();
 
     EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
-    
+
     // Create Chroma embedding store
     EmbeddingStore<TextSegment> embeddingStore = ChromaEmbeddingStore.builder()
             .baseUrl("http://localhost:8000")
@@ -2035,13 +1935,13 @@ void ragWithDocumentParsing() {
     // Load PDF document from resources (Apache Tika will parse the PDF)
     Path documentPath = Paths.get("src/test/resources/LangChain4j-Modern-Features.pdf");
     Document document = FileSystemDocumentLoader.loadDocument(documentPath);
-    
+
     System.out.println("Loaded PDF document with " + document.text().length() + " characters");
 
     // Split document with appropriate chunk sizes for technical content
     DocumentSplitter splitter = DocumentSplitters.recursive(300, 50);
     List<TextSegment> segments = splitter.split(document);
-    
+
     // Add metadata to track document source
     for (int i = 0; i < segments.size(); i++) {
         TextSegment segment = segments.get(i);
@@ -2051,7 +1951,7 @@ void ragWithDocumentParsing() {
         segment.metadata().put("format", "PDF");
         segment.metadata().put("processed_at", LocalDateTime.now().toString());
     }
-    
+
     // Generate embeddings and store in Chroma
     List<Embedding> embeddings = embeddingModel.embedAll(segments).content();
     embeddingStore.addAll(embeddings, segments);
@@ -2094,17 +1994,17 @@ void ragWithDocumentParsing() {
         String answer = assistant.answer(question);
         System.out.println("\nQ: " + question);
         System.out.println("A: " + answer);
-        
+
         // Verify response quality for document-based content
         assertNotNull(answer, "Answer should not be null");
         assertFalse(answer.trim().isEmpty(), "Answer should not be empty");
         assertTrue(answer.length() > 30, "Answer should be detailed for technical content");
     }
-    
+
     System.out.println("\n" + "=".repeat(60));
     System.out.println("Document parsing and RAG integration test completed successfully!");
     System.out.println("Document segments processed: " + segments.size());
-    System.out.println("Total characters indexed: " + 
+    System.out.println("Total characters indexed: " +
         segments.stream().mapToInt(s -> s.text().length()).sum());
 }
 ```
@@ -2121,10 +2021,10 @@ private boolean isChromaAvailable() {
         var request = HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8000/api/v1/heartbeat"))
                 .build();
-        
+
         HttpResponse<String> response = client.send(request,
                 HttpResponse.BodyHandlers.ofString());
-        
+
         return response.statusCode() == 200;
     } catch (Exception e) {
         System.out.println("Chroma not available: " + e.getMessage());
@@ -2134,42 +2034,179 @@ private boolean isChromaAvailable() {
 ```
 
 **Important Notes for Lab 10:**
-- **Updated for LangChain4j 1.10.0**: Now supports ChromaDB API V2 for improved performance and features
-- Recommended Chroma version: 0.5.4+ (or latest stable) for compatibility with LangChain4j 1.10.0
-- Chroma provides excellent persistence without complex setup
-- Collection names use `randomUUID()` to avoid conflicts between test runs
-- The `isChromaAvailable()` helper method ensures tests only run when Chroma is accessible
-- Chroma includes a built-in web UI at http://localhost:8000 for exploring collections
-- Consider using metadata for production deployments to enable advanced filtering
-- Batch operations with `addAll()` are more efficient than individual `add()` calls
-- Document parsing uses Apache Tika for comprehensive file format support
-- Test 10.3 demonstrates realistic document processing with actual file loading
-- Modern Java practices: uses `List.of()` instead of `Arrays.asList()` throughout
+- Uses ChromaDB's API V2 client.
+- Recommended Chroma server version: 0.5.4+ (or latest stable).
+- Collection names use `randomUUID()` to avoid conflicts between test runs.
+- The `isChromaAvailable()` helper ensures tests only run when Chroma is reachable.
+- Chroma includes a web UI at `http://localhost:8000`.
+- Batch operations with `addAll()` are more efficient than individual `add()` calls.
+- Document parsing uses Apache Tika for broad file-format support.
+- For production: hybrid (vector + keyword) search is built into the PgVector and Elasticsearch stores as of LangChain4j 1.11; for HQL-based retrieval over JPA entities, see `HibernateContentRetriever` (1.13).
+
+[↑ Back to table of contents](#table-of-contents)
+
+## Lab 11: Agentic API
+
+The `langchain4j-agentic` module composes multiple LLM-backed agents into workflows. The fundamental building blocks are:
+
+- An **agent** — a method on an interface annotated with `@Agent`, much like an `AiService` but with a name and an output key.
+- A **composition** — combine agents into sequences, loops, conditionals, or parallel fan-outs via `AgenticServices`.
+
+Each agent's output flows into a shared `AgenticScope` keyed by `outputKey`; downstream agents and exit conditions read from it.
+
+**Prerequisites:**
+- Add the dependency to `build.gradle.kts`:
+  ```kotlin
+  implementation("dev.langchain4j:langchain4j-agentic")
+  ```
+
+### 11.1 A Single Typed Agent
+
+Define an agent interface with `@Agent` and build it via `AgenticServices.agentBuilder(Class)`:
+
+```java
+interface CreativeWriter {
+    @SystemMessage("You are a creative short-story writer. Keep stories under 200 words.")
+    @UserMessage("Write a short story about {{topic}}.")
+    @Agent("Generate a short story on a given topic")
+    String writeStoryAbout(@V("topic") String topic);
+}
+
+@Test
+void singleTypedAgent() {
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .build();
+
+    CreativeWriter writer = AgenticServices.agentBuilder(CreativeWriter.class)
+            .chatModel(model)
+            .outputKey("story")
+            .build();
+
+    String story = writer.writeStoryAbout("a robot who learns to garden");
+    System.out.println(story);
+
+    assertThat(story).isNotBlank().hasSizeGreaterThan(50);
+}
+```
+
+### 11.2 Sequence Workflow
+
+Chain two agents — a writer that produces a story, then an editor that adapts it for an audience. Each agent's output is keyed in the shared `AgenticScope` so the next can reference it via `@V`:
+
+```java
+interface AudienceEditor {
+    @SystemMessage("You rewrite stories so they're appropriate for the requested audience.")
+    @UserMessage("Rewrite this story for {{audience}}:\n\n{{story}}")
+    @Agent("Adapt a story for a target audience")
+    String editForAudience(@V("story") String story, @V("audience") String audience);
+}
+
+@Test
+void sequenceWorkflow() {
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .build();
+
+    CreativeWriter writer = AgenticServices.agentBuilder(CreativeWriter.class)
+            .chatModel(model).outputKey("story").build();
+    AudienceEditor editor = AgenticServices.agentBuilder(AudienceEditor.class)
+            .chatModel(model).outputKey("story").build();
+
+    UntypedAgent novelist = AgenticServices.sequenceBuilder()
+            .subAgents(writer, editor)
+            .outputKey("story")
+            .build();
+
+    String result = (String) novelist.invoke(Map.of(
+        "topic", "a dragon learning to bake bread",
+        "audience", "five-year-olds"));
+
+    assertThat(result).isNotBlank();
+}
+```
+
+### 11.3 Loop Workflow with Exit Condition
+
+A scorer rates each draft from 0.0 to 1.0; if the score is below the threshold, an editor revises the draft and the loop runs again. The loop stops when either the score crosses 0.7 or `maxIterations` is hit:
+
+```java
+interface StyleScorer {
+    @SystemMessage("You are a literary critic. Reply with a single number from 0.0 to 1.0.")
+    @UserMessage("Rate the literary quality of this story on a 0.0-1.0 scale:\n\n{{story}}")
+    @Agent("Score the literary quality of a story")
+    double scoreStory(@V("story") String story);
+}
+
+interface StyleEditor {
+    @SystemMessage("You polish prose to improve literary quality.")
+    @UserMessage("Improve the prose of this story:\n\n{{story}}")
+    @Agent("Improve the literary quality of a story")
+    String polish(@V("story") String story);
+}
+
+@Test
+void loopWorkflow() {
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .build();
+
+    CreativeWriter writer = AgenticServices.agentBuilder(CreativeWriter.class)
+            .chatModel(model).outputKey("story").build();
+    StyleScorer scorer = AgenticServices.agentBuilder(StyleScorer.class)
+            .chatModel(model).outputKey("score").build();
+    StyleEditor styleEditor = AgenticServices.agentBuilder(StyleEditor.class)
+            .chatModel(model).outputKey("story").build();
+
+    UntypedAgent reviewLoop = AgenticServices.loopBuilder()
+            .subAgents(scorer, styleEditor)
+            .maxIterations(3)
+            .exitCondition(scope -> scope.readState("score", 0.0) >= 0.7)
+            .build();
+
+    UntypedAgent pipeline = AgenticServices.sequenceBuilder()
+            .subAgents(writer, reviewLoop)
+            .outputKey("story")
+            .build();
+
+    Object result = pipeline.invoke(Map.of("topic", "a lighthouse keeper's diary"));
+    assertThat(result.toString()).isNotBlank();
+}
+```
+
+**Notes for Lab 11:**
+- `AgenticServices` also provides `parallelBuilder()`, `conditionalBuilder()`, and `supervisorBuilder()` (an LLM-driven planner that chooses the next sub-agent).
+- The agentic API is still marked experimental in the LangChain4j docs; the surface has been stable across the 1.13 → 1.14 releases but expect occasional refinements.
+- Output keys form an implicit dataflow graph; mistyping a `@V` template variable is a common source of "empty output" bugs.
+
+[↑ Back to table of contents](#table-of-contents)
 
 ## Conclusion
 
 Congratulations! You've completed a comprehensive tour of LangChain4j's capabilities. You've learned how to:
 
 - Interact with LLMs through LangChain4j's `ChatModel` interface
-- Stream responses for better user experience  
+- Stream responses (and cancel them mid-flight) for better UX
 - Extract structured data from LLM responses using `AiServices`
-- Use prompt templates for consistent prompting
-- Maintain conversation state with `ChatMemory`
-- Extend AI capabilities with custom tools using `@Tool` annotations
-- Create high-level AI services with `AiServices` interface
-- Work with multimodal capabilities for image and audio processing
-- Generate images using AI models like DALL-E
+- Use prompt templates and per-call `ChatRequestParameters`
+- Maintain conversation state with `ChatMemory`, including replacing it via `set()`
+- Extend AI capabilities with custom tools, including `Optional` parameters
+- Integrate external tools through MCP (stdio / Docker / WebSocket)
+- Work with multimodal capabilities — image analysis and OpenAI transcription
+- Generate images using `gpt-image-2`
 - Build Retrieval-Augmented Generation (RAG) systems with document processing
 - Use Chroma as a persistent vector store for production RAG applications
-
-These skills provide a solid foundation for building AI-powered applications using LangChain4j and the Java ecosystem. The patterns you've learned can be extended and combined to create sophisticated AI applications tailored to your specific needs.
+- Compose multi-agent workflows with the agentic API
 
 Key takeaways:
-- LangChain4j 1.0 uses `ChatModel` as the primary interface
-- Builder patterns provide flexible configuration
-- `AiServices` enables type-safe, annotation-driven AI integration
-- RAG systems combine retrieval and generation for more accurate responses
-- Chroma provides production-ready vector storage for scalable applications
-- Multimodal capabilities enable rich AI interactions with images and audio
+- LangChain4j 1.x's `ChatModel` is the primary interface for chat
+- Builder patterns provide flexible, type-safe configuration
+- `AiServices` enables annotation-driven AI integration
+- The agentic API turns "one big prompt" into composable workflow building blocks
+- Hybrid search in PgVector / Elasticsearch is built-in for production RAG
+- Multimodal capabilities span images, audio (transcription), and (in 1.9+) video
 
 Continue exploring the LangChain4j documentation and community examples to further enhance your AI application development skills.

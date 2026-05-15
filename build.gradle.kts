@@ -1,22 +1,22 @@
 plugins {
     id("java")
+    id("com.diffplug.spotless") version "6.25.0"
 }
 
 group = "com.kousenit"
 version = "1.0-SNAPSHOT"
 
 java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
-    }
+    sourceCompatibility = JavaVersion.VERSION_17
 }
+
 repositories {
     mavenCentral()
 }
 
 dependencies {
     // LangChain4j BOM for version management
-    implementation(platform("dev.langchain4j:langchain4j-bom:1.10.0"))
+    implementation(platform("dev.langchain4j:langchain4j-bom:1.14.1"))
 
     // Core LangChain4j
     implementation("dev.langchain4j:langchain4j")
@@ -25,9 +25,6 @@ dependencies {
     implementation("dev.langchain4j:langchain4j-open-ai")
     implementation("dev.langchain4j:langchain4j-anthropic")
     implementation("dev.langchain4j:langchain4j-google-ai-gemini")
-
-    // Agentic module for multi-agent workflows
-    implementation("dev.langchain4j:langchain4j-agentic")
 
     // Document processing and RAG
     implementation("dev.langchain4j:langchain4j-document-parser-apache-tika")
@@ -40,6 +37,9 @@ dependencies {
 
     // MCP (Model Context Protocol) support
     implementation("dev.langchain4j:langchain4j-mcp")
+
+    // Agentic API (Lab 11): workflows, sequence/loop/conditional/parallel composition
+    implementation("dev.langchain4j:langchain4j-agentic")
 
     // Security fix: override vulnerable transitive dependency
     implementation("org.apache.poi:poi-ooxml:5.4.0")
@@ -56,4 +56,34 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+spotless {
+    // Configure ratcheting to only format files changed from main branch
+    // ratchetFrom("origin/main")
+
+    java {
+        target("src/**/*.java")
+        palantirJavaFormat("2.90.0")
+    }
+
+    // If you have Kotlin files
+    kotlin {
+        target("src/**/*.kt")
+        ktlint()
+    }
+
+    // If you have Groovy files
+    groovy {
+        target("src/**/*.groovy")
+        greclipse()
+    }
+
+    // Format build files and other misc files
+    format("misc") {
+        target("*.gradle", "*.gradle.kts", "*.md", ".gitignore")
+        trimTrailingWhitespace()
+        indentWithSpaces(4)
+        endWithNewline()
+    }
 }
