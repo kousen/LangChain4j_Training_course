@@ -8,7 +8,7 @@ This is a **hands-on training course** for learning LangChain4j through progress
 
 ### Pinned LangChain4j Version
 
-Pinned to **LangChain4j 1.14.1**. See the [release notes](https://github.com/langchain4j/langchain4j/releases) for the per-version history. Recent additions exercised in this course: agentic API (1.8 → 1.14), MCP spec 2025-11-25, OpenAI transcription model, `gpt-image-2` image generation, `ChatMemory.set()`, `Optional` tool parameters, per-call `ChatRequestParameters`, streaming cancellation, hybrid search in PgVector / Elasticsearch.
+Pinned to **LangChain4j 1.15.0**. See the [release notes](https://github.com/langchain4j/langchain4j/releases) for the per-version history. Recent additions exercised in this course: agentic API (1.8 → 1.14) plus the voting pattern in `langchain4j-agentic-patterns` (1.15), MCP spec 2025-11-25, OpenAI transcription model, `gpt-image-2` image generation, `ChatMemory.set()`, `Optional` and `@P(defaultValue = ...)` tool parameters, per-call `ChatRequestParameters`, streaming cancellation, hybrid search in PgVector / Elasticsearch.
 
 ### Repository Structure
 
@@ -17,18 +17,18 @@ Pinned to **LangChain4j 1.14.1**. See the [release notes](https://github.com/lan
 - **Test classes**: Contain TODO comments guiding students through implementation
 - **Example classes**: Skeleton implementations with TODO instructions
 
-The course demonstrates integration of Large Language Models (LLMs) with Java applications using the LangChain4j library (1.14.1), covering:
+The course demonstrates integration of Large Language Models (LLMs) with Java applications using the LangChain4j library (1.15.0), covering:
 
 - Text generation and chat capabilities
 - Structured data extraction
 - Prompt engineering with templates
 - Chat memory (single-user, multi-user, and `set()`-based replacement)
-- Function calling with local @Tool methods (incl. `Optional` parameters)
+- Function calling with local @Tool methods (incl. `Optional` parameters and `@P(defaultValue = ...)`)
 - External tool integration via Model Context Protocol (MCP) — spec 2025-11-25
 - Vision capabilities for image understanding and `gpt-image-2` generation
 - Audio transcription via OpenAI's dedicated transcription model
 - Retrieval-Augmented Generation (RAG) with PDF and web content
-- Agentic API: composing multi-step LLM workflows (sequence, loop, conditional, parallel)
+- Agentic API: composing multi-step LLM workflows (sequence, loop, conditional, parallel, voting)
 
 ## Common Commands
 
@@ -342,13 +342,13 @@ The course follows a structured progression documented in `labs.md`:
 3. **Structured data extraction** - AI-powered data parsing
 4. **AI Services interface** - High-level AI integration; per-call `ChatRequestParameters`
 5. **Chat memory** - Single-user, multi-user, and `ChatMemory.set()`
-6. **AI Tools** - Function calling with @Tool, incl. `Optional` parameters
-6.5. **MCP Integration** - External tools via MCP (spec 2025-11-25; stdio/Docker/WebSocket)
+6. **AI Tools** - Function calling with @Tool, incl. `Optional` and `@P(defaultValue = ...)` parameters
+6.8. **MCP Integration** - External tools via MCP (spec 2025-11-25; stdio/Docker/WebSocket)
 7. **Multimodal capabilities** - GPT-5.1 Vision; OpenAI transcription
 8. **Image generation** - `gpt-image-2` (DALL-E 3 was deprecated 2026-05-12)
 9. **RAG implementation** - Knowledge-augmented AI
 10. **Vector store integration** - Chroma; mention PgVector/Elasticsearch hybrid search
-11. **Agentic API** - sequence / loop / conditional / parallel composition
+11. **Agentic API** - sequence / loop / conditional / parallel / voting composition
 
 **Note**: Lab ordering was optimized for pedagogical flow - tools before vision/image generation.
 
@@ -421,7 +421,7 @@ interface MultiUserAssistant {
 
 This pattern is **essential for production conversational AI applications**.
 
-### Lab 6.5: MCP Integration
+### Lab 6.8: MCP Integration
 - LangChain4j provides MCP client support (not server)
 - Uses npx command: `npx -y @modelcontextprotocol/server-everything stdio`
 - Shared MCP client pattern for optimal test performance
@@ -444,4 +444,4 @@ This pattern is **essential for production conversational AI applications**.
 - **Module**: `langchain4j-agentic` (separate dependency)
 - **Building blocks**: `@Agent` annotation + `AgenticServices.agentBuilder/sequenceBuilder/loopBuilder/conditionalBuilder/parallelBuilder/supervisorBuilder`
 - **Dataflow**: `outputKey` publishes results to a shared `AgenticScope` keyed by name; downstream agents read via `@V`
-- **API status**: experimental but stable across 1.13 → 1.14
+- **API status**: experimental but stable across 1.13 → 1.15

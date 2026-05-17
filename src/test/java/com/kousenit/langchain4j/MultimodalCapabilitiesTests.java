@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Lab 7: Multimodal Capabilities
  *
- * <p>This lab demonstrates image and audio handling with LangChain4j 1.14: GPT-5.1 vision for
+ * <p>This lab demonstrates image and audio handling with LangChain4j 1.15: GPT-5.1 vision for
  * local and remote image analysis, OpenAI's dedicated transcription model for audio, and structured
  * image analysis through AiServices.
  */

@@ -1,6 +1,6 @@
 # LangChain4j Training Course
 
-A hands-on training course for learning LangChain4j (pinned to 1.14.1) through progressive lab exercises.
+A hands-on training course for learning LangChain4j (pinned to 1.15.0) through progressive lab exercises.
 
 ## Getting Started
 
@@ -68,13 +68,13 @@ Follow the exercises in [labs.md](labs.md) to build LangChain4j applications fro
 3. **Structured Data Extraction** - AI-powered data parsing
 4. **AI Services Interface** - Type-safe service interfaces (incl. per-call `ChatRequestParameters`)
 5. **Chat Memory** - Conversation context, multi-user isolation, `ChatMemory.set()`
-6. **AI Tools** - Function calling, including `Optional` parameters
-6.5. **MCP Integration** - External tools via Model Context Protocol (spec 2025-11-25)
+6. **AI Tools** - Function calling, including `Optional` parameters and `@P(defaultValue = ...)`
+6.8. **MCP Integration** - External tools via Model Context Protocol (spec 2025-11-25)
 7. **Multimodal Capabilities** - Image analysis, OpenAI transcription
 8. **Image Generation** - `gpt-image-2`
 9. **Retrieval-Augmented Generation (RAG)** - AI with a knowledge base
 10. **Chroma Vector Store for RAG** - Persistent vector storage
-11. **Agentic API** - Compose multi-step LLM workflows
+11. **Agentic API** - Compose multi-step LLM workflows, including voting
 
 ## Learning Approach
 

@@ -2,6 +2,7 @@ package com.kousenit.langchain4j;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import dev.langchain4j.service.Result;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -15,7 +16,8 @@ import org.junit.jupiter.api.Test;
  * <p>TODO: Follow the exercises in labs.md Lab 6 to implement tool-enabled AI services. Note: Tool
  * classes are provided in src/main/java/com/kousenit/langchain4j/: - DateTimeTool.java (reference
  * implementation) - WeatherTool.java (reference implementation) - CalculatorTool.java (reference
- * implementation) You can use these directly or study them to create your own versions.
+ * implementation) - ArticleSearchTool.java (reference implementation for default tool
+ * parameters) You can use these directly or study them to create your own versions.
  */
 class AiToolsTests {
 
@@ -51,6 +53,14 @@ class AiToolsTests {
      */
     interface Assistant {
         String chat(String message);
+    }
+
+    /**
+     * Assistant interface that exposes LangChain4j's Result wrapper so tests can inspect tool
+     * execution details, not just the final model wording.
+     */
+    interface AssistantWithResult {
+        Result<String> chat(String message);
     }
 
     /**
@@ -159,7 +169,7 @@ class AiToolsTests {
     }
 
     /**
-     * TODO 6.6: Advanced Tool Scenarios Test
+     * Optional Advanced Exercise: Advanced Tool Scenarios Test
      *
      * <p>Implement a test that explores advanced tool usage: 1. Sequential tool usage (use result
      * from one tool in another) 2. Conditional tool usage (AI decides which tool to use) 3. Tool
@@ -184,6 +194,31 @@ class AiToolsTests {
         // TODO: Verify complex interactions work as expected
 
         fail("TODO: Implement advanced tool scenarios test");
+    }
+
+    /**
+     * TODO 6.6: Default Tool Parameter Values Test
+     *
+     * <p>LangChain4j 1.15 added {@code @P(defaultValue = "...")} support for tool parameters.
+     * Implement a test that: 1. Creates an AssistantWithResult with ArticleSearchTool 2. Asks for
+     * articles without specifying limit, sort order, or languages 3. Verifies the tool result used
+     * the defaults: limit 10, sort RELEVANCE, and language en
+     */
+    @Test
+    void defaultToolParameters() {
+        // TODO: Create OpenAI chat model
+
+        // TODO: Create AssistantWithResult with ArticleSearchTool
+
+        // TODO: Ask for articles without specifying optional arguments
+        // "Find me articles about virtual threads."
+
+        // TODO: Verify response.content() mentions the query
+
+        // TODO: Verify response.toolExecutions() contains deterministic default evidence:
+        // "Found 10 articles", "RELEVANCE", and "languages=[en]"
+
+        fail("TODO: Implement default tool parameters test");
     }
 
     /**

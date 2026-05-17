@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
  * Understanding of RAG concepts from Lab 9 - Chroma will persist data between test runs - Access to
  * Chroma web UI at http://localhost:8000
  *
- * <p>IMPORTANT: Chroma 0.5.4 is a stable tested baseline for LangChain4j 1.14's API V2 client.
+ * <p>IMPORTANT: Chroma 0.5.4 is a stable tested baseline for LangChain4j 1.15's API V2 client.
  *
  * <p>Benefits of Chroma: - Simple setup with single Docker command - Built-in web UI for exploring
  * collections and embeddings - Excellent LangChain4j integration - Production-ready persistence -

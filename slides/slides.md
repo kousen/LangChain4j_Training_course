@@ -252,6 +252,35 @@ assistant.chat("What's the weather in NYC?");
 layout: two-cols
 ---
 
+# Optional Tool Parameters
+
+Two ways to make a parameter optional
+
+::right::
+
+```java {all|1-4|6-10|all}
+// Option A: Optional<T> (1.12+)
+// — absence is meaningful business logic
+@Tool("Weather; units default to metric")
+String getWeather(String city, Optional<String> units);
+
+// Option B: @P(defaultValue = ...) (1.15+)
+// — tool has a sensible fallback
+@Tool("Search articles")
+String searchArticles(String query,
+    @P(defaultValue = "10") int limit,
+    @P(defaultValue = "RELEVANCE") SortBy sortBy,
+    @P(defaultValue = "[\"en\"]") List<String> languages);
+```
+
+<div v-click class="mt-4 text-sm text-gray-400">
+<p>💡 Defaults are parsed at registration — typos fail fast, not on first call</p>
+</div>
+
+---
+layout: two-cols
+---
+
 # Chat Memory
 
 Single user conversation
@@ -618,6 +647,42 @@ Object result = novelist.invoke(
 layout: two-cols
 ---
 
+# Voting Pattern (1.15+)
+
+`langchain4j-agentic-patterns` — fan out, then aggregate
+
+::right::
+
+```java {all|1-9|11-15|all}
+// Three classifiers, three temperatures = diversity
+SentimentClassifier c1 = AgenticServices
+    .agentBuilder(SentimentClassifier.class)
+    .chatModel(coldModel).outputKey("vote1").build();
+SentimentClassifier c2 = AgenticServices
+    .agentBuilder(SentimentClassifier.class)
+    .chatModel(warmModel).outputKey("vote2").build();
+SentimentClassifier c3 = AgenticServices
+    .agentBuilder(SentimentClassifier.class)
+    .chatModel(hotModel).outputKey("vote3").build();
+
+SentimentVoter voter = AgenticServices
+    .plannerBuilder(SentimentVoter.class)
+    .subAgents(c1, c2, c3)
+    .planner(VotingPlanner::new)  // default: majority
+    .outputKey("classification").build();
+
+String result = voter.classify("I love this!");
+// -> "POSITIVE"
+```
+
+<div v-click class="mt-4 text-sm text-gray-400">
+<p>🗳️ Pass a custom VotingStrategy lambda to average scores, weight votes, etc.</p>
+</div>
+
+---
+layout: two-cols
+---
+
 # Production Considerations
 
 Real-world deployment best practices
@@ -682,7 +747,7 @@ layout: two-cols
 
 <div v-click class="bg-purple-500 bg-opacity-20 p-2 rounded">
 <strong>🛠️ Tools & Integration</strong>
-<p class="text-xs">Labs 6, 6.5, 7-8: Function Calling, MCP, Multimodal, Image Gen</p>
+<p class="text-xs">Labs 6, 6.8, 7-8: Function Calling, MCP, Multimodal, Image Gen</p>
 </div>
 
 <div v-click class="bg-orange-500 bg-opacity-20 p-2 rounded">
@@ -692,7 +757,7 @@ layout: two-cols
 
 <div v-click class="bg-pink-500 bg-opacity-20 p-2 rounded">
 <strong>🤝 Agentic Workflows</strong>
-<p class="text-xs">Lab 11: Sequence, Loop, Composition</p>
+<p class="text-xs">Lab 11: Sequence, Loop, Voting</p>
 </div>
 
 </div>
@@ -724,7 +789,7 @@ Documentation and course materials
 <li>• Main branch: Starter code</li>
 <li>• Solutions branch: Complete implementations</li>
 <li>• Labs.md: Step-by-step guide</li>
-<li>• Pinned to LangChain4j 1.14.1</li>
+<li>• Pinned to LangChain4j 1.15.0</li>
 </ul>
 </div>
 

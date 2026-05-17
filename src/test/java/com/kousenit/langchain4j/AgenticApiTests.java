@@ -8,8 +8,9 @@ import org.junit.jupiter.api.Test;
  * Lab 11: Agentic API
  *
  * <p>The {@code langchain4j-agentic} module lets you compose multiple LLM-backed agents into
- * workflows. In this starter branch, each test outlines the implementation steps; the completed
- * versions are on the {@code solutions} branch.
+ * workflows. LangChain4j 1.15 adds reusable agentic patterns, including the voting pattern in
+ * {@code langchain4j-agentic-patterns}. In this starter branch, each test outlines the
+ * implementation steps; the completed versions are on the {@code solutions} branch.
  */
 class AgenticApiTests {
 
@@ -66,6 +67,26 @@ class AgenticApiTests {
         fail("TODO: Implement loop workflow test");
     }
 
+    /**
+     * Test 11.4: Voting Pattern
+     *
+     * <p>TODO: Use {@code AgenticServices.plannerBuilder(SentimentVoter.class)} with three
+     * sentiment-classifier sub-agents and {@code .planner(VotingPlanner::new)}. The no-arg
+     * {@code VotingPlanner} uses majority vote, which is the default classification strategy.
+     */
+    @Test
+    void votingPattern() {
+        // TODO: Build three ChatModel instances with different temperatures for diversity.
+
+        // TODO: Build three SentimentClassifier agents with output keys vote1, vote2, and vote3.
+
+        // TODO: Build a SentimentVoter with plannerBuilder(...).planner(VotingPlanner::new).
+
+        // TODO: Classify a clearly positive sentence and assert the majority result is POSITIVE.
+
+        fail("TODO: Implement voting pattern test");
+    }
+
     /*
      * TODO: Add the public inner agent interfaces used by the tests:
      *
@@ -73,6 +94,8 @@ class AgenticApiTests {
      * - AudienceEditor
      * - StyleScorer
      * - StyleEditor
+     * - SentimentClassifier
+     * - SentimentVoter
      *
      * The interfaces must be public because AgentInvoker reflectively invokes
      * them from a different package.

@@ -16,7 +16,7 @@ repositories {
 
 dependencies {
     // LangChain4j BOM for version management
-    implementation(platform("dev.langchain4j:langchain4j-bom:1.14.1"))
+    implementation(platform("dev.langchain4j:langchain4j-bom:1.15.0"))
 
     // Core LangChain4j
     implementation("dev.langchain4j:langchain4j")
@@ -40,6 +40,9 @@ dependencies {
 
     // Agentic API (Lab 11): workflows, sequence/loop/conditional/parallel composition
     implementation("dev.langchain4j:langchain4j-agentic")
+
+    // Agentic patterns (Lab 11.4): voting pattern + reusable building blocks (1.15+)
+    implementation("dev.langchain4j:langchain4j-agentic-patterns")
 
     // Security fix: override vulnerable transitive dependency
     implementation("org.apache.poi:poi-ooxml:5.4.0")

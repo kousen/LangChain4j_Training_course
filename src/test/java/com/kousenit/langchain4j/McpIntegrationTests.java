@@ -5,10 +5,10 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 /**
- * Lab 6.5: MCP (Model Context Protocol) Integration
+ * Lab 6.8: MCP (Model Context Protocol) Integration
  *
  * <p>This lab demonstrates how to integrate external tools via the Model Context Protocol (MCP).
- * LangChain4j 1.14 ships with MCP client support against the 2025-11-25 spec. Standard transports
+ * LangChain4j 1.15 includes MCP client support against the 2025-11-25 spec. Standard transports
  * are stdio and Streamable HTTP; LangChain4j also supports Docker stdio and WebSocket.
  *
  * <p>Prerequisites: - Understanding of @Tool annotation from Lab 6 - Node.js and npm installed for
@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 class McpIntegrationTests {
 
     /**
-     * Test 6.5.1: Basic MCP Client Setup
+     * Test 6.8.1: Basic MCP Client Setup
      *
      * <p>TODO: Implement this test to demonstrate creating an MCP client and tool provider.
      *
@@ -61,7 +61,7 @@ class McpIntegrationTests {
     }
 
     /**
-     * Test 6.5.2: MCP Tools with AiServices
+     * Test 6.8.2: MCP Tools with AiServices
      *
      * <p>TODO: Implement this test to demonstrate integrating MCP tools with LangChain4j AiServices.
      *
@@ -120,7 +120,7 @@ class McpIntegrationTests {
     }
 
     /**
-     * Test 6.5.3: Combining Local Tools and MCP Tools
+     * Test 6.8.3: Combining Local Tools and MCP Tools
      *
      * <p>TODO: Implement this test to demonstrate using both local @Tool methods and external MCP
      * tools together.
@@ -188,7 +188,7 @@ class McpIntegrationTests {
     }
 
     /**
-     * Test 6.5.4: MCP Tool Provider Configuration
+     * Test 6.8.4: MCP Tool Provider Configuration
      *
      * <p>TODO: Implement this test to demonstrate MCP tool provider configuration options.
      *
