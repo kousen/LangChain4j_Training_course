@@ -747,7 +747,7 @@ layout: two-cols
 
 <div v-click class="bg-purple-500 bg-opacity-20 p-2 rounded">
 <strong>🛠️ Tools & Integration</strong>
-<p class="text-xs">Labs 6, 6.5, 7-8: Function Calling, MCP, Multimodal, Image Gen</p>
+<p class="text-xs">Labs 6, 6.8, 7-8: Function Calling, MCP, Multimodal, Image Gen</p>
 </div>
 
 <div v-click class="bg-orange-500 bg-opacity-20 p-2 rounded">
@@ -757,7 +757,7 @@ layout: two-cols
 
 <div v-click class="bg-pink-500 bg-opacity-20 p-2 rounded">
 <strong>🤝 Agentic Workflows</strong>
-<p class="text-xs">Lab 11: Sequence, Loop, Composition</p>
+<p class="text-xs">Lab 11: Sequence, Loop, Voting</p>
 </div>
 
 </div>
@@ -789,7 +789,7 @@ Documentation and course materials
 <li>• Main branch: Starter code</li>
 <li>• Solutions branch: Complete implementations</li>
 <li>• Labs.md: Step-by-step guide</li>
-<li>• Pinned to LangChain4j 1.14.1</li>
+<li>• Pinned to LangChain4j 1.15.0</li>
 </ul>
 </div>
 

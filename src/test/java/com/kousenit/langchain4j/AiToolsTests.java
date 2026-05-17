@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
+import dev.langchain4j.service.Result;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -35,6 +36,10 @@ class AiToolsTests {
      */
     interface Assistant {
         String chat(String message);
+    }
+
+    interface AssistantWithResult {
+        Result<String> chat(String message);
     }
 
     /**
@@ -302,23 +307,34 @@ class AiToolsTests {
                 .modelName(GPT_4_1_NANO)
                 .build();
 
-        Assistant assistant = AiServices.builder(Assistant.class)
+        AssistantWithResult assistant = AiServices.builder(AssistantWithResult.class)
                 .chatModel(model)
                 .tools(new ArticleSearchTool())
                 .build();
 
         System.out.println("=== Default Tool Parameters Test ===");
 
-        String response = assistant.chat("Find me articles about virtual threads.");
-        System.out.println("Default-parameters response: " + response);
+        Result<String> response = assistant.chat("Find me articles about virtual threads.");
+        System.out.println("Default-parameters response: " + response.content());
 
         System.out.println("=".repeat(50));
 
         assertNotNull(response, "Response should not be null");
-        assertThat(response)
+        assertThat(response.content())
                 .as("Articles tool response with defaults")
                 .isNotBlank()
                 .containsIgnoringCase("virtual threads");
+        assertThat(response.toolExecutions())
+                .as("Article search should execute with defaulted optional parameters")
+                .singleElement()
+                .satisfies(toolExecution -> {
+                    assertThat(toolExecution.request().name()).isEqualTo("searchArticles");
+                    assertThat(toolExecution.result())
+                            .containsIgnoringCase("virtual threads")
+                            .contains("Found 10 articles")
+                            .contains("RELEVANCE")
+                            .contains("languages=[en]");
+                });
     }
 
     /**

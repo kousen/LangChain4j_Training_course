@@ -23,12 +23,12 @@ The course demonstrates integration of Large Language Models (LLMs) with Java ap
 - Structured data extraction
 - Prompt engineering with templates
 - Chat memory (single-user, multi-user, and `set()`-based replacement)
-- Function calling with local @Tool methods (incl. `Optional` parameters)
+- Function calling with local @Tool methods (incl. `Optional` parameters and `@P(defaultValue = ...)`)
 - External tool integration via Model Context Protocol (MCP) — spec 2025-11-25
 - Vision capabilities for image understanding and `gpt-image-2` generation
 - Audio transcription via OpenAI's dedicated transcription model
 - Retrieval-Augmented Generation (RAG) with PDF and web content
-- Agentic API: composing multi-step LLM workflows (sequence, loop, conditional, parallel)
+- Agentic API: composing multi-step LLM workflows (sequence, loop, conditional, parallel, voting)
 
 ## Common Commands
 
@@ -342,13 +342,13 @@ The course follows a structured progression documented in `labs.md`:
 3. **Structured data extraction** - AI-powered data parsing
 4. **AI Services interface** - High-level AI integration; per-call `ChatRequestParameters`
 5. **Chat memory** - Single-user, multi-user, and `ChatMemory.set()`
-6. **AI Tools** - Function calling with @Tool, incl. `Optional` parameters
-6.5. **MCP Integration** - External tools via MCP (spec 2025-11-25; stdio/Docker/WebSocket)
+6. **AI Tools** - Function calling with @Tool, incl. `Optional` and `@P(defaultValue = ...)` parameters
+6.8. **MCP Integration** - External tools via MCP (spec 2025-11-25; stdio/Docker/WebSocket)
 7. **Multimodal capabilities** - GPT-5.1 Vision; OpenAI transcription
 8. **Image generation** - `gpt-image-2` (DALL-E 3 was deprecated 2026-05-12)
 9. **RAG implementation** - Knowledge-augmented AI
 10. **Vector store integration** - Chroma; mention PgVector/Elasticsearch hybrid search
-11. **Agentic API** - sequence / loop / conditional / parallel composition
+11. **Agentic API** - sequence / loop / conditional / parallel / voting composition
 
 **Note**: Lab ordering was optimized for pedagogical flow - tools before vision/image generation.
 
@@ -421,7 +421,7 @@ interface MultiUserAssistant {
 
 This pattern is **essential for production conversational AI applications**.
 
-### Lab 6.5: MCP Integration
+### Lab 6.8: MCP Integration
 - LangChain4j provides MCP client support (not server)
 - Uses npx command: `npx -y @modelcontextprotocol/server-everything stdio`
 - Shared MCP client pattern for optimal test performance

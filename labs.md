@@ -13,7 +13,7 @@ This series of labs will guide you through building LangChain4j applications tha
 - [Lab 4: AI Services Interface](#lab-4-ai-services-interface)
 - [Lab 5: Chat Memory](#lab-5-chat-memory)
 - [Lab 6: AI Tools](#lab-6-ai-tools)
-- [Lab 6.5: MCP Integration](#lab-65-mcp-integration)
+- [Lab 6.8: MCP Integration](#lab-68-mcp-integration)
 - [Lab 7: Multimodal Capabilities](#lab-7-multimodal-capabilities)
 - [Lab 8: Image Generation](#lab-8-image-generation)
 - [Lab 9: Retrieval-Augmented Generation (RAG)](#lab-9-retrieval-augmented-generation-rag)
@@ -698,6 +698,10 @@ interface Assistant {
     String chat(String message);
 }
 
+interface AssistantWithResult {
+    Result<String> chat(String message);
+}
+
 @Test
 void useToolsWithAiServices() {
     ChatModel model = OpenAiChatModel.builder()
@@ -817,7 +821,7 @@ LangChain4j 1.15 added `@P(defaultValue = "...")`. The parameter is marked optio
 
 Compare to Lab 6.5's `Optional<T>`: pick `Optional<T>` when absence is meaningful business logic, and `defaultValue` when the tool simply has a good default. **You cannot combine the two on the same parameter** — `AiServices.builder(...).tools(...).build()` will throw `IllegalConfigurationException`.
 
-Supported default-value types include `String`, primitives and their boxed equivalents, `enum`, `UUID`, `BigDecimal`/`BigInteger`, `List`/`Set`/arrays (as JSON arrays), `Map` (as JSON object), and POJOs (as JSON objects). Defaults are re-parsed on every invocation, so a tool that mutates a defaulted collection won't poison later calls.
+Supported default-value types include `String`, primitives and their boxed equivalents, `enum`, `UUID`, `BigDecimal`/`BigInteger`, `List`/`Set`/arrays (as JSON arrays), `Map` (as JSON object), and POJOs (as JSON objects). Defaults are parsed when the AI Service is built, so invalid defaults fail before the first LLM call.
 
 `ArticleSearchTool` demonstrates three of the most useful shapes — a primitive, an enum, and a `List<String>`:
 
@@ -847,26 +851,59 @@ void defaultToolParameters() {
             .modelName(GPT_4_1_NANO)
             .build();
 
-    Assistant assistant = AiServices.builder(Assistant.class)
+    AssistantWithResult assistant = AiServices.builder(AssistantWithResult.class)
             .chatModel(model)
             .tools(new ArticleSearchTool())
             .build();
 
     // The user prompt supplies no limit / sortBy / languages — defaults should fire.
-    String response = assistant.chat("Find me articles about virtual threads.");
-    System.out.println(response);
+    Result<String> response = assistant.chat("Find me articles about virtual threads.");
+    System.out.println(response.content());
 
-    assertThat(response).containsIgnoringCase("virtual threads");
+    assertThat(response.content()).containsIgnoringCase("virtual threads");
+    assertThat(response.toolExecutions())
+            .singleElement()
+            .satisfies(toolExecution -> assertThat(toolExecution.result())
+                    .contains("Found 10 articles")
+                    .contains("RELEVANCE")
+                    .contains("languages=[en]"));
 }
 ```
 
 **Validation happens at registration time.** Misconfigured defaults (typos, numeric overflow, invalid enum constants, `defaultValue` combined with `Optional<T>`, `defaultValue` on framework-injected parameters like `@ToolMemoryId`) all throw `IllegalConfigurationException` from the `tools(...).build()` call, naming the offending `ClassName.methodName.parameterName` — much friendlier than failing on the first LLM call.
 
+### 6.7 Tool Error Handling
+
+Tools should fail in ways the assistant can explain. `CalculatorTool.divide` throws an `IllegalArgumentException` for division by zero, and LangChain4j turns that tool failure into context the model can use for a helpful response:
+
+```java
+@Test
+void toolErrorHandling() {
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .build();
+
+    Assistant assistant = AiServices.builder(Assistant.class)
+            .chatModel(model)
+            .tools(new CalculatorTool())
+            .build();
+
+    String response1 = assistant.chat("What is 10 divided by 0?");
+    String response2 = assistant.chat("What is 10 divided by 2?");
+
+    assertThat(response1)
+            .containsAnyOf("error", "cannot", "zero", "undefined", "impossible");
+    assertThat(response2)
+            .containsAnyOf("5", "5.0", "five");
+}
+```
+
 [↑ Back to table of contents](#table-of-contents)
 
-## Lab 6.5: MCP Integration
+## Lab 6.8: MCP Integration
 
-Model Context Protocol (MCP) lets AI applications consume tools and resources hosted by external services. LangChain4j 1.14 ships an MCP client against the **2025-11-25 spec**. The standard transports are **stdio** and **Streamable HTTP**; LangChain4j also supports Docker stdio and a non-standard WebSocket transport. This lab uses stdio for simplicity (no extra infrastructure beyond `npx`). Legacy HTTP/SSE exists for older servers but is deprecated.
+Model Context Protocol (MCP) lets AI applications consume tools and resources hosted by external services. LangChain4j 1.15 includes an MCP client against the **2025-11-25 spec**. The standard transports are **stdio** and **Streamable HTTP**; LangChain4j also supports Docker stdio and a non-standard WebSocket transport. This lab uses stdio for simplicity (no extra infrastructure beyond `npx`). Legacy HTTP/SSE exists for older servers but is deprecated.
 
 **Prerequisites:**
 - Understanding of @Tool annotation from Lab 6
@@ -880,7 +917,7 @@ This lab includes 4 progressive MCP integration tests:
 3. **Combining Local and MCP Tools** - Use both local @Tool and external MCP tools
 4. **MCP Tool Provider Configuration** - Configure MCP tool providers
 
-### 6.5.1 Optimized Test Setup with Shared MCP Client
+### 6.8.1 Optimized Test Setup with Shared MCP Client
 
 The implementation uses a shared MCP client across all tests for better performance:
 
@@ -941,7 +978,7 @@ class McpIntegrationTests {
 }
 ```
 
-### 6.5.2 MCP Tools with AiServices
+### 6.8.2 MCP Tools with AiServices
 
 Integrate MCP tools with LangChain4j AiServices using the shared client:
 
@@ -989,7 +1026,7 @@ void mcpToolsWithAiServices() {
 }
 ```
 
-### 6.5.3 Combining Local Tools and MCP Tools
+### 6.8.3 Combining Local Tools and MCP Tools
 
 Use both local @Tool methods and external MCP tools together (avoiding tool name conflicts):
 
@@ -1040,7 +1077,7 @@ void combiningLocalAndMcpTools() {
 }
 ```
 
-### 6.5.4 MCP Tool Provider Configuration
+### 6.8.4 MCP Tool Provider Configuration
 
 Demonstrate MCP tool provider configuration options:
 
@@ -1086,7 +1123,7 @@ void mcpToolProviderWithFiltering() {
 
 ```
 
-**Important Notes for Lab 6.5:**
+**Important Notes for Lab 6.8:**
 - LangChain4j provides MCP **client** support (connects to external MCP servers)
 - The "everything" server is a demo MCP server showcasing various tool types
 - Uses **shared MCP client** pattern for better test performance (single npx process)
@@ -1494,7 +1531,7 @@ void saveGeneratedImageToFile() throws IOException {
 **Notes for Lab 8:**
 - GPT Image models return base64 through this LangChain4j path; there is no URL response shape.
 - Image generation is metered separately from chat — watch costs when iterating.
-- LangChain4j 1.14's `OpenAiImageModelName` enum does not yet include GPT Image constants, so this lab passes the model ID as a string.
+- As of LangChain4j 1.15, `OpenAiImageModelName` does not yet include GPT Image constants, so this lab passes the model ID as a string.
 
 [↑ Back to table of contents](#table-of-contents)
 
@@ -1768,7 +1805,7 @@ To use Chroma as a vector store, you need a running Chroma instance:
 docker run -p 8000:8000 chromadb/chroma:0.5.4
 ```
 
-**Important**: LangChain4j 1.14 uses ChromaDB's API V2 client. Chroma 0.5.4 remains a stable tested baseline, and newer Chroma versions that support API V2 should work as well.
+**Important**: LangChain4j 1.15 uses ChromaDB's API V2 client. Chroma 0.5.4 remains a stable tested baseline, and newer Chroma versions that support API V2 should work as well.
 
 ### 10.1 Basic Chroma Vector Store Operations
 

@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 /**
  * Lab 7: Multimodal Capabilities
  * <p>
- * Demonstrates image and audio handling with LangChain4j 1.14:
+ * Demonstrates image and audio handling with LangChain4j 1.15:
  * <ul>
  *   <li>Local image analysis with GPT-5.1 vision</li>
  *   <li>Remote (URL) image analysis</li>

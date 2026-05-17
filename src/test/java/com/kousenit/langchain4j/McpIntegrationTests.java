@@ -19,10 +19,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
- * Lab 6.5: MCP (Model Context Protocol) Integration
+ * Lab 6.8: MCP (Model Context Protocol) Integration
  * <p>
  * Demonstrates how to integrate external tools via the Model Context
- * Protocol (MCP). LangChain4j 1.14 ships with MCP client support against
+ * Protocol (MCP). LangChain4j 1.15 includes MCP client support against
  * the 2025-11-25 spec. MCP-standard transports are stdio and Streamable
  * HTTP; LangChain4j also supports Docker stdio and a non-standard WebSocket
  * transport. This lab uses stdio for simplicity.
@@ -76,7 +76,7 @@ class McpIntegrationTests {
     }
 
     /**
-     * Test 6.5.1: Basic MCP Client and Tool Provider Setup
+     * Test 6.8.1: Basic MCP Client and Tool Provider Setup
      * <p>
      * Demonstrates creating an MCP client and tool provider for the "everything" server.
      * This test shows the fundamental MCP setup process using npx stdio transport.
@@ -103,7 +103,7 @@ class McpIntegrationTests {
     }
 
     /**
-     * Test 6.5.2: MCP Tools with AiServices
+     * Test 6.8.2: MCP Tools with AiServices
      * <p>
      * Demonstrates integrating MCP tools with LangChain4j AiServices.
      * This shows how external MCP tools can be used in AI conversations.
@@ -150,7 +150,7 @@ class McpIntegrationTests {
     }
 
     /**
-     * Test 6.5.3: Combining Local Tools and MCP Tools
+     * Test 6.8.3: Combining Local Tools and MCP Tools
      * <p>
      * Demonstrates using both local @Tool methods and external MCP tools together.
      * This shows the power of LangChain4j's unified tool system.
@@ -201,7 +201,7 @@ class McpIntegrationTests {
     }
 
     /**
-     * Test 6.5.4: MCP Tool Provider with Specific Tool Names
+     * Test 6.8.4: MCP Tool Provider with Specific Tool Names
      * <p>
      * Demonstrates how to create an MCP tool provider with specific tool filtering.
      * This shows how to selectively expose certain external tools to your AI service.
