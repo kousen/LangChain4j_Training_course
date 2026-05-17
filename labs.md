@@ -2,7 +2,7 @@
 
 This series of labs will guide you through building LangChain4j applications that use various capabilities of large language models. By the end of these exercises, you'll have hands-on experience with text generation, structured data extraction, prompt templates, chat memory, vision capabilities, and more.
 
-> **Note:** This project is pinned to LangChain4j 1.14.1. The `ChatModel` interface (and the rest of the LangChain4j 1.x surface) is stable here. The course covers the agentic API, MCP client (spec 2025-11-25), built-in OpenAI transcription, gpt-image-2 image generation, and the now-built-in hybrid search support in PgVector / Elasticsearch.
+> **Note:** This project is pinned to LangChain4j 1.15.0. The `ChatModel` interface (and the rest of the LangChain4j 1.x surface) is stable here. The course covers the agentic API plus the 1.15 voting pattern, MCP client (spec 2025-11-25), built-in OpenAI transcription, gpt-image-2 image generation, `@Tool` parameters with `defaultValue`, and the now-built-in hybrid search support in PgVector / Elasticsearch.
 
 ## Table of Contents
 
@@ -810,6 +810,57 @@ void optionalToolParameters() {
     assertThat(response).containsIgnoringCase("berlin");
 }
 ```
+
+### 6.6 Default Tool Parameter Values
+
+LangChain4j 1.15 added `@P(defaultValue = "...")`. The parameter is marked optional in the JSON schema sent to the LLM; if the LLM omits it, LangChain4j parses the declared default and substitutes it before invoking the method. Use it when the tool has a sensible fallback the model shouldn't have to think about.
+
+Compare to Lab 6.5's `Optional<T>`: pick `Optional<T>` when absence is meaningful business logic, and `defaultValue` when the tool simply has a good default. **You cannot combine the two on the same parameter** — `AiServices.builder(...).tools(...).build()` will throw `IllegalConfigurationException`.
+
+Supported default-value types include `String`, primitives and their boxed equivalents, `enum`, `UUID`, `BigDecimal`/`BigInteger`, `List`/`Set`/arrays (as JSON arrays), `Map` (as JSON object), and POJOs (as JSON objects). Defaults are re-parsed on every invocation, so a tool that mutates a defaulted collection won't poison later calls.
+
+`ArticleSearchTool` demonstrates three of the most useful shapes — a primitive, an enum, and a `List<String>`:
+
+```java
+public class ArticleSearchTool {
+
+    public enum SortBy { RELEVANCE, DATE, RATING }
+
+    @Tool("Search articles matching a query. Optional: limit, sortBy, languages.")
+    public String searchArticles(
+            @P("Search query") String query,
+            @P(value = "Maximum number of results", defaultValue = "10") int limit,
+            @P(value = "Sort order", defaultValue = "RELEVANCE") SortBy sortBy,
+            @P(value = "ISO language codes to include", defaultValue = "[\"en\"]") List<String> languages) {
+        // ... canned search results
+    }
+}
+```
+
+Test it from `AiToolsTests`:
+
+```java
+@Test
+void defaultToolParameters() {
+    ChatModel model = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO)
+            .build();
+
+    Assistant assistant = AiServices.builder(Assistant.class)
+            .chatModel(model)
+            .tools(new ArticleSearchTool())
+            .build();
+
+    // The user prompt supplies no limit / sortBy / languages — defaults should fire.
+    String response = assistant.chat("Find me articles about virtual threads.");
+    System.out.println(response);
+
+    assertThat(response).containsIgnoringCase("virtual threads");
+}
+```
+
+**Validation happens at registration time.** Misconfigured defaults (typos, numeric overflow, invalid enum constants, `defaultValue` combined with `Optional<T>`, `defaultValue` on framework-injected parameters like `@ToolMemoryId`) all throw `IllegalConfigurationException` from the `tools(...).build()` call, naming the offending `ClassName.methodName.parameterName` — much friendlier than failing on the first LLM call.
 
 [↑ Back to table of contents](#table-of-contents)
 
@@ -2177,9 +2228,87 @@ void loopWorkflow() {
 }
 ```
 
+### 11.4 Voting Pattern (1.15+)
+
+LangChain4j 1.15 introduced the voting pattern in the new `langchain4j-agentic-patterns` module. Multiple sub-agents run **in parallel** and a `VotingPlanner` aggregates their outputs via a pluggable `VotingStrategy`. The no-arg constructor uses `VotingStrategy.majority()`, which is the right default for classification.
+
+Add the dependency:
+
+```kotlin
+implementation("dev.langchain4j:langchain4j-agentic-patterns")
+```
+
+Diversity matters — three identical agents will almost always produce the same vote. Common sources of diversity: different prompts, different temperatures, different models, or different providers. This example uses three temperatures:
+
+```java
+interface SentimentClassifier {
+    @SystemMessage("You classify sentiment. Reply with exactly one word: POSITIVE, NEGATIVE, or NEUTRAL.")
+    @UserMessage("Classify the sentiment of this text:\n\n{{text}}")
+    @Agent("Classify the sentiment of a text")
+    String classify(@V("text") String text);
+}
+
+interface SentimentVoter {
+    @Agent("Aggregate sentiment votes from multiple classifiers")
+    String classify(@V("text") String text);
+}
+
+@Test
+void votingPattern() {
+    ChatModel cold = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO).temperature(0.0).build();
+    ChatModel warm = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO).temperature(0.5).build();
+    ChatModel hot  = OpenAiChatModel.builder()
+            .apiKey(System.getenv("OPENAI_API_KEY"))
+            .modelName(GPT_4_1_NANO).temperature(1.0).build();
+
+    SentimentClassifier strict   = AgenticServices.agentBuilder(SentimentClassifier.class)
+            .chatModel(cold).outputKey("vote1").build();
+    SentimentClassifier balanced = AgenticServices.agentBuilder(SentimentClassifier.class)
+            .chatModel(warm).outputKey("vote2").build();
+    SentimentClassifier creative = AgenticServices.agentBuilder(SentimentClassifier.class)
+            .chatModel(hot).outputKey("vote3").build();
+
+    SentimentVoter voter = AgenticServices.plannerBuilder(SentimentVoter.class)
+            .subAgents(strict, balanced, creative)
+            .outputKey("classification")
+            .planner(VotingPlanner::new)
+            .build();
+
+    String result = voter.classify("I absolutely love this product!");
+    assertThat(result).isEqualToIgnoringCase("POSITIVE");
+}
+```
+
+For richer aggregation — e.g., three critics scoring a draft and averaging the scores — pass a custom `VotingStrategy` lambda to `VotingPlanner`:
+
+```java
+VotingStrategy averageScore = votes -> votes.stream()
+        .mapToDouble(v -> ((CritiqueResult) v).score())
+        .average().orElse(0.0);
+
+AgenticServices.plannerBuilder()
+    .subAgents(styleCritic, originalityCritic, engagementCritic)
+    .planner(() -> new VotingPlanner(averageScore))
+    .outputKey("critique")
+    .build();
+```
+
+**Per-agent model selection (also new in 1.15).** Use `chatModel(scope -> ...)` to pick a model based on shared state — for example, upgrade to a stronger (more expensive) model only when the voting critics produce a high score:
+
+```java
+StoryEditor editor = AgenticServices.agentBuilder(StoryEditor.class)
+        .chatModel(scope -> scope.readState("score", 0.0) > 0.8 ? enhancedModel : baseModel)
+        .outputKey("story")
+        .build();
+```
+
 **Notes for Lab 11:**
-- `AgenticServices` also provides `parallelBuilder()`, `conditionalBuilder()`, and `supervisorBuilder()` (an LLM-driven planner that chooses the next sub-agent).
-- The agentic API is still marked experimental in the LangChain4j docs; the surface has been stable across the 1.13 → 1.14 releases but expect occasional refinements.
+- `AgenticServices` also provides `parallelBuilder()`, `conditionalBuilder()`, `supervisorBuilder()` (an LLM-driven planner that chooses the next sub-agent), and `plannerBuilder()` (custom planners — the voting pattern is one such planner).
+- The agentic API is still marked experimental in the LangChain4j docs; the surface has been stable across the 1.13 → 1.15 releases but expect occasional refinements.
 - Output keys form an implicit dataflow graph; mistyping a `@V` template variable is a common source of "empty output" bugs.
 
 [↑ Back to table of contents](#table-of-contents)
@@ -2193,13 +2322,13 @@ Congratulations! You've completed a comprehensive tour of LangChain4j's capabili
 - Extract structured data from LLM responses using `AiServices`
 - Use prompt templates and per-call `ChatRequestParameters`
 - Maintain conversation state with `ChatMemory`, including replacing it via `set()`
-- Extend AI capabilities with custom tools, including `Optional` parameters
+- Extend AI capabilities with custom tools, including `Optional` parameters and `@P(defaultValue = ...)`
 - Integrate external tools through MCP (stdio / Docker / WebSocket)
 - Work with multimodal capabilities — image analysis and OpenAI transcription
 - Generate images using `gpt-image-2`
 - Build Retrieval-Augmented Generation (RAG) systems with document processing
 - Use Chroma as a persistent vector store for production RAG applications
-- Compose multi-agent workflows with the agentic API
+- Compose multi-agent workflows with the agentic API, including the 1.15 voting pattern
 
 Key takeaways:
 - LangChain4j 1.x's `ChatModel` is the primary interface for chat

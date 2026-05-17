@@ -8,7 +8,7 @@ This is a **hands-on training course** for learning LangChain4j through progress
 
 ### Pinned LangChain4j Version
 
-Pinned to **LangChain4j 1.14.1**. See the [release notes](https://github.com/langchain4j/langchain4j/releases) for the per-version history. Recent additions exercised in this course: agentic API (1.8 → 1.14), MCP spec 2025-11-25, OpenAI transcription model, `gpt-image-2` image generation, `ChatMemory.set()`, `Optional` tool parameters, per-call `ChatRequestParameters`, streaming cancellation, hybrid search in PgVector / Elasticsearch.
+Pinned to **LangChain4j 1.15.0**. See the [release notes](https://github.com/langchain4j/langchain4j/releases) for the per-version history. Recent additions exercised in this course: agentic API (1.8 → 1.14) plus the voting pattern in `langchain4j-agentic-patterns` (1.15), MCP spec 2025-11-25, OpenAI transcription model, `gpt-image-2` image generation, `ChatMemory.set()`, `Optional` and `@P(defaultValue = ...)` tool parameters, per-call `ChatRequestParameters`, streaming cancellation, hybrid search in PgVector / Elasticsearch.
 
 ### Repository Structure
 
@@ -17,7 +17,7 @@ Pinned to **LangChain4j 1.14.1**. See the [release notes](https://github.com/lan
 - **Test classes**: Contain TODO comments guiding students through implementation
 - **Example classes**: Skeleton implementations with TODO instructions
 
-The course demonstrates integration of Large Language Models (LLMs) with Java applications using the LangChain4j library (1.14.1), covering:
+The course demonstrates integration of Large Language Models (LLMs) with Java applications using the LangChain4j library (1.15.0), covering:
 
 - Text generation and chat capabilities
 - Structured data extraction
@@ -444,4 +444,5 @@ This pattern is **essential for production conversational AI applications**.
 - **Module**: `langchain4j-agentic` (separate dependency)
 - **Building blocks**: `@Agent` annotation + `AgenticServices.agentBuilder/sequenceBuilder/loopBuilder/conditionalBuilder/parallelBuilder/supervisorBuilder`
 - **Dataflow**: `outputKey` publishes results to a shared `AgenticScope` keyed by name; downstream agents read via `@V`
-- **API status**: experimental but stable across 1.13 → 1.14
+- **API status**: experimental but stable across 1.13 → 1.15
+- **1.15 additions**: voting pattern via `AgenticServices.plannerBuilder(...).planner(VotingPlanner::new)` in the new `langchain4j-agentic-patterns` module; per-agent `chatModel(scope -> ...)` selector that picks a model from `AgenticScope` state

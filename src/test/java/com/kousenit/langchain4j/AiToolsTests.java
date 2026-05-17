@@ -285,7 +285,44 @@ class AiToolsTests {
     }
 
     /**
-     * Test 6.6: Tool Error Handling
+     * Test 6.6: Default Tool Parameter Values
+     * <p>
+     * LangChain4j 1.15 added {@code @P(defaultValue = "...")} so tool
+     * authors can declare a fallback the LLM doesn't need to think about.
+     * The parameter is marked optional in the JSON schema; when the LLM
+     * omits it, LangChain4j substitutes the parsed default before the
+     * method runs. This test prompts the assistant with a query that
+     * supplies none of the optional parameters, so the defaults should
+     * fire.
+     */
+    @Test
+    void defaultToolParameters() {
+        ChatModel model = OpenAiChatModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName(GPT_4_1_NANO)
+                .build();
+
+        Assistant assistant = AiServices.builder(Assistant.class)
+                .chatModel(model)
+                .tools(new ArticleSearchTool())
+                .build();
+
+        System.out.println("=== Default Tool Parameters Test ===");
+
+        String response = assistant.chat("Find me articles about virtual threads.");
+        System.out.println("Default-parameters response: " + response);
+
+        System.out.println("=".repeat(50));
+
+        assertNotNull(response, "Response should not be null");
+        assertThat(response)
+                .as("Articles tool response with defaults")
+                .isNotBlank()
+                .containsIgnoringCase("virtual threads");
+    }
+
+    /**
+     * Test 6.7: Tool Error Handling
      * <p>
      * Demonstrates how tools handle errors and edge cases gracefully.
      */

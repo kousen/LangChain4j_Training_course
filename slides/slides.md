@@ -252,6 +252,35 @@ assistant.chat("What's the weather in NYC?");
 layout: two-cols
 ---
 
+# Optional Tool Parameters
+
+Two ways to make a parameter optional
+
+::right::
+
+```java {all|1-4|6-10|all}
+// Option A: Optional<T> (1.12+)
+// — absence is meaningful business logic
+@Tool("Weather; units default to metric")
+String getWeather(String city, Optional<String> units);
+
+// Option B: @P(defaultValue = ...) (1.15+)
+// — tool has a sensible fallback
+@Tool("Search articles")
+String searchArticles(String query,
+    @P(defaultValue = "10") int limit,
+    @P(defaultValue = "RELEVANCE") SortBy sortBy,
+    @P(defaultValue = "[\"en\"]") List<String> languages);
+```
+
+<div v-click class="mt-4 text-sm text-gray-400">
+<p>💡 Defaults are parsed at registration — typos fail fast, not on first call</p>
+</div>
+
+---
+layout: two-cols
+---
+
 # Chat Memory
 
 Single user conversation
@@ -612,6 +641,42 @@ Object result = novelist.invoke(
 
 <div v-click class="mt-4 text-sm text-gray-400">
 <p>🤝 Each agent reads/writes the shared scope by key</p>
+</div>
+
+---
+layout: two-cols
+---
+
+# Voting Pattern (1.15+)
+
+`langchain4j-agentic-patterns` — fan out, then aggregate
+
+::right::
+
+```java {all|1-9|11-15|all}
+// Three classifiers, three temperatures = diversity
+SentimentClassifier c1 = AgenticServices
+    .agentBuilder(SentimentClassifier.class)
+    .chatModel(coldModel).outputKey("vote1").build();
+SentimentClassifier c2 = AgenticServices
+    .agentBuilder(SentimentClassifier.class)
+    .chatModel(warmModel).outputKey("vote2").build();
+SentimentClassifier c3 = AgenticServices
+    .agentBuilder(SentimentClassifier.class)
+    .chatModel(hotModel).outputKey("vote3").build();
+
+SentimentVoter voter = AgenticServices
+    .plannerBuilder(SentimentVoter.class)
+    .subAgents(c1, c2, c3)
+    .planner(VotingPlanner::new)  // default: majority
+    .outputKey("classification").build();
+
+String result = voter.classify("I love this!");
+// -> "POSITIVE"
+```
+
+<div v-click class="mt-4 text-sm text-gray-400">
+<p>🗳️ Pass a custom VotingStrategy lambda to average scores, weight votes, etc.</p>
 </div>
 
 ---

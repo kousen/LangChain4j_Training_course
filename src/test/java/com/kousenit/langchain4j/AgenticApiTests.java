@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import dev.langchain4j.agentic.Agent;
 import dev.langchain4j.agentic.AgenticServices;
 import dev.langchain4j.agentic.UntypedAgent;
+import dev.langchain4j.agentic.patterns.voting.VotingPlanner;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.SystemMessage;
@@ -154,6 +155,65 @@ class AgenticApiTests {
         assertThat(result.toString()).as("Final story after loop").isNotBlank();
     }
 
+    /**
+     * Test 11.4: Voting Pattern
+     * <p>
+     * LangChain4j 1.15 added the voting pattern in the new
+     * {@code langchain4j-agentic-patterns} module. Three sentiment
+     * classifiers run in parallel and a {@link VotingPlanner} aggregates
+     * their votes. {@code VotingPlanner::new} (no aggregator) uses
+     * majority vote, which is the right default for classification.
+     * <p>
+     * Diversity here comes from temperature — same interface, three
+     * model instances at different temperatures. In practice you might
+     * also vary prompts, models, or providers.
+     */
+    @Test
+    void votingPattern() {
+        ChatModel cold = OpenAiChatModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName(GPT_4_1_NANO)
+                .temperature(0.0)
+                .build();
+        ChatModel warm = OpenAiChatModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName(GPT_4_1_NANO)
+                .temperature(0.5)
+                .build();
+        ChatModel hot = OpenAiChatModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName(GPT_4_1_NANO)
+                .temperature(1.0)
+                .build();
+
+        SentimentClassifier strict = AgenticServices.agentBuilder(SentimentClassifier.class)
+                .chatModel(cold)
+                .outputKey("vote1")
+                .build();
+        SentimentClassifier balanced = AgenticServices.agentBuilder(SentimentClassifier.class)
+                .chatModel(warm)
+                .outputKey("vote2")
+                .build();
+        SentimentClassifier creative = AgenticServices.agentBuilder(SentimentClassifier.class)
+                .chatModel(hot)
+                .outputKey("vote3")
+                .build();
+
+        SentimentVoter voter = AgenticServices.plannerBuilder(SentimentVoter.class)
+                .subAgents(strict, balanced, creative)
+                .outputKey("classification")
+                .planner(VotingPlanner::new)
+                .build();
+
+        System.out.println("=== Voting Pattern Test ===");
+        String result = voter.classify("I absolutely love this product! It exceeded all my expectations.");
+        System.out.println("Majority vote: " + result);
+        System.out.println("=".repeat(50));
+
+        assertNotNull(result, "Voting result should not be null");
+        assertThat(result).as("Sentiment classification").isEqualToIgnoringCase("POSITIVE");
+    }
+
     // --- Agent interfaces ---
 
     public interface CreativeWriter {
@@ -182,5 +242,17 @@ class AgenticApiTests {
         @UserMessage("Improve the prose of this story:\n\n{{story}}")
         @Agent("Improve the literary quality of a story")
         String polish(@V("story") String story);
+    }
+
+    public interface SentimentClassifier {
+        @SystemMessage("You classify sentiment. Reply with exactly one word: POSITIVE, NEGATIVE, or NEUTRAL.")
+        @UserMessage("Classify the sentiment of this text:\n\n{{text}}")
+        @Agent("Classify the sentiment of a text")
+        String classify(@V("text") String text);
+    }
+
+    public interface SentimentVoter {
+        @Agent("Aggregate sentiment votes from multiple classifiers")
+        String classify(@V("text") String text);
     }
 }
