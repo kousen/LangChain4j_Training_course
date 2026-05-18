@@ -4,12 +4,18 @@ import static dev.langchain4j.model.openai.OpenAiChatModelName.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
+import dev.langchain4j.data.audio.Audio;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.audio.AudioTranscriptionRequest;
+import dev.langchain4j.model.audio.AudioTranscriptionResponse;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.openai.OpenAiAudioTranscriptionModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
 
 /**
  * Lab 1: Basic Chat Interactions
@@ -131,5 +137,38 @@ class OpenAiChatTests {
 
         // Verify the response content using AssertJ
         assertThat(content).as("Response content").isNotNull().isNotEmpty().hasSizeGreaterThan(10);
+    }
+
+    @Test
+    void audioTranscription() throws IOException {
+        OpenAiAudioTranscriptionModel transcriptionModel = OpenAiAudioTranscriptionModel.builder()
+                .apiKey(System.getenv("OPENAI_API_KEY"))
+                .modelName("gpt-4o-transcribe")  // also: "whisper-1", "gpt-4o-mini-transcribe"
+                .build();
+
+        byte[] audioBytes;
+        try (var inputStream = getClass().getClassLoader().getResourceAsStream("tftjs.mp3")) {
+            if (inputStream == null) {
+                throw new RuntimeException("Could not find tftjs.mp3 in resources");
+            }
+            audioBytes = inputStream.readAllBytes();
+        }
+
+        Audio audio = Audio.builder()
+                .binaryData(audioBytes)
+                .mimeType("audio/mp3")
+                .build();
+
+        AudioTranscriptionRequest request = AudioTranscriptionRequest.builder()
+                .audio(audio)
+                .build();
+
+        AudioTranscriptionResponse response = transcriptionModel.transcribe(request);
+        String transcript = response.text();
+        System.out.println("Transcript: " + transcript);
+
+        assertAll("Audio transcription validation",
+                () -> assertNotNull(transcript, "Transcript should not be null"),
+                () -> assertFalse(transcript.trim().isEmpty(), "Transcript should not be empty"));
     }
 }
