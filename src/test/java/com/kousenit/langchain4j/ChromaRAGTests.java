@@ -358,9 +358,8 @@ class ChromaRAGTests {
      * Attempts to connect to Chroma on localhost:8000.
      */
     private boolean isChromaAvailable() {
-        try {
+        try (var client = HttpClient.newHttpClient()) {
             // Simple HTTP check to Chroma heartbeat endpoint
-            var client = HttpClient.newHttpClient();
             var request = HttpRequest.newBuilder()
                     .uri(URI.create("http://localhost:8000/api/v1/heartbeat"))
                     .build();
