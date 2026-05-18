@@ -29,7 +29,7 @@ transition: fade-out
 
 # What is LangChain4j?
 
-LangChain4j is a Java library for building applications with Large Language Models (LLMs)
+A Java library for building applications with Large Language Models (LLMs)
 
 <div class="grid grid-cols-2 gap-4">
 
@@ -37,12 +37,14 @@ LangChain4j is a Java library for building applications with Large Language Mode
 
 ## Key Features
 
-- 🤖 **AI Model Integration** - OpenAI, Google AI, and more
-- 💬 **Chat & Conversations** - With memory management
+- 🤖 **Model Integration** - OpenAI, Anthropic, Google AI, and more
+- 💬 **Chat & Memory** - With conversation context
 - 🛠️ **Tool Calling** - Connect AI to your Java methods
+- 🤝 **Agentic API** - Compose agents into workflows
 - 📚 **RAG Support** - Augment AI with your data
-- 🌊 **Streaming** - Real-time AI responses
-- 🖼️ **Multimodal** - Process images and audio
+- 🌊 **Streaming** - Real-time responses, with cancellation
+- 🖼️ **Multimodal** - Images, audio (transcription), video
+- 🔌 **MCP Client** - External tools via Model Context Protocol
 
 </div>
 
@@ -67,7 +69,7 @@ layout: two-cols
 
 # Simple Chat Example
 
-Basic interaction with OpenAI's GPT model (LangChain4j 1.0+)
+Basic interaction with OpenAI's GPT model
 
 ::right::
 
@@ -78,18 +80,18 @@ void simpleQuery() {
             .apiKey(System.getenv("OPENAI_API_KEY"))
             .modelName(GPT_4_1_NANO)
             .build();
-    
+
     String response = model.chat(
         "What is LangChain4j?"
     );
-    
+
     System.out.println(response);
     assertNotNull(response);
 }
 ```
 
 <div v-after class="text-sm mt-4 text-gray-400">
-<p v-click="4">✨ ChatModel interface (LangChain4j 1.0+)</p>
+<p v-click="4">✨ ChatModel interface</p>
 <p v-click="5">✨ Simple chat() method</p>
 <p v-click="6">✨ GPT_4_1_NANO constant</p>
 </div>
@@ -138,46 +140,29 @@ Real-time AI responses for better user experience
 
 ::right::
 
-```java {all|1-5|7-16|18-25|all}
+```java {all|1-4|6-10|all}
 @Test
-void streamingChat() throws InterruptedException {
-    StreamingChatModel model = OpenAiStreamingChatModel.builder()
-            .apiKey(System.getenv("OPENAI_API_KEY"))
-            .modelName(GPT_4_1_NANO)
-            .build();
+void streamingChat() {
+    StreamingChatModel model = OpenAiStreamingChatModel
+        .builder()
+        .apiKey(System.getenv("OPENAI_API_KEY"))
+        .build();
 
-    CountDownLatch latch = new CountDownLatch(1);
-    StringBuilder fullResponse = new StringBuilder();
-    
-    model.chat("Tell me a story about a brave robot.", 
+    model.chat("Tell me a story",
         new StreamingChatResponseHandler() {
-        @Override
-        public void onPartialResponse(String token) {
-            System.out.print(token);
-            fullResponse.append(token);
-        }
-        
-        @Override
-        public void onCompleteResponse(ChatResponse response) {
-            System.out.println("\nStreaming completed!");
-            latch.countDown();
-        }
-        
-        @Override
-        public void onError(Throwable error) {
-            System.err.println("Error: " + error.getMessage());
-            latch.countDown();
-        }
-    });
-    
-    latch.await();
+            public void onPartialResponse(String token) {
+                System.out.print(token);
+            }
+            public void onCompleteResponse(ChatResponse r) {
+                System.out.println("\nDone!");
+            }
+        });
 }
 ```
 
 <div v-click class="mt-4 text-sm text-gray-400">
-<p>🌊 Tokens arrive in real-time</p>
-<p>⚡ Better perceived performance</p>
-<p>🛡️ Built-in error handling</p>
+<p>🌊 Real-time tokens</p>
+<p>⚡ Better UX</p>
 </div>
 
 ---
@@ -186,38 +171,28 @@ layout: two-cols
 
 # AI Services Interface
 
-High-level interfaces with annotations for complex AI interactions
+High-level type-safe AI interactions
 
 ::right::
 
-```java {all|1-6|8-13|15-21|all}
+```java {all|1-4|6-10|all}
 interface FilmographyService {
-    @SystemMessage("You are a helpful assistant that provides accurate information about actors and their movies.")
-    List<String> getMovies(@UserMessage String actor);
-    
-    @UserMessage("Generate filmography for {{actorName}} with exactly {{movieCount}} movies")
-    ActorFilms getSpecificActorFilmography(
-        @V("actorName") String actorName, 
-        @V("movieCount") int movieCount
-    );
+    @SystemMessage("Movie expert")
+    List<String> getMovies(
+        @UserMessage String actor);
 }
 
-// Create the service
-ChatModel model = OpenAiChatModel.builder()
-        .apiKey(System.getenv("OPENAI_API_KEY"))
-        .modelName(GPT_4_1_NANO)
-        .build();
-
-FilmographyService service = AiServices.builder(FilmographyService.class)
+FilmographyService service =
+    AiServices.builder(FilmographyService.class)
         .chatModel(model)
         .build();
 
-// Use it
 List<String> movies = service.getMovies("Tom Hanks");
 ```
 
-<div v-click class="mt-4 p-3 bg-green-500 bg-opacity-20 rounded text-sm">
-💡 <strong>Templates via annotations:</strong> @SystemMessage, @UserMessage, @V variables
+<div v-click class="mt-4 text-sm text-gray-400">
+<p>✨ Type-safe interfaces</p>
+<p>✨ Annotation-driven</p>
 </div>
 
 ---
@@ -226,34 +201,25 @@ class: px-20
 
 # Structured Data Extraction
 
-Extract structured data from unstructured text
+Type-safe data parsing
 
-```java {1-6|8-14|16-20|all}
-// Define your data structure
-record Person(
-    String name,
-    int age,
-    String occupation
-) {}
+```java {1-4|6-10|all}
+record Person(String name, int age, String occupation) {}
 
-// Create extraction interface
 interface PersonExtractor {
-    @UserMessage("Extract person information from: {{text}}")
+    @UserMessage("Extract: {{text}}")
     Person extractPerson(@V("text") String text);
 }
 
-// Use it
-PersonExtractor extractor = AiServices.create(
-    PersonExtractor.class, model
-);
+PersonExtractor ex = AiServices.create(
+    PersonExtractor.class, model);
 
-Person person = extractor.extractPerson(
-    "John Doe is a 35-year-old software engineer"
-);
+Person p = ex.extractPerson(
+    "John Doe is a 35-year-old engineer");
 ```
 
-<div v-click="4" class="mt-4 p-4 bg-blue-500 bg-opacity-20 rounded">
-<p class="text-sm">💡 <strong>Result:</strong> Person[name=John Doe, age=35, occupation=software engineer]</p>
+<div v-click class="mt-4 text-sm text-gray-400">
+<p>💡 Returns: Person[name=John Doe, age=35, ...]</p>
 </div>
 
 ---
@@ -265,42 +231,63 @@ image: https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=920
 
 Let AI call your Java methods
 
-```java {1-9|11-17|all}
+```java {1-6|8-12|all}
 class WeatherTool {
     @Tool("Get current weather")
     String getWeather(String location) {
-        // Simulate weather API
-        return String.format(
-            "Weather in %s: 72°F, sunny", 
-            location
-        );
+        return "Weather in " + location +
+               ": 72°F, sunny";
     }
 }
 
-// Wire it up
 var assistant = AiServices.builder(Assistant.class)
     .chatModel(model)
     .tools(new WeatherTool())
     .build();
 
-// AI can now check weather!
-String response = assistant.chat(
-    "What's the weather in NYC?"
-);
+assistant.chat("What's the weather in NYC?");
 ```
 
+---
+layout: two-cols
+---
+
+# Optional Tool Parameters
+
+Two ways to make a parameter optional
+
+::right::
+
+```java {all|1-4|6-10|all}
+// Option A: Optional<T> (1.12+)
+// — absence is meaningful business logic
+@Tool("Weather; units default to metric")
+String getWeather(String city, Optional<String> units);
+
+// Option B: @P(defaultValue = ...) (1.15+)
+// — tool has a sensible fallback
+@Tool("Search articles")
+String searchArticles(String query,
+    @P(defaultValue = "10") int limit,
+    @P(defaultValue = "RELEVANCE") SortBy sortBy,
+    @P(defaultValue = "[\"en\"]") List<String> languages);
+```
+
+<div v-click class="mt-4 text-sm text-gray-400">
+<p>💡 Defaults are parsed at registration — typos fail fast, not on first call</p>
+</div>
+
+---
+layout: two-cols
 ---
 
 # Chat Memory
 
-Maintain conversation context
+Single user conversation
 
-<div class="grid grid-cols-2 gap-4">
+::right::
 
-<div>
-
-```java
-// Single user memory
+```java {all|1-3|5-9|all}
 interface Assistant {
     String chat(String message);
 }
@@ -311,38 +298,36 @@ var assistant = AiServices.builder(Assistant.class)
         .withMaxMessages(10))
     .build();
 
-// Remembers context
 assistant.chat("My name is Alice");
 assistant.chat("What's my name?");
 // Response: "Your name is Alice"
 ```
 
-</div>
+---
+layout: two-cols
+---
 
-<div>
+# Chat Memory
 
-```java
-// Multi-user memory
+Multi-user conversations
+
+::right::
+
+```java {all|1-4|6-10|all}
 interface MultiUserAssistant {
-    String chat(@MemoryId int userId, 
+    String chat(@MemoryId int userId,
                 @UserMessage String msg);
 }
 
-var assistant = AiServices.builder(MultiUserAssistant.class)
-    .chatModel(model)
-    .chatMemoryProvider(memoryId -> 
+var assistant = AiServices.builder(...)
+    .chatMemoryProvider(memoryId ->
         MessageWindowChatMemory
             .withMaxMessages(10))
     .build();
 
-// Separate memory per user
 assistant.chat(1, "I'm Alice");
 assistant.chat(2, "I'm Bob");
 ```
-
-</div>
-
-</div>
 
 ---
 layout: center
@@ -368,7 +353,7 @@ graph LR
 
 **RAG allows AI to access your specific data:**
 - 📄 PDFs, Word docs, web pages
-- 🔍 Semantic search capabilities  
+- 🔍 Semantic search capabilities
 - 🎯 Context-aware responses
 - 💾 Vector stores (Redis, Chroma, etc.)
 
@@ -376,108 +361,125 @@ graph LR
 
 ---
 
-# RAG Implementation Example
+# RAG Implementation
 
-```java {1-10|12-18|20-25|all}
-// 1. Set up components
-EmbeddingModel embeddingModel = new AllMiniLmL6V2QuantizedEmbeddingModel();
-EmbeddingStore<TextSegment> store = new InMemoryEmbeddingStore<>();
+```java {1-4|6-10|12-16|all}
+// Setup embedding model and store
+EmbeddingModel embeddingModel =
+    new AllMiniLmL6V2QuantizedEmbeddingModel();
+EmbeddingStore<TextSegment> store =
+    new InMemoryEmbeddingStore<>();
 
-// 2. Load and process documents
-Document document = FileSystemDocumentLoader.loadDocument(
-    Paths.get("knowledge-base.pdf")
-);
-DocumentSplitter splitter = DocumentSplitters.recursive(300, 50);
-List<TextSegment> segments = splitter.split(document);
+// Load and split documents
+Document doc = FileSystemDocumentLoader.loadDocument(
+    Paths.get("knowledge-base.pdf"));
+List<TextSegment> segments =
+    DocumentSplitters.recursive(300, 50).split(doc);
 
-// 3. Store embeddings
-EmbeddingStoreIngestor ingestor = EmbeddingStoreIngestor.builder()
-    .documentSplitter(splitter)
-    .embeddingModel(embeddingModel)
-    .embeddingStore(store)
-    .build();
-ingestor.ingest(document);
-
-// 4. Create RAG-enabled assistant
+// Create RAG assistant
 Assistant assistant = AiServices.builder(Assistant.class)
     .chatModel(model)
-    .contentRetriever(EmbeddingStoreContentRetriever.from(store))
+    .contentRetriever(
+        EmbeddingStoreContentRetriever.from(store))
     .build();
-
-String answer = assistant.chat("What does the document say about X?");
 ```
 
 ---
 layout: two-cols
 ---
 
-# Multimodal: Image Analysis
+# ChromaDB
 
-Process and understand images with AI
+Production vector store
 
 ::right::
 
-```java {all|1-5|7-14|16-21|all}
-// Set up vision-capable model
-ChatModel model = OpenAiChatModel.builder()
-        .apiKey(System.getenv("OPENAI_API_KEY"))
-        .modelName(GPT_4_1_MINI)  // Mini for vision
+```java {all|1-4|6-9|11-14|all}
+// ChromaDB API V2 client
+EmbeddingStore<TextSegment> store =
+    ChromaEmbeddingStore.builder()
+        .baseUrl("http://localhost:8000")
+        .collectionName(randomUUID())
         .build();
 
-// Load and encode local image
-byte[] imageBytes = inputStream.readAllBytes();
-String imageString = Base64.getEncoder().encodeToString(imageBytes);
+// Process and store
+List<TextSegment> segments = splitDocuments(docs);
+List<Embedding> embeddings =
+    embeddingModel.embedAll(segments).content();
+store.addAll(embeddings, segments);
 
-ImageContent imageContent = ImageContent.from(imageString, "image/jpeg");
-TextContent textContent = TextContent.from("What do you see in this image?");
-
-// Create multimodal message
-UserMessage userMessage = UserMessage.from(textContent, imageContent);
-
-String response = model.chat(userMessage).aiMessage().text();
-
-System.out.println("Image analysis: " + response);
+// Semantic search
+List<EmbeddingMatch<TextSegment>> matches =
+    store.search(EmbeddingSearchRequest.builder()
+        .queryEmbedding(queryEmbedding)
+        .maxResults(5).build()).matches();
 ```
 
-<div v-click class="mt-4 p-3 bg-purple-500 bg-opacity-20 rounded text-sm">
-🖼️ <strong>Uses GPT_4_1_MINI</strong> for vision capabilities
+<div v-click class="mt-2 text-sm text-gray-400">
+<p>🚀 Chroma teaches pure-vector search; PgVector & Elasticsearch add hybrid search</p>
 </div>
 
 ---
 layout: two-cols
 ---
 
-# Multimodal: Audio Processing
+# Multimodal: Images
 
-Speech-to-text capabilities with Google Gemini
+Process images with AI
 
 ::right::
 
-```java {all|1-5|7-12|14-19|all}
-// Audio processing with Google Gemini
-ChatModel model = GoogleAiGeminiChatModel.builder()
-        .apiKey(System.getenv("GOOGLEAI_API_KEY"))
-        .modelName("gemini-2.5-flash-preview-05-20")
-        .build();
+```java {all|1-3|5-9|all}
+// Vision model
+ChatModel model = OpenAiChatModel.builder()
+    .modelName(GPT_5_1)
+    .build();
 
-// Process audio input
-TextContent textContent = TextContent.from("Please transcribe this audio:");
-AudioContent audioContent = AudioContent.from(
-    readSimpleAudioData(), // Base64 encoded MP3
-    "audio/mp3"
-);
+// Analyze image
+ImageContent img = ImageContent.from(imageString, "image/jpeg");
+TextContent txt = TextContent.from("What do you see?");
+UserMessage msg = UserMessage.from(txt, img);
 
-// Create multimodal message  
-UserMessage userMessage = UserMessage.from(textContent, audioContent);
-
-String transcription = model.chat(userMessage).aiMessage().text();
-System.out.println("Transcription: " + transcription);
+String response = model.chat(msg).aiMessage().text();
 ```
 
-<div v-click class="mt-4 text-sm text-gray-400">
-<p>🎵 Supports MP3, WAV, and other formats</p>
-<p>🗣️ Great for voice interfaces</p>
-<p>⚠️ Requires GOOGLEAI_API_KEY</p>
+<div v-click class="mt-2 text-sm text-gray-400">
+<p>🖼️ GPT-5.1 for vision</p>
+</div>
+
+---
+layout: two-cols
+---
+
+# Multimodal: Audio
+
+Speech-to-text with OpenAI's transcription model
+
+::right::
+
+```java {all|1-4|6-9|11-13|all}
+// Dedicated transcription model
+OpenAiAudioTranscriptionModel transcribe =
+    OpenAiAudioTranscriptionModel.builder()
+        .apiKey(System.getenv("OPENAI_API_KEY"))
+        .modelName("gpt-4o-transcribe")
+        .build();
+
+Audio audio = Audio.builder()
+    .binaryData(audioBytes)
+    .mimeType("audio/mp3")
+    .build();
+
+AudioTranscriptionResponse response =
+    transcribe.transcribe(
+        AudioTranscriptionRequest.builder()
+            .audio(audio).build());
+
+String transcript = response.text();
+```
+
+<div v-click class="mt-2 text-sm text-gray-400">
+<p>🎵 whisper-1, gpt-4o-transcribe, gpt-4o-transcribe-diarize</p>
 </div>
 
 ---
@@ -486,35 +488,29 @@ layout: two-cols
 
 # Image Generation
 
-Create images from text descriptions using DALL-E
+Create images with gpt-image-2
 
 ::right::
 
-```java {all|1-6|8-14|16-21|all}
-// Set up DALL-E image model
+```java {all|1-4|6-9|11-13|all}
+// gpt-image-2 model
 ImageModel imageModel = OpenAiImageModel.builder()
-        .apiKey(System.getenv("OPENAI_API_KEY"))
-        .modelName(DALL_E_3)
-        .quality("hd")
-        .build();
+    .apiKey(System.getenv("OPENAI_API_KEY"))
+    .modelName("gpt-image-2")
+    .quality("high") // low | medium | high | auto
+    .build();
 
-// Generate image from prompt
+// Generate from prompt
 Response<Image> response = imageModel.generate(
-    "A coffee cup on a wooden desk with morning sunlight, " +
-    "photorealistic style, high quality"
-);
+    "A coffee cup on a desk, photorealistic");
 
-// Get the generated image
-Image generatedImage = response.content();
-String imageUrl = generatedImage.url();
-System.out.println("Generated image: " + imageUrl);
-
-// Can also get as Base64 data
-byte[] imageData = generatedImage.base64Data();
+// GPT Image returns base64, not a URL
+byte[] bytes = Base64.getDecoder().decode(
+    response.content().base64Data());
 ```
 
-<div v-click class="mt-4 p-3 bg-pink-500 bg-opacity-20 rounded text-sm">
-🎨 <strong>Uses DALL_E_3 constant</strong> for latest model
+<div v-click class="mt-2 text-sm text-gray-400">
+<p>🎨 DALL-E 3 was deprecated 2026-05-12; GPT Image models are the replacement</p>
 </div>
 
 ---
@@ -523,39 +519,164 @@ layout: two-cols
 
 # MCP Integration
 
-Model Context Protocol for external tool integration
+External tool protocol
 
 ::right::
 
-```java {all|1-7|9-15|17-23|all}
-// Connect to MCP server (requires Node.js)
-// npx -y @modelcontextprotocol/server-everything
-McpClient mcpClient = new McpClient.Builder()
-    .executable("npx")
-    .arguments(List.of(
-        "-y", "@modelcontextprotocol/server-everything"
-    ))
+```java {all|1-5|7-11|all}
+// MCP client (stdio)
+McpTransport transport =
+    new StdioMcpTransport.Builder()
+        .command(List.of("npx", "-y",
+            "@modelcontextprotocol/server-everything",
+            "stdio"))
+        .build();
+
+// Use with AI
+McpToolProvider tools = McpToolProvider.builder()
+    .mcpClients(new DefaultMcpClient.Builder()
+        .transport(transport).build())
     .build();
 
-// Create AI service with MCP tools
-Assistant assistant = AiServices.builder(Assistant.class)
-    .chatLanguageModel(model)
-    .tools(mcpClient.listTools())
-    .build();
+Assistant ai = AiServices.builder(Assistant.class)
+    .toolProvider(tools).build();
+```
 
-// AI can now use external tools
-String result = assistant.chat(
-    "What's the weather like in San Francisco?"
-);
+<div v-click class="mt-2 text-sm text-gray-400">
+<p>🚇 Standard: stdio + Streamable HTTP; LangChain4j also supports Docker stdio + WebSocket</p>
+</div>
 
-// MCP handles the external API calls
-System.out.println(result);
-// "The weather in San Francisco is 72°F and sunny"
+---
+layout: center
+class: text-center
+---
+
+# Agentic API
+
+Compose multiple LLM-backed agents into workflows
+
+```mermaid
+graph LR
+    A[Input] --> B[Writer Agent]
+    B --> C{Score &gt; 0.7?}
+    C -->|No| D[Editor Agent]
+    D --> C
+    C -->|Yes| E[Output]
+```
+
+<div v-click class="text-left inline-block mt-4">
+
+The `langchain4j-agentic` module composes agents into:
+
+- **Sequence** — fan-in: writer → editor → publisher
+- **Loop** — iterate until exit condition met
+- **Parallel** — fan-out and merge
+- **Conditional** — branch on shared state
+- **Supervisor** — LLM picks the next sub-agent
+
+</div>
+
+---
+layout: two-cols
+---
+
+# Defining an Agent
+
+`@Agent` annotation + `AgenticServices.agentBuilder`
+
+::right::
+
+```java {all|1-7|9-12|all}
+interface CreativeWriter {
+    @SystemMessage("You write short stories.")
+    @UserMessage("Write a story about {{topic}}.")
+    @Agent("Generate a short story")
+    String writeStoryAbout(
+        @V("topic") String topic);
+}
+
+CreativeWriter writer =
+    AgenticServices.agentBuilder(CreativeWriter.class)
+        .chatModel(model)
+        .outputKey("story")
+        .build();
+
+String story = writer.writeStoryAbout("dragons");
 ```
 
 <div v-click class="mt-4 text-sm text-gray-400">
-<p>🔧 Access to external APIs and services</p>
-<p>🌐 Standardized tool integration protocol</p>
+<p>💡 outputKey publishes results to a shared AgenticScope</p>
+</div>
+
+---
+layout: two-cols
+---
+
+# Composing Agents
+
+Build a sequence or a loop
+
+::right::
+
+```java {all|1-5|7-12|all}
+// Sequence: writer then editor
+UntypedAgent novelist =
+    AgenticServices.sequenceBuilder()
+        .subAgents(writer, editor)
+        .outputKey("story")
+        .build();
+
+// Loop: edit until score >= 0.7
+UntypedAgent reviewLoop =
+    AgenticServices.loopBuilder()
+        .subAgents(scorer, styleEditor)
+        .maxIterations(3)
+        .exitCondition(scope ->
+            scope.readState("score", 0.0) >= 0.7)
+        .build();
+
+Object result = novelist.invoke(
+    Map.of("topic", "lighthouse keeper"));
+```
+
+<div v-click class="mt-4 text-sm text-gray-400">
+<p>🤝 Each agent reads/writes the shared scope by key</p>
+</div>
+
+---
+layout: two-cols
+---
+
+# Voting Pattern (1.15+)
+
+`langchain4j-agentic-patterns` — fan out, then aggregate
+
+::right::
+
+```java {all|1-9|11-15|all}
+// Three classifiers, three temperatures = diversity
+SentimentClassifier c1 = AgenticServices
+    .agentBuilder(SentimentClassifier.class)
+    .chatModel(coldModel).outputKey("vote1").build();
+SentimentClassifier c2 = AgenticServices
+    .agentBuilder(SentimentClassifier.class)
+    .chatModel(warmModel).outputKey("vote2").build();
+SentimentClassifier c3 = AgenticServices
+    .agentBuilder(SentimentClassifier.class)
+    .chatModel(hotModel).outputKey("vote3").build();
+
+SentimentVoter voter = AgenticServices
+    .plannerBuilder(SentimentVoter.class)
+    .subAgents(c1, c2, c3)
+    .planner(VotingPlanner::new)  // default: majority
+    .outputKey("classification").build();
+
+String result = voter.classify("I love this!");
+// -> "POSITIVE"
+```
+
+<div v-click class="mt-4 text-sm text-gray-400">
+<p>🗳️ Pass a custom VotingStrategy lambda to average scores, weight votes, etc.</p>
 </div>
 
 ---
@@ -583,13 +704,13 @@ ChatResponse response = model.chat("Hello");
 TokenUsage usage = response.tokenUsage();
 System.out.println("Input tokens: " + usage.inputTokenCount());
 System.out.println("Output tokens: " + usage.outputTokenCount());
-System.out.println("Total cost: $" + 
+System.out.println("Total cost: $" +
     calculateCost(usage.totalTokenCount()));
 
-// Caching for embeddings (Redis example)
-EmbeddingStore<TextSegment> store = RedisEmbeddingStore.builder()
-    .host("localhost")
-    .port(6379)
+// Vector store: Chroma shown here for pure vector search
+EmbeddingStore<TextSegment> store = ChromaEmbeddingStore.builder()
+    .baseUrl("http://localhost:8000")
+    .collectionName("production-embeddings")
     .dimension(384) // Match your embedding model
     .build();
 ```
@@ -598,53 +719,45 @@ EmbeddingStore<TextSegment> store = RedisEmbeddingStore.builder()
 ⚠️ <strong>Security:</strong> Never log API keys, validate inputs, rate limit
 </div>
 
+<div v-click class="mt-2 p-3 bg-blue-500 bg-opacity-20 rounded text-sm">
+📊 <strong>Observability:</strong> Micrometer metrics + Observation API (1.12)
+</div>
+
 ---
-layout: fact
+layout: two-cols
 ---
 
-# Complete Lab Progression
+# Lab Progression
 
-10 hands-on labs covering all LangChain4j capabilities
+11 hands-on labs
 
-<div class="grid grid-cols-2 gap-6 mt-8 text-sm">
+::right::
 
-<div v-click class="space-y-3">
-<div class="bg-blue-500 bg-opacity-20 p-3 rounded">
-<h4 class="font-bold mb-2">🚀 Foundation (Labs 1-3)</h4>
-<ul class="space-y-1">
-<li>• Lab 1: Basic Chat Interactions</li>
-<li>• Lab 2: Streaming Responses</li>
-<li>• Lab 3: Structured Data Extraction</li>
-</ul>
+<div class="space-y-3 text-sm mt-4">
+
+<div v-click class="bg-blue-500 bg-opacity-20 p-2 rounded">
+<strong>🚀 Foundation</strong>
+<p class="text-xs">Labs 1-3: Chat, Streaming, Extraction</p>
 </div>
 
-<div class="bg-green-500 bg-opacity-20 p-3 rounded">
-<h4 class="font-bold mb-2">🧠 Services & Memory (Labs 4-5)</h4>
-<ul class="space-y-1">
-<li>• Lab 4: AI Services Interface</li>
-<li>• Lab 5: Chat Memory</li>
-</ul>
-</div>
+<div v-click class="bg-green-500 bg-opacity-20 p-2 rounded">
+<strong>🧠 Services & Memory</strong>
+<p class="text-xs">Labs 4-5: AI Services, Chat Memory</p>
 </div>
 
-<div v-click class="space-y-3">
-<div class="bg-purple-500 bg-opacity-20 p-3 rounded">
-<h4 class="font-bold mb-2">🛠️ Tools & Integration (Labs 6-8)</h4>
-<ul class="space-y-1">
-<li>• Lab 6: AI Tools (Function Calling)</li>
-<li>• Lab 6.5: MCP Integration</li>
-<li>• Lab 7: Multimodal (Vision & Audio)</li>
-<li>• Lab 8: Image Generation</li>
-</ul>
+<div v-click class="bg-purple-500 bg-opacity-20 p-2 rounded">
+<strong>🛠️ Tools & Integration</strong>
+<p class="text-xs">Labs 6, 6.8, 7-8: Function Calling, MCP, Multimodal, Image Gen</p>
 </div>
 
-<div class="bg-orange-500 bg-opacity-20 p-3 rounded">
-<h4 class="font-bold mb-2">📚 RAG Implementation (Labs 9-10)</h4>
-<ul class="space-y-1">
-<li>• Lab 9: Retrieval-Augmented Generation</li>
-<li>• Lab 10: Chroma Vector Store for RAG</li>
-</ul>
+<div v-click class="bg-orange-500 bg-opacity-20 p-2 rounded">
+<strong>📚 RAG Implementation</strong>
+<p class="text-xs">Labs 9-10: RAG, Vector Stores</p>
 </div>
+
+<div v-click class="bg-pink-500 bg-opacity-20 p-2 rounded">
+<strong>🤝 Agentic Workflows</strong>
+<p class="text-xs">Lab 11: Sequence, Loop, Voting</p>
 </div>
 
 </div>
@@ -655,36 +768,68 @@ layout: two-cols
 
 # Resources
 
-<div class="mt-8">
-
-## 📚 Documentation
-- [LangChain4j Docs](https://docs.langchain4j.dev)
-- [GitHub Repository](https://github.com/langchain4j/langchain4j)
-- [Examples](https://github.com/langchain4j/langchain4j-examples)
-
-## 🛠️ This Course
-- Main branch: Starter code
-- Solutions branch: Complete implementations
-- Labs.md: Step-by-step guide
-
-</div>
+Documentation and course materials
 
 ::right::
 
-<div class="mt-8">
+<div class="mt-4 space-y-4 text-sm">
 
-## 🎯 Best Practices
-- Use environment variables for API keys
-- Implement proper error handling
-- Monitor token usage
-- Cache embeddings when possible
-- Test with different models
+<div v-click class="bg-blue-500 bg-opacity-20 p-3 rounded">
+<strong>📚 Documentation</strong>
+<ul class="text-xs mt-1 space-y-1">
+<li>• [LangChain4j Docs](https://docs.langchain4j.dev)</li>
+<li>• [GitHub Repository](https://github.com/langchain4j/langchain4j)</li>
+<li>• [Examples](https://github.com/langchain4j/langchain4j-examples)</li>
+</ul>
+</div>
 
-## 💡 Tips
-- Start simple, iterate
-- Read the JavaDocs
-- Check the examples repo
-- Join the community
+<div v-click class="bg-green-500 bg-opacity-20 p-3 rounded">
+<strong>🛠️ This Course</strong>
+<ul class="text-xs mt-1 space-y-1">
+<li>• Main branch: Starter code</li>
+<li>• Solutions branch: Complete implementations</li>
+<li>• Labs.md: Step-by-step guide</li>
+<li>• Pinned to LangChain4j 1.15.0</li>
+</ul>
+</div>
+
+</div>
+
+---
+layout: two-cols
+---
+
+# Best Practices
+
+Tips for production use
+
+::right::
+
+<div class="mt-4 space-y-4 text-sm">
+
+<div v-click class="bg-purple-500 bg-opacity-20 p-3 rounded">
+<strong>🎯 Best Practices</strong>
+<ul class="text-xs mt-1 space-y-1">
+<li>• Use environment variables for API keys</li>
+<li>• Implement proper error handling</li>
+<li>• Monitor token usage and add Micrometer metrics</li>
+<li>• Cache embeddings when possible</li>
+<li>• Test with different models</li>
+<li>• Use hybrid search when lexical recall matters</li>
+</ul>
+</div>
+
+<div v-click class="bg-orange-500 bg-opacity-20 p-3 rounded">
+<strong>💡 Tips</strong>
+<ul class="text-xs mt-1 space-y-1">
+<li>• Start simple, iterate</li>
+<li>• Read the JavaDocs</li>
+<li>• Check the examples repo</li>
+<li>• Join the community</li>
+<li>• Explore the agentic API for multi-step workflows</li>
+<li>• Use the Observation API for tracing</li>
+</ul>
+</div>
 
 </div>
 
@@ -719,16 +864,16 @@ layout: two-cols
 
 **Ken Kousen** | Kousen IT, Inc.
 
-📧 [ken.kousen@kousenit.com](mailto:ken.kousen@kousenit.com)  
-🌐 [www.kousenit.com](http://www.kousenit.com)  
-📝 [kousenit.org](https://kousenit.org) (blog)  
-💼 [linkedin.com/in/kenkousen](https://www.linkedin.com/in/kenkousen/)  
-🐦 [@kenkousen](https://twitter.com/kenkousen)  
-🐘 [foojay.social/@kenkousen](https://foojay.social/@kenkousen)  
-💙 [bsky.app/profile/kousenit.com](https://bsky.app/profile/kousenit.com)  
+📧 [ken.kousen@kousenit.com](mailto:ken.kousen@kousenit.com)<br>
+🌐 [www.kousenit.com](http://www.kousenit.com)<br>
+📝 [kousenit.org](https://kousenit.org) (blog)<br>
+💼 [linkedin.com/in/kenkousen](https://www.linkedin.com/in/kenkousen/)<br>
+🐦 [@kenkousen](https://twitter.com/kenkousen)<br>
+🐘 [foojay.social/@kenkousen](https://foojay.social/@kenkousen)<br>
+💙 [bsky.app/profile/kousenit.com](https://bsky.app/profile/kousenit.com)<br>
 
-**📰 Tales from the jar side**  
-[kenkousen.substack.com](https://kenkousen.substack.com)  
+**📰 Tales from the jar side**<br>
+[kenkousen.substack.com](https://kenkousen.substack.com)<br>
 [youtube.com/@talesfromthejarside](https://youtube.com/@talesfromthejarside)
 
 ::right::
