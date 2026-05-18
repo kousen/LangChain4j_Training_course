@@ -1,50 +1,39 @@
 package com.kousenit.langchain4j;
 
-import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.model.openai.OpenAiChatModel;
-import dev.langchain4j.service.AiServices;
-import dev.langchain4j.service.V;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-
-import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
 import static org.junit.jupiter.api.Assertions.*;
+
+import dev.langchain4j.service.V;
+import java.util.List;
+import org.junit.jupiter.api.Test;
 
 /**
  * Lab 4: AI Services Interface
- * <p>
- * This lab demonstrates how to create high-level AI service interfaces using LangChain4j.
- * You'll learn how to:
- * - Define service interfaces with annotations for type-safe AI interactions
- * - Use AiServices to automatically implement interfaces
- * - Combine memory and tools with AI services
- * - Create sophisticated AI-powered service layers
+ *
+ * <p>This lab demonstrates how to create high-level AI service interfaces using LangChain4j. You'll
+ * learn how to: - Define service interfaces with annotations for type-safe AI interactions - Use
+ * AiServices to automatically implement interfaces - Combine memory and tools with AI services -
+ * Create sophisticated AI-powered service layers
  */
 class AiServicesTests {
 
-    /**
-     * Interface for filmography service that provides movie information.
-     */
+    /** Interface for filmography service that provides movie information. */
     interface FilmographyService {
-        @dev.langchain4j.service.SystemMessage("You are a helpful assistant that provides accurate information about actors and their movies.")
+        @dev.langchain4j.service.SystemMessage(
+                "You are a helpful assistant that provides accurate information about actors and their movies.")
         List<String> getMovies(@dev.langchain4j.service.UserMessage String actor);
-        
+
         @dev.langchain4j.service.SystemMessage("You are a movie expert. Provide detailed analysis.")
         String analyzeActor(@dev.langchain4j.service.UserMessage String actorName);
-        
+
         ActorFilms getFullFilmography(String actorName);
     }
 
     /**
      * Test 4.1: Create and Use a Service Interface
-     * <p>
-     * TODO: Implement a filmography service using AiServices
-     * 1. Create an OpenAI chat model
-     * 2. Build FilmographyService using AiServices.builder()
-     * 3. Test getting movies for an actor
-     * 4. Test getting actor analysis
-     * 5. Verify the responses are not null and contain expected content
+     *
+     * <p>TODO: Implement a filmography service using AiServices 1. Create an OpenAI chat model 2.
+     * Build FilmographyService using AiServices.builder() 3. Test getting movies for an actor 4. Test
+     * getting actor analysis 5. Verify the responses are not null and contain expected content
      */
     @Test
     void useFilmographyService() {
@@ -62,7 +51,7 @@ class AiServicesTests {
         // TODO: Test simple movie list
         // List<String> tomHanksMovies = service.getMovies("Tom Hanks");
         // System.out.println("Tom Hanks movies: " + tomHanksMovies);
-        
+
         // TODO: Test actor analysis
         // String analysis = service.analyzeActor("Meryl Streep");
         // System.out.println("Meryl Streep analysis: " + analysis);
@@ -74,22 +63,18 @@ class AiServicesTests {
         // assertFalse(analysis.trim().isEmpty());
     }
 
-    /**
-     * Interface for personal assistant that can chat.
-     */
+    /** Interface for personal assistant that can chat. */
     interface PersonalAssistant {
         String chat(String message);
     }
 
     /**
      * Test 4.2: Service with Memory and Tools
-     * <p>
-     * TODO: Implement an advanced service that combines memory and tools
-     * 1. Create an OpenAI chat model
-     * 2. Create a ChatMemory instance
-     * 3. Build PersonalAssistant with AiServices including memory and DateTimeTool
-     * 4. Have a conversation that uses both memory and tools
-     * 5. Verify the assistant remembers previous context and can use tools
+     *
+     * <p>TODO: Implement an advanced service that combines memory and tools 1. Create an OpenAI chat
+     * model 2. Create a ChatMemory instance 3. Build PersonalAssistant with AiServices including
+     * memory and DateTimeTool 4. Have a conversation that uses both memory and tools 5. Verify the
+     * assistant remembers previous context and can use tools
      */
     @Test
     void personalAssistantWithMemoryAndTools() {
@@ -122,31 +107,27 @@ class AiServicesTests {
         // assertFalse(response2.trim().isEmpty());
     }
 
-    /**
-     * Interface for document analysis service.
-     */
+    /** Interface for document analysis service. */
     interface DocumentAnalyzer {
-        @dev.langchain4j.service.SystemMessage("You are an expert document analyzer. Provide concise, accurate analysis.")
+        @dev.langchain4j.service.SystemMessage(
+                "You are an expert document analyzer. Provide concise, accurate analysis.")
         @dev.langchain4j.service.UserMessage("Analyze this document content and provide key insights: {{content}}")
         String analyzeDocument(@V("content") String documentContent);
-        
+
         @dev.langchain4j.service.UserMessage("Extract the main themes from: {{content}}")
         List<String> extractThemes(@V("content") String documentContent);
-        
+
         @dev.langchain4j.service.UserMessage("Rate the sentiment of this content from 1-10: {{content}}")
         int analyzeSentiment(@V("content") String documentContent);
     }
 
     /**
      * Test 4.3: Advanced Service Configuration
-     * <p>
-     * TODO: Implement a sophisticated document analysis service
-     * 1. Create an OpenAI chat model with custom temperature
-     * 2. Build DocumentAnalyzer using AiServices
-     * 3. Test document analysis with sample content
-     * 4. Test theme extraction
-     * 5. Test sentiment analysis
-     * 6. Verify all return types work correctly (String, List<String>, int)
+     *
+     * <p>TODO: Implement a sophisticated document analysis service 1. Create an OpenAI chat model
+     * with custom temperature 2. Build DocumentAnalyzer using AiServices 3. Test document analysis
+     * with sample content 4. Test theme extraction 5. Test sentiment analysis 6. Verify all return
+     * types work correctly (String, List<String>, int)
      */
     @Test
     void advancedServiceConfiguration() {
@@ -186,31 +167,27 @@ class AiServicesTests {
         // assertTrue(sentiment >= 1 && sentiment <= 10);
     }
 
-    /**
-     * Interface for creative writing service with multiple data types.
-     */
+    /** Interface for creative writing service with multiple data types. */
     interface CreativeWritingService {
-        @dev.langchain4j.service.SystemMessage("You are a creative writing assistant specializing in {{genre}} fiction.")
+        @dev.langchain4j.service.SystemMessage(
+                "You are a creative writing assistant specializing in {{genre}} fiction.")
         @dev.langchain4j.service.UserMessage("Write a {{wordCount}}-word story about {{topic}} in the {{genre}} genre")
         String writeStory(@V("genre") String genre, @V("topic") String topic, @V("wordCount") int wordCount);
-        
+
         @dev.langchain4j.service.UserMessage("Generate {{count}} creative character names for a {{setting}} story")
         List<String> generateCharacterNames(@V("setting") String setting, @V("count") int count);
-        
+
         @dev.langchain4j.service.UserMessage("Rate the creativity level of this story from 1-10: {{story}}")
         int rateCreativity(@V("story") String story);
     }
 
     /**
      * Test 4.4: Service with Variable Substitution
-     * <p>
-     * TODO: Implement a creative writing service with template variables
-     * 1. Create an OpenAI chat model
-     * 2. Build CreativeWritingService using AiServices
-     * 3. Test story generation with different parameters
-     * 4. Test character name generation
-     * 5. Test creativity rating
-     * 6. Verify all template variables are properly substituted
+     *
+     * <p>TODO: Implement a creative writing service with template variables 1. Create an OpenAI chat
+     * model 2. Build CreativeWritingService using AiServices 3. Test story generation with different
+     * parameters 4. Test character name generation 5. Test creativity rating 6. Verify all template
+     * variables are properly substituted
      */
     @Test
     void creativeWritingServiceWithVariables() {
@@ -243,5 +220,28 @@ class AiServicesTests {
         // assertNotNull(characterNames);
         // assertEquals(5, characterNames.size());
         // assertTrue(creativity >= 1 && creativity <= 10);
+    }
+
+    /**
+     * Test 4.5: Per-Call ChatRequestParameters
+     *
+     * <p>TODO: Add a service method that accepts {@code ChatRequestParameters} as a final argument,
+     * then call the same prompt with different temperature values.
+     *
+     * <p>Implementation outline: define a local Composer interface with {@code String
+     * write(@UserMessage String prompt, ChatRequestParameters params)}, build it with AiServices, and
+     * pass {@code ChatRequestParameters.builder().temperature(...).build()} per call.
+     */
+    @Test
+    void perCallChatRequestParameters() {
+        // TODO: Create OpenAI chat model with a default temperature.
+
+        // TODO: Define/build a Composer service method that accepts ChatRequestParameters.
+
+        // TODO: Call the same prompt once with temperature 0.0 and once with a creative temperature.
+
+        // TODO: Assert both generated taglines are non-blank.
+
+        fail("TODO: Implement per-call ChatRequestParameters test");
     }
 }
