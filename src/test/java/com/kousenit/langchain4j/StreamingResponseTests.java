@@ -1,43 +1,27 @@
 package com.kousenit.langchain4j;
 
-import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.data.message.UserMessage;
-import dev.langchain4j.model.chat.StreamingChatModel;
-import dev.langchain4j.model.chat.response.ChatResponse;
-import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
-import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
-import org.junit.jupiter.api.Test;
-
-import java.util.Arrays;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_1_NANO;
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
 
 /**
  * Lab 2: Streaming Responses
- * <p>
- * This lab demonstrates streaming chat responses using LangChain4j's StreamingChatModel.
- * You'll learn how to:
- * - Create and configure a StreamingChatModel for real-time responses
- * - Handle streaming tokens as they arrive
- * - Manage completion and error states
- * - Use streaming with conversation context
- * - Work with CountDownLatch for asynchronous operations
+ *
+ * <p>This lab demonstrates streaming chat responses using LangChain4j's StreamingChatModel. You'll
+ * learn how to: - Create and configure a StreamingChatModel for real-time responses - Handle
+ * streaming tokens as they arrive - Manage completion and error states - Use streaming with
+ * conversation context - Work with CountDownLatch for asynchronous operations
  */
 class StreamingResponseTests {
 
     /**
      * Test 2.1: Streaming with Reactive Streams
-     * <p>
-     * TODO: Implement streaming chat that receives tokens in real-time
-     * 1. Create an OpenAI streaming chat model using the builder pattern
-     * 2. Set up a UserMessage with an interesting prompt
-     * 3. Create a CountDownLatch to wait for completion
-     * 4. Use a StringBuilder to collect the full response
-     * 5. Implement StreamingResponseHandler with onNext, onComplete, and onError
-     * 6. Print tokens as they arrive and wait for completion
+     *
+     * <p>TODO: Implement streaming chat that receives tokens in real-time 1. Create an OpenAI
+     * streaming chat model using the builder pattern 2. Set up a UserMessage with an interesting
+     * prompt 3. Create a CountDownLatch to wait for completion 4. Use a StringBuilder to collect the
+     * full response 5. Implement StreamingResponseHandler with onNext, onComplete, and onError 6.
+     * Print tokens as they arrive and wait for completion
      */
     @Test
     void streamingChat() throws InterruptedException {
@@ -49,7 +33,7 @@ class StreamingResponseTests {
 
         // TODO: Create user message
         // String userMessage = "Tell me a story about a brave robot.";
-        
+
         // TODO: Set up synchronization and response collection
         // CountDownLatch latch = new CountDownLatch(1);
         // StringBuilder fullResponse = new StringBuilder();
@@ -78,21 +62,18 @@ class StreamingResponseTests {
 
         // TODO: Wait for completion
         // latch.await();
-        
+
         // TODO: Verify response was received
         // assertFalse(fullResponse.toString().isEmpty());
     }
 
     /**
      * Test 2.2: Streaming with Multiple Messages
-     * <p>
-     * TODO: Implement streaming with conversation context (system + user messages)
-     * 1. Create an OpenAI streaming chat model
-     * 2. Create both SystemMessage and UserMessage
-     * 3. Set up CountDownLatch for synchronization
-     * 4. Stream with a list of messages
-     * 5. Handle completion with finish reason logging
-     * 6. Add timeout to the await call for safety
+     *
+     * <p>TODO: Implement streaming with conversation context (system + user messages) 1. Create an
+     * OpenAI streaming chat model 2. Create both SystemMessage and UserMessage 3. Set up
+     * CountDownLatch for synchronization 4. Stream with a list of messages 5. Handle completion with
+     * finish reason logging 6. Add timeout to the await call for safety
      */
     @Test
     void streamingWithContext() throws InterruptedException {
@@ -105,13 +86,13 @@ class StreamingResponseTests {
         // TODO: Create system and user messages
         // SystemMessage systemMessage = SystemMessage.from("You are a helpful coding assistant.");
         // UserMessage userMessage = UserMessage.from("Explain recursion in simple terms.");
-        
+
         // TODO: Set up synchronization
         // CountDownLatch latch = new CountDownLatch(1);
         // StringBuilder responseBuilder = new StringBuilder();
 
         // TODO: Stream with multiple messages
-        // model.chat(Arrays.asList(systemMessage, userMessage), 
+        // model.chat(Arrays.asList(systemMessage, userMessage),
         //     new StreamingChatResponseHandler() {
         //         @Override
         //         public void onPartialResponse(String token) {
@@ -140,12 +121,10 @@ class StreamingResponseTests {
 
     /**
      * Test 2.3: Error Handling in Streaming
-     * <p>
-     * TODO: Implement streaming with deliberate error handling
-     * 1. Create a streaming model with invalid configuration (to trigger error)
-     * 2. Attempt to stream a message
-     * 3. Verify that onError is called appropriately
-     * 4. Log error details for debugging
+     *
+     * <p>TODO: Implement streaming with deliberate error handling 1. Create a streaming model with
+     * invalid configuration (to trigger error) 2. Attempt to stream a message 3. Verify that onError
+     * is called appropriately 4. Log error details for debugging
      */
     @Test
     void streamingErrorHandling() throws InterruptedException {
@@ -163,7 +142,7 @@ class StreamingResponseTests {
 
         // TODO: Attempt streaming with error handling
         // String userMessage = "This should fail due to invalid API key";
-        // 
+        //
         // model.chat(userMessage, new StreamingChatResponseHandler() {
         //     @Override
         //     public void onPartialResponse(String token) {
@@ -190,5 +169,26 @@ class StreamingResponseTests {
         // assertTrue(completed, "Error handling should complete within 10 seconds");
         // assertTrue(errorOccurred[0], "Error should have been handled");
         // assertNotNull(errorMessage[0], "Error message should be captured");
+    }
+
+    /**
+     * Test 2.4: Cancelling a Streaming Response
+     *
+     * <p>TODO: Use {@code context.streamingHandle().cancel()} to stop a stream after receiving enough
+     * partial output.
+     *
+     * <p>Implementation outline: collect partial text in {@code onPartialResponse}, cancel when the
+     * buffer is long enough, signal a {@code CountDownLatch}, and assert that cancellation happened
+     * before the model completed the full response.
+     */
+    @Test
+    void cancellingStreaming() throws InterruptedException {
+        // TODO: Create OpenAI streaming chat model.
+
+        // TODO: Collect PartialResponse text in onPartialResponse.
+
+        // TODO: When enough text is collected, call context.streamingHandle().cancel().
+
+        // TODO: Assert the latch completes, cancellation happened, and partial output is non-blank.
     }
 }
