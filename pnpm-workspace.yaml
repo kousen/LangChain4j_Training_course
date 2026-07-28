@@ -1,0 +1,5 @@
+# pnpm refuses to run dependency build scripts unless they are listed here, and
+# exits non-zero while any are undecided, which blocks `pnpm build` / `pnpm export`.
+allowBuilds:
+  esbuild: true
+  playwright-chromium: true
